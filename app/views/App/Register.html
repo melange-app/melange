@@ -1,0 +1,39 @@
+{{ set . "title" "Register" }}
+{{ template "header.html" . }}
+
+<div class="container">
+	<div class="row">
+		<div class="col-xs-8 col-xs-offset-2 col-md-6 col-md-offset-3">
+			<form class="form-signin" role="form" method="post">
+			<h2>Register for Melange</h2>
+			{{ if .errors }}
+				<p>Please correct the following errors:</p>
+				{{ range .errors }}
+				<p class="error">{{ . }}</p>
+				{{ end }}
+			{{ else }}
+			<p>You are just moments away from experiencing the new way to communicate.</p>
+			{{ end }}
+			<div class="form-group">
+				<label for="registerFullName">Full Name</label>
+				<input type="text" class="form-control input-lg" name="name" id="registerFullName" placeholder="John Smith" required autofocus>
+			</div>
+			<div class="form-group">
+				<label for="registerUsername">Username *</label>
+				<input type="text" class="form-control input-lg" name="username" id="registerUsername" placeholder="jsmith" required>
+			</div>
+			<div class="form-group">
+				<label for="registerPassword">Password *</label>
+				<input type="password" class="form-control input-lg" name="password" id="registerPassword" placeholder="secure-password" required>
+			</div>
+			<div class="form-group">
+				<label for="registerPasswordConfirm">Confirm Password *</label>
+				<input type="password" class="form-control input-lg" name="confirmPassword" id="registerPasswordConfirm" placeholder="secure-password" required>
+			</div>
+			<input type="submit" class="btn btn-primary btn-lg btn-block" value="Register">
+			</form>
+		</div>
+	</div>
+</div>
+
+{{ template "footer.html" . }}
