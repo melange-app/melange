@@ -1,6 +1,5 @@
 test-results/
 tmp/
 routes/
-conf/app.conf
 *.db
 *.swp
