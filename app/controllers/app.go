@@ -12,6 +12,10 @@ type App struct {
 }
 
 func (c App) Index() revel.Result {
+	_, ok := c.Session["user"]
+	if ok {
+		return c.Redirect(routes.Dispatch.Dashboard())
+	}
 	return c.Render()
 }
 
@@ -24,6 +28,10 @@ func (c App) Logout() revel.Result {
 
 // These Two Actions Control Displaying the Login View and Processing Logins
 func (c App) Login() revel.Result {
+	_, ok := c.Session["user"]
+	if ok {
+		return c.Redirect(routes.Dispatch.Dashboard())
+	}
 	return c.Render()
 }
 
@@ -36,8 +44,16 @@ func (c App) ProcessLogin(username string, password string) revel.Result {
 
 	// User is logged in, redirect to dashboard.
 	c.Session["user"] = strconv.Itoa(user.UserId)
-	c.Flash.Success("Welcome back, " + user.Name)
-	return c.Redirect(routes.App.Index())
+	c.Flash.Success("Welcome back, " + user.Name + ".")
+	return c.Redirect(routes.Dispatch.Dashboard())
+}
+
+func (c App) Account() revel.Result {
+	return c.Render()
+}
+
+func (c App) ProcessAccount() revel.Result {
+	return c.Render()
 }
 
 // These Two Actions Control Displaying the Registration View and Processing Registration
@@ -66,10 +82,12 @@ func (c App) ProcessRegistration(
 		return c.Redirect(App.ProcessRegistration)
 	}
 
+	// Validation Passed, Let's Create the User
 	u := models.CreateUser(username, password, name)
 	u.Save(c.Txn)
 
-	// Validation Passed, Let's Create the User
+	c.Session["user"] = strconv.Itoa(u.UserId)
+	c.Flash.Success("Hi there, " + u.Name + " looks like it's your first time here. Why not try the tutorial?")
 
-	return c.Redirect(routes.App.Index())
+	return c.Redirect(routes.Dispatch.Dashboard())
 }

@@ -1,0 +1,57 @@
+{{ set . "title" "Profile" }}
+{{ template "header.html" . }}
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-2 nav">
+      {{ template "sidebar.html" . }}
+    </div>
+    <div class="col-sm-10" style="padding-top: 20px;">
+      <div class="row">
+        <div class="col-sm-3">
+          <img class="img-responsive img-circle" src="https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-ash4/302066_10151616869615972_963571219_n.jpg">
+        </div>
+        <div class="col-sm-9 profile-header">
+          <h1>Hunter Leath</h1>
+          <h4 class="no-margin">About</h4>
+          <p class="date no-margin">University of Virginia, AirDispatch</p>
+          <hr/>
+          <div class="row">
+            <div class="col-sm-6">
+              <p>I'm a Second Year at the University of Virginia, and I like to
+              write code to solve big problems. Follow me at  <a href="http://hunterleath.com">my website</a> or on AD here.</p>
+            </div>
+            <div class="col-sm-6">
+              <p class="no-margin"><strong>Eating Ice Cream:</strong> <i class="fa
+                fa-check"></i></p>
+              <p class="no-margin"><strong>Ready for Slice:</strong> <i class="fa
+                fa-check"></i></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Panel !-->
+      <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="row message">
+                <div class="col-xs-3 col-sm-2">
+                    <img style="height: 50px;" src="https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-ash4/302066_10151616869615972_963571219_n.jpg" class="avatar img-responsive img-circle">
+                </div>
+                <div class="col-xs-9 col-sm-8">
+                    <h4>
+                        <a href="#">Hunter Leath</a>
+                    </h4>
+                    <p>Today, I was sitting.</p>
+                </div>
+                <div class="col-sm-2 col-sm-offset-0 col-xs-offset-3">
+                    <p class="date">5 minutes ago <br/> <a href="#">View in Notes App</a></p>
+                </div>
+            </div>
+        </div>
+      </div>
+      <!-- End Panel !-->
+    </div>
+  </div>
+</div>
+
+{{ template "footer.html" . }}

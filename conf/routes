@@ -12,6 +12,23 @@ GET     /login                                  App.Login
 POST    /login                                  App.ProcessLogin
 GET     /register                               App.Register
 POST    /register                               App.ProcessRegistration
+GET     /logout                                 App.Logout
+
+# Account Management
+GET     /account                                App.Account
+POST    /account                                App.ProcessAccount
+
+# Login User Center
+GET     /dashboard                              Dispatch.Dashboard
+GET     /profile                                Dispatch.Profile
+GET     /all                                    Dispatch.All
+
+# App Controllers
+GET     /app/:app                               Dispatch.LoadApp
+GET     /app/:app/:action                       Dispatch.LoadApp
+GET     /app/:app/:action/m/:message            Dispatch.LoadAppMessage
+GET     /app/:app/:action/u/:username           Dispatch.LoadAppUser
+POST    /app/:app/:action                       Dispatch.AppPost
 
 # GET     /dashboard                              App.Dashboard
 

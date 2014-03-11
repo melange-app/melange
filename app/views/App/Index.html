@@ -1,11 +1,12 @@
 {{set . "title" "Home"}}
+{{set . "auth" true }}
 {{template "header.html" .}}
 
 <div class="jumbotron">
   <div class="container">
-    <h1>Hello, world!</h1>
-    <p>Welcome to Melange, a powerful new way to communicate.</p>
-    <p><a class="bt btn-success btn-lg" href="/register">Register Now</a></p>
+    <h1>Communicate Better.</h1>
+	<p>Melange is a powerful new way to work on the internet that utilizes the new <a href="http://airdispat.ch">AirDispatch</a> protocol.</p>
+    <p><a class="btn btn-info btn-lg" href="/register">Register Now</a></p>
   </div>
 </div>
 
@@ -18,7 +19,7 @@
     </div>
     <div class="col-md-4">
       <h2>Security</h2>
-      <p>Melange runs on the innovative, new AirDispatch protocol. Lightyears more secure than email, AirDispatch allows users to sleep comfortably at night without having to worry about addressing spoofing, encryption, or data leakage.</p>
+      <p>Melange runs on the innovative, new AirDispatch protocol. Lightyears more secure than email, AirDispatch allows users to sleep comfortably at night without having to worry about address spoofing, encryption, or data leakage.</p>
 	  <p><a href="#">Detailed Security Profile</a></p>
     </div>
     <div class="col-md-4">
@@ -27,7 +28,9 @@
 	  <p><a href="#">Developer Center</a></p>
     </div>
   </div>
-  <p>Or learn more at the <a href="http://airdispat.ch">AirDispatch Foundation</a></p>
+
+  <hr/> 
+
   <div class="alert alert-warning">
      <p>Melange cannot protect against all government spying on the internet. We recommend that you "Host Your Own" if you want protection from this.</p>
   </div>
@@ -35,24 +38,22 @@
   <hr/>
 
   <h2 id="pricing">Pricing</h2>
-  <div class="row">
+  <div class="row center">
     <div class="col-xs-4">
       <h4>Standard</h4>
-      <p>Free, but at a privacy cost.</p>
       <p>Free forever</p>
       <p><a href="#" class="btn btn-warning btn-sm">Register</a></p>
     </div>
     <div class="col-xs-4">
-      <h4><strong>Secure</strong></h4>
+      <h4><strong>Secure & Private</strong></h4>
       <p>Best Value</p>
       <p>$5/month</p>
       <p><a href="#" class="btn btn-primary btn-lg">Register</a></p>
     </div>
     <div class="col-xs-4">
-      <h4>Roll Your Own</h4>
+      <h4>Personal Melange</h4>
       <p>Most Secure</p>
-      <p>Free forever</p>
-      <p><a href="#" class="btn btn-warning btn-sm">Download</a></p>
+      <p><a href="#" class="btn btn-warning btn-sm" disabled>Coming Soon</a></p>
     </div>
   </div>
 </div>

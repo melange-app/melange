@@ -1,0 +1,13 @@
+{{ set . "affix_sidebar" true }}
+{{ template "header.html" . }}
+
+<div class="container">
+  <div class="row">
+    {{ template "sidebar.html" . }}
+    <div class="col-sm-10">
+      {{ .data }}
+    </div>
+  </div>
+</div>
+
+{{ template "footer.html" . }}

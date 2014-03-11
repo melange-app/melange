@@ -40,9 +40,6 @@ func (user *User) Validate(v *revel.Validation) {
 func AuthenticateUser(username string, password string, dbm *gorp.Transaction) (*User, error) {
 	var authenticatedUser []*User
 
-	// rows, drr := db.Db.Query("select * from dispatch_user where username=$1", "hleath")
-	// fmt.Println(rows, drr)
-
 	_, err := dbm.Select(&authenticatedUser,
 		"select * from dispatch_user where username = :Uname",
 		map[string]interface{}{
