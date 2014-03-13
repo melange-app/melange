@@ -3,13 +3,34 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-sm-2 nav">
       {{ template "sidebar.html" . }}
-    </div>
     <div class="col-sm-10">
-      <h1>Account Management</h1>
-      <hr/>
-     
+      <h3>Account Settings</h3>
+      <br/>
+      <ul class="nav nav-tabs">
+	<li class="active"><a data-toggle="tab" href="general">
+	    <i class="fa fa-cogs"></i>
+	    General
+	</a></li>
+	<li><a data-toggle="tab" href="identity">
+	    <i class="fa fa-user"></i>
+	    Identity
+	</a></li>
+	<li><a data-toggle="tab" href="billing">
+	    <i class="fa fa-credit-card"></i>
+	    Billing and Plan
+	</a></li>
+      </ul>
+      <div class="tab-content">
+	<div class="tab-pane active" id="general">
+	  <form class="form form-inline" role="form">
+	  </form>
+	</div>
+	<div class="tab-pane" id="identity">
+	</div>
+	<div class="tab-pane" id="billing">
+	</div>
+      </div>
     </div>
   </div>
 </div>
