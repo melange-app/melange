@@ -4,7 +4,7 @@
 <div class="container">
     <div class="row">
         {{ template "sidebar.html" . }}
-        <div class="col-sm-10">
+        <div class="main col-sm-10">
             <h4>Dashboard</h4>
             {{ if .flash.success }}
             <div class="alert alert-success">
@@ -110,7 +110,7 @@
 	    {{ else }}
 	    <br/>
 	    <div class="text-shadowed text-center text-muted">
-	      <i class="fa fa-4x fa-search"></i>
+	      <i class="fa fa-4x fa-bullhorn"></i>
 	      <h4>There doesn't seem to be anything here. You should add some friends.</h4>
 	    </div>
             {{ end }}
