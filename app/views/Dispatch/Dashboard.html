@@ -2,30 +2,10 @@
 {{ template "header.html" . }}
 
 <div class="container">
-    <div class="hidden-xs pull-right">
-        <div class="stat">
-            <div>15</div>
-            Unread Messages
-        </div>
-        <div class="stat">
-            <div>132</div>
-            Total Messages
-        </div>
-        <div class="stat">
-            <div>30</div>
-            Minute Average Response
-        </div>
-        <div class="clear"></div>
-    </div>
-    <h1>Welcome back.</h1>
-    <p class="subtitle">While you were away, you received 15 new messages.</p>
-</div>
-<hr class="divider"/>
-<div class="container">
     <div class="row">
         {{ template "sidebar.html" . }}
         <div class="col-sm-10">
-            <h4>The Dashboard</h4>
+            <h4>Dashboard</h4>
             {{ if .flash.success }}
             <div class="alert alert-success">
                 <p>{{ .flash.success }}</p>
@@ -127,6 +107,12 @@
                     </div>
                 </div>
             </div>
+	    {{ else }}
+	    <br/>
+	    <div class="text-shadowed text-center text-muted">
+	      <i class="fa fa-4x fa-search"></i>
+	      <h4>There doesn't seem to be anything here. You should add some friends.</h4>
+	    </div>
             {{ end }}
         </div>
     </div>

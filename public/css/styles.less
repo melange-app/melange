@@ -8,6 +8,9 @@ html,body {
   margin: 0;
   padding: 0;
 }
+.text-shadowed {
+    text-shadow: 1px 1px #666;
+}
 .center {
   text-align: center;
 }
@@ -189,6 +192,7 @@ hr.divider {
   background-color: black;
   position: relative;
   overflow: auto;
+  padding-top: 0px;
 }
 .channel .body img {
   float: left;
@@ -235,7 +239,7 @@ hr.divider {
   font-size: 25px;
 }
 .channel.tutorial-channel .col a:hover {
-  top: 5px;
+  top: 2px;
 }
 
 /* SIDEBAR */
@@ -247,40 +251,12 @@ hr.divider {
   position: static;
 }
 .sidebar-container {
-  height: 100%;
-  border-right: 1px solid #aaa;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-}
-.sidebar-container.affix {
-  position: fixed;
-  top: 45px;
-}
-@media (min-width: 1200px) {
-  .sidebar-container {
-    width: 195px;
-  }
-}
-@media (min-width: 992px) and (max-width: 1199px) {
-  .sidebar-container {
-    width: 161.656px;
-  }
-}
-@media (min-width: 768px) and (max-width: 991px) {
-  .sidebar-container {
-    width: 125px;
-  }
-}
-@media (max-width: 767px) {
-  .sidebar-container.affix {
-    position: static;
-    width: auto;
-  }
-  .sidebar-container {
-    position: static;
-    width: auto;
-  }
+  min-height: 50%;
+  border: 1px solid #eee;
+  border-top-style: none;
+  position: relative;
+  top: -15px;
+  padding-top: 15px;
 }
 .sidebar {
   padding-left: 0;
@@ -317,6 +293,7 @@ hr.divider {
 }
 .sidebar a.active {
   border-left: solid 3px @navbar;
+  font-weight: bold;
 }
 .sidebar a.small {
   font-size: 12px;

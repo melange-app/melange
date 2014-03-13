@@ -1,5 +1,5 @@
 <div class="col-sm-2 nav">
-    <div class="sidebar-container {{ if .affix_sidebar }}affix{{ end }}"  {{ if not .affix_sidebar }}data-spy="affix" data-offset-top="105"{{ end }}>
+    <div class="sidebar-container">
         <h4>Navigation</h4>
         <div class="sidebar">
             <div class="header">PLACES</div>
@@ -12,6 +12,8 @@
             <a {{ active .app_name "events" }} href="/app/events">Events</a>
             <a href="#"><i class="fa fa-plus"></i> Add an App</a>
             <a href="#" class="small"><i class="fa fa-caret-down fa-fw"></i> More</a>
+	    <div class="header">FAVORITES</div>
+	    <a href="#">Dalton Sherwood</a>
         </div>
     </div>
 </div>
