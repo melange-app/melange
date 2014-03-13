@@ -41,10 +41,7 @@ func AuthenticateUser(username string, password string, dbm *gorp.Transaction) (
 	var authenticatedUser []*User
 
 	_, err := dbm.Select(&authenticatedUser,
-		"select * from dispatch_user where username = :Uname",
-		map[string]interface{}{
-			"Uname": username,
-		})
+		"select * from dispatch_user where username = $1", username)
 
 	if err != nil {
 		panic(err)

@@ -4,7 +4,7 @@ import (
 	// "code.google.com/p/go.crypto/bcrypt"
 	"database/sql"
 	"github.com/coopernurse/gorp"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 	r "github.com/robfig/revel"
 	"github.com/robfig/revel/modules/db/app"
 	"melange/app/models"
@@ -17,7 +17,7 @@ var (
 func Init() {
 	db.Init()
 
-	Dbm = &gorp.DbMap{Db: db.Db, Dialect: gorp.SqliteDialect{}}
+	Dbm = &gorp.DbMap{Db: db.Db, Dialect: gorp.PostgresDialect{}}
 
 	t := Dbm.AddTableWithName(models.User{}, "dispatch_user").SetKeys(true, "UserId")
 	t.ColMap("Password").Transient = true
