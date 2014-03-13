@@ -19,8 +19,7 @@ func Init() {
 
 	Dbm = &gorp.DbMap{Db: db.Db, Dialect: gorp.PostgresDialect{}}
 
-	t := Dbm.AddTableWithName(models.User{}, "dispatch_user").SetKeys(true, "UserId")
-	t.ColMap("Password").Transient = true
+	models.CreateTables(Dbm)
 
 	Dbm.TraceOn("[gorp]", r.INFO)
 	err := Dbm.CreateTablesIfNotExists()
