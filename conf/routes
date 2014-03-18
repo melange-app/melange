@@ -15,27 +15,34 @@ POST    /register                               App.ProcessRegistration
 GET     /logout                                 App.Logout
 
 # Account Management
-GET     /account                                App.Account
-POST    /account                                App.ProcessAccount
+GET     /account                                Dispatch.Account
+POST    /account                                Dispatch.ProcessAccount
 
 # Login User Center
 GET     /dashboard                              Dispatch.Dashboard
 GET     /profile                                Dispatch.Profile
 GET     /all                                    Dispatch.All
 
-# App Controllers
-GET     /app/:app                               Dispatch.LoadApp
-GET     /app/:app/:action                       Dispatch.LoadApp
-GET     /app/:app/:action/m/:message            Dispatch.LoadAppMessage
-GET     /app/:app/:action/u/:username           Dispatch.LoadAppUser
-POST    /app/:app/:action                       Dispatch.AppPost
+# Application Management
+GET     /app                                    Dispatch.Applications
+POST    /app/new                                Dispatch.AddApplication
 
-# GET     /dashboard                              App.Dashboard
+# App Controllers
+GET     /app/:app                               Loader.LoadApp
+POST    /app/:app/uninstall                     Dispatch.UninstallApplication
+GET     /app/:app/:action                       Loader.LoadApp
+GET     /app/:app/:action/m/:message            Loader.LoadAppMessage
+GET     /app/:app/:action/u/:username           Loader.LoadAppUser
+POST    /app/:app/send                          Loader.SendMessage
+POST    /app/:app/:action                       Loader.AppPost
+
+# GET     /dashboard                            App.Dashboard
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
 
 # Map static resources from the /app/public folder to the /public path
+GET		/apps/*filepath                         Static.Serve("applications")
 GET     /public/*filepath                       Static.Serve("public")
 
 # Catch all
