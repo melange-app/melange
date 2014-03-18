@@ -7,11 +7,11 @@
             <a {{ active .title "All Messages" }} href="/all">All Messages</a>
             <a {{ active .title "Profile" }} href="/profile">My Profile</a>
             <div class="header">APPS</div>
-            <a {{ active .app_name "notes" }} href="/app/notes">Notes <span class="label label-primary">50</span></a>
-            <a {{ active .app_name "chat" }} href="/app/chat">Chat</a>
-            <a {{ active .app_name "events" }} href="/app/events">Events</a>
-            <a href="#"><i class="fa fa-plus"></i> Add an App</a>
-            <a href="#" class="small"><i class="fa fa-caret-down fa-fw"></i> More</a>
+            {{ $t := .title }}
+            {{ range .apps }}
+                <a {{ active $t .Name }} href="/app/{{ .Name }}">{{ .Name }}</a>
+            {{ end }}
+            <a href="/app/" class="small"><i class="fa fa-gears"></i> Manage Apps</a>
 	    <div class="header">FAVORITES</div>
 	    <a href="#">Dalton Sherwood</a>
         </div>
