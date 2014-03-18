@@ -112,3 +112,25 @@ func (a *Alert) DownloadMessageFromAlert(db *gorp.DbMap, r routing.Router) (*mes
 
 	return message.CreateMailFromBytes(data, h)
 }
+
+func DownloadPublicMessages(since uint64, addr *identity.Address, from *identity.Identity) ([]*Alert, error) {
+	t := server.CreateTransferMessageList(since, from.Address, addr)
+
+	data, messageType, h, err := message.SendMessageAndReceive(t, from, addr)
+
+	if messageType != wire.MessageListCode {
+		return nil, errors.New("Unexpected message type.")
+	}
+
+	ml, err := server.CreateMessageListFromBytes(data, h)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]*Alert, len(ml.Content))
+	for i, v := range ml.Content {
+		out[i] = CreateAlertFromDescription(v)
+	}
+
+	return out, nil
+}
