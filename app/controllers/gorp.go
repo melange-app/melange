@@ -39,6 +39,7 @@ func (c *GorpController) Begin() r.Result {
 		panic(err)
 	}
 	c.Txn = txn
+
 	return nil
 }
 
