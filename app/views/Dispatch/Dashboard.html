@@ -2,120 +2,127 @@
 {{ template "header.html" . }}
 
 <div class="container">
-    <div class="row">
-        {{ template "sidebar.html" . }}
-        <div class="main col-sm-10">
-            <h4>Dashboard</h4>
-            {{ if .flash.success }}
-            <div class="alert alert-success">
-                <p>{{ .flash.success }}</p>
-            </div>
-            {{ end }}
-            <h5>My Widgets <a href="#" style="font-size: 10px;">edit</a></h5>
-            <div class="channels">
-                <div class="row">
-                    <div class="col-xs-12">
-                        <style>
-                            .ad-status-post-widget textarea {
-                                width: 100%;
-                                position: relative;
-                                height: 75px;
-                                border-color: #aaa;
-                                outline: none;
-                            }
-                            .ad-status-post-widget .input-group {
-                                position: relative;
-                                z-index: 10;
-                                top: -1px;
-                            }
-                            .ad-status-post-widget .input-group input {
-                                outline: none;
-                            }
-                        </style>
-                        <form method="post" class="ad-status-post-widget">
-                            <textarea placeholder="Enter a status..."></textarea>
-                            <div class="input-group">
-                                <span class="input-group-addon">To:</span>
-                                <input placeholder="Public" type="text" class="form-control">
-                                <span class="input-group-btn">
-                                    <button class="btn btn-success" type="button"><i class="fa fa-envelope"></i> Send</button>
-                                </span>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-6 channel blue">
-                        <div class="header">
-                            <p>News</p> 
-                        </div>
-                        <div class="body">
-                            <img src="https://pbs.twimg.com/profile_images/2044921128/finals.png">
-                            <p>
-                                Breaking News: Russia Offers Ukraine $15 Billion Loan and Lower Gas Prices
-                                <br/>
-                                <a href="http://www.nytimes.com/?smid=tw-bna">Read More</a>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 channel red tutorial-channel">
-                        <div class="header">
-                            <p>Tutorial</p>
-                        </div>
-                        <div class="body center">
-                            <div class="channel-row">
-                                <div class="col">
-                                    <a href="#">
-                                        <i class="fa fa-plus"></i><br/>
-                                        Add a Widget
-                                    </a>
-                                </div>
-                                <div class="col">
-                                    <a href="#">
-                                        <i class="fa fa-envelope"></i><br/>
-                                        Send a Message
-                                    </a>
-                                </div>
-                                <div class="col">
-                                    <a href="#">
-                                        <i class="fa fa-check"></i><br/>
-                                        Complete the Tutorial
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <h5>Recents</h5>
-            {{ range .recents }}
-            <div class="panel panel-default">
-                <div class="panel-body">
-                    <div class="row message">
-                        <div class="col-xs-3 col-sm-2">
-                            <img style="height: 50px;" src="https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-ash4/302066_10151616869615972_963571219_n.jpg" class="avatar img-responsive img-circle">
-                        </div>
-                        <div class="col-xs-9 col-sm-8">
-                            <h4>
-                                <a href="#">Hunter Leath</a>
-                            </h4>
-                            <p>Today, I was sitting.</p>
-                        </div>
-                        <div class="col-sm-2 col-sm-offset-0 col-xs-offset-3">
-                            <p class="date">5 minutes ago <br/> <a href="#">View in Notes App</a></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-	    {{ else }}
-	    <br/>
-	    <div class="text-shadowed text-center text-muted">
-	      <i class="fa fa-4x fa-bullhorn"></i>
-	      <h4>There doesn't seem to be anything here. You should add some friends.</h4>
-	    </div>
-            {{ end }}
+  <div class="row">
+    {{ template "sidebar.html" . }}
+    <div class="main col-sm-10">
+      <h4>Dashboard</h4>
+      {{ if .flash.success }}
+      <div class="alert alert-success">
+        <p>{{ .flash.success }}</p>
+      </div>
+      {{ end }}
+      <h5>My Widgets <a href="#" style="font-size: 10px;">edit</a></h5>
+      <div class="channels">
+        <div class="row">
+          <div class="col-xs-12">
+            <style>
+              .ad-status-post-widget textarea {
+                width: 100%;
+                position: relative;
+                height: 75px;
+                border-color: #aaa;
+                outline: none;
+              }
+              .ad-status-post-widget .input-group {
+                position: relative;
+                z-index: 10;
+                top: -1px;
+              }
+              .ad-status-post-widget .input-group input {
+                outline: none;
+              }
+            </style>
+            <form method="post" class="ad-status-post-widget">
+              <textarea placeholder="Enter a status..."></textarea>
+              <div class="input-group">
+                <span class="input-group-addon">To:</span>
+                <input placeholder="Public" type="text" class="form-control">
+                <span class="input-group-btn">
+                  <button class="btn btn-success" type="button"><i class="fa fa-envelope"></i> Send</button>
+                </span>
+              </div>
+            </form>
+          </div>
         </div>
+        <div class="row">
+          <div class="col-sm-6 channel blue">
+            <div class="header">
+              <p>News</p> 
+            </div>
+            <div class="body">
+              <img src="https://pbs.twimg.com/profile_images/2044921128/finals.png">
+              <p>
+                Breaking News: Russia Offers Ukraine $15 Billion Loan and Lower Gas Prices
+                <br/>
+                <a href="http://www.nytimes.com/?smid=tw-bna">Read More</a>
+              </p>
+            </div>
+          </div>
+          <div class="col-sm-6 channel red tutorial-channel">
+            <div class="header">
+              <p>Tutorial</p>
+            </div>
+            <div class="body center">
+              <div class="channel-row">
+                <div class="col">
+                  <a href="#">
+                    <i class="fa fa-plus"></i><br/>
+                    Add a Widget
+                  </a>
+                </div>
+                <div class="col">
+                  <a href="#">
+                    <i class="fa fa-envelope"></i><br/>
+                    Send a Message
+                  </a>
+                </div>
+                <div class="col">
+                  <a href="#">
+                    <i class="fa fa-check"></i><br/>
+                    Complete the Tutorial
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="btn-group pull-right">
+        <!-- JS This Filter Button! -->
+        <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown">
+          Filter By <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+          <li><a href="#">All</a></li>
+          <li><a href="#">Only Messages</a></li>
+          <li><a href="#">Only Subscriptions</a></li>
+        </ul>
+      </div>
+      <h5>Recents</h5>
+      {{ range .recents }}
+        <div class="row message">
+          <div class="col-xs-3 col-sm-2 border c cf">
+            <img style="height: 50px;" src="https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-ash4/302066_10151616869615972_963571219_n.jpg" class="avatar img-responsive img-circle">
+          </div>
+          <div class="col-xs-9 col-sm-8 border c">
+            <h4>
+              <a href="#">Hunter Leath</a>
+            </h4>
+            <p>Today, I went to the fridge.</p>
+          </div>
+          <div class="col-sm-2 col-sm-offset-0 col-xs-offset-3 c cl">
+            <p class="date">5 minutes ago <br/> <a href="#">View in Notes App</a></p>
+          </div>
+        </div>
+    {{ else }}
+    <br/>
+    <div class="text-shadowed text-center text-muted">
+      <i class="fa fa-4x fa-bullhorn"></i>
+      <h4>There doesn't seem to be anything here. You should add some friends.</h4>
     </div>
+      {{ end }}
+    </div>
+  </div>
 </div>
 
 {{ template "footer.html" . }}

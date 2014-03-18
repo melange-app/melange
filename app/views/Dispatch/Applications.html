@@ -1,0 +1,69 @@
+{{ set . "title" "Manage Applications" }}
+{{ template "header.html" . }}
+
+<div class="container">
+  <div class="row">
+    {{ template "sidebar.html" . }}
+    <div class="main col-sm-10">
+      <h4>My Applications</h4>
+      {{ if .flash.error }}
+      <div class="alert alert-danger">
+          <p>{{ .flash.error }}</p>
+      </div>
+      {{ end }}
+      <form method="post" action="/app/new">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="airdispatch.me/applications/notes.dpl" name="url">
+          <span class="input-group-btn">
+            <button class="btn btn-primary" type="submit"><i class="fa fa-plus"></i> Install</button>
+          </span>
+        </div>
+      </form>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Application</th>
+            <th>URL</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{ range .apps }}
+          <tr>
+            <td><a href="/app/{{ .Name }}">{{ .Name }}</a></td>
+            <td>{{ .AppURL }}</td>
+            <td>
+              <form method="post" action="/app/{{ .Name }}/uninstall">
+                <button type="submit" class="btn btn-link btn-xs" style="padding: 0">Uninstall</a>
+              </form>
+            </td>
+          </tr>
+          {{ else }}
+          <tr>
+            <td colspan="3" class="text-center">No apps installed yet. Maybe add one of the suggested ones below?</td>
+          </tr>
+          {{ end }}
+        </tbody>
+      </table>
+      <hr/>
+      <h4>Suggested Applications</h4>
+      <p class="text-muted small">Click to Install</p>
+      <div class="list-group">
+        <a href="#" class="list-group-item">
+          <strong>AirDispatch Notes</strong>
+          Manage public notes from you and your friends.
+        </a>
+        <a href="#" class="list-group-item">
+          <strong>AirDispatch Messages</strong>
+          Send large messages akin to email.
+        </a>
+        <a href="#" class="list-group-item">
+          <strong>AirDispatch Chat</strong>
+          Quickly chat with friends and family.
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{ template "footer.html" . }}

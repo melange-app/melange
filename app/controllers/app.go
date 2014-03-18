@@ -7,6 +7,11 @@ import (
 	"strconv"
 )
 
+func GetUserId(session map[string]string) int {
+	i, _ := strconv.Atoi(session["user"])
+	return i
+}
+
 type App struct {
 	GorpController
 }
@@ -46,14 +51,6 @@ func (c App) ProcessLogin(username string, password string) revel.Result {
 	c.Session["user"] = strconv.Itoa(user.UserId)
 	c.Flash.Success("Welcome back, " + user.Name + ".")
 	return c.Redirect(routes.Dispatch.Dashboard())
-}
-
-func (c App) Account() revel.Result {
-	return c.Render()
-}
-
-func (c App) ProcessAccount() revel.Result {
-	return c.Render()
 }
 
 // These Two Actions Control Displaying the Registration View and Processing Registration

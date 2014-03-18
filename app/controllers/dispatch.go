@@ -1,24 +1,36 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/airdispatch/dpl"
 	"github.com/robfig/revel"
-	"io/ioutil"
-	//"melange/app/routes"
-	"net/url"
-	"os"
-	"strconv"
-	"strings"
-	"time"
+	"melange/app/models"
+	"melange/app/routes"
+	"net/http"
 )
 
 type Dispatch struct {
-	*revel.Controller
+	GorpController
+}
+
+func (c Dispatch) Init() revel.Result {
+	if c.Session["user"] == "" {
+		return c.Redirect(routes.App.Login())
+	}
+
+	// Function to load user apps
+	apps, err := models.GetUserApps(c.Txn, c.Session)
+	if err != nil {
+		panic(err)
+	}
+
+	c.RenderArgs["apps"] = apps
+
+	return nil
 }
 
 func (d Dispatch) Dashboard() revel.Result {
-	recents := []int{0, 1, 2, 3, 4}
+	// Download all recents from subscribed, download all recents from alerts, sort them chronologically
+	recents := []int{0}
 	return d.Render(recents)
 }
 
@@ -27,115 +39,77 @@ func (d Dispatch) Profile() revel.Result {
 }
 
 func (d Dispatch) All() revel.Result {
+	return d.Todo()
+}
+
+func (d Dispatch) Applications() revel.Result {
 	return d.Render()
 }
 
-type MessageTest struct {
-	Num int
-}
-
-func (m *MessageTest) Get(field string) ([]byte, error) {
-	return []byte(field + " " + strconv.Itoa(m.Num)), nil
-}
-
-func (m *MessageTest) Has(field string) bool {
-	return true
-}
-
-func (m *MessageTest) Created() time.Time {
-	return time.Now()
-}
-
-func (m *MessageTest) Sender() dpl.User {
-	url, _ := url.Parse("https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-ash4/302066_10151616869615972_963571219_n.jpg")
-	return dpl.User{
-		Name:   "Hunter Leath",
-		Avatar: url,
-	}
-}
-
-type PluginHost struct{}
-
-func (p *PluginHost) GetMessages(plugin *dpl.PluginInstance, tag dpl.Tag, predicate *dpl.Predicate, limit int) ([]dpl.Message, error) {
-	messages := make([]dpl.Message, 0)
-	for i := 0; i < 10; i++ {
-		messages = append(messages, &MessageTest{i})
-	}
-	return messages, nil
-}
-
-func (p *PluginHost) GetURLForAction(
-	plugin *dpl.PluginInstance, // The Plugin Calling for the URL
-	action dpl.Action, // The Action
-	message dpl.Message, // MessageContext
-	user *dpl.User) (*url.URL, error) { // User Context
-
-	rawURL := fmt.Sprintf("/app/%s/%s", strings.ToLower(plugin.Name), action.Name)
-	if message != nil {
-		rawURL = fmt.Sprintf("%s/m/%d", rawURL, message.(*MessageTest).Num)
-	}
-	if user != nil {
-		rawURL = fmt.Sprintf("%s/u/%s", rawURL, user.Name)
-	}
-
-	url, _ := url.Parse(rawURL)
-
-	return url, nil
-}
-
-func (p *PluginHost) RunNotification(plugin *dpl.PluginInstance, n *dpl.Notification) {
-	// Log Notification Reception
-}
-
-func (p *PluginHost) Identify() string {
-	return "Melange v0.1"
-}
-
-var GlobalHost *PluginHost
-
-func (d Dispatch) LoadAppMessage(app string, action string, message int) revel.Result {
-	d.SetAction("Dispatch", "LoadApp")
-	return d.LoadApp(app, action, &MessageTest{}, nil)
-}
-
-func (d Dispatch) LoadAppUser(app string, action string, username string) revel.Result {
-	d.SetAction("Dispatch", "LoadApp")
-	return d.LoadApp(app, action, nil, &dpl.User{})
-}
-
-// We should load the Application just once from the XML, then refresh it at a regular interval
-func (d Dispatch) LoadApp(app string, action string, message dpl.Message, user *dpl.User) revel.Result {
-	xmlFile, err := os.Open("../github.com/airdispatch/dpl/example/" + app + ".dpl")
+func (d Dispatch) AddApplication(url string) revel.Result {
+	resp, err := http.Get(url)
 	if err != nil {
-		panic("Couldn't find App")
+		d.Flash.Error("Unable to download application via supplied url.")
+		return d.Redirect(routes.Dispatch.Applications())
 	}
-	defer xmlFile.Close()
+	defer resp.Body.Close()
 
-	b, _ := ioutil.ReadAll(xmlFile)
-
-	// The Plugin is O
-	o, err := dpl.ParseDPL(b)
+	plugin, err := dpl.ParseDPLStream(resp.Body)
 	if err != nil {
-		panic("Couldn't Parse App: " + err.Error())
+		d.Flash.Error("Plugin is not valid.")
+		return d.Redirect(routes.Dispatch.Applications())
 	}
 
-	// Create a Singleton that Hosts all the Plugins
-	if GlobalHost == nil {
-		GlobalHost = &PluginHost{}
+	in := &models.UserApp{
+		UserId: GetUserId(d.Session),
+		AppURL: url,
+		Name:   plugin.Name,
+		Path:   plugin.Path,
 	}
-
-	plugin := o.CreateInstance(GlobalHost, nil)
-
-	data, err := plugin.RunActionWithContext(action, message, user)
+	err = d.Txn.Insert(in)
 	if err != nil {
-		panic("Couldn't run " + app + " for " + action + " : " + err.Error())
+		panic(err)
 	}
 
-	app_name := app
-	title := "Melange :: " + o.Name
-	return d.Render(title, app_name, data)
+	return d.Redirect(routes.Dispatch.Applications())
 }
 
-func (d Dispatch) AppPost(app string, action string) revel.Result {
-	return d.Todo()
+func (d Dispatch) UninstallApplication(app string) revel.Result {
+	u := GetUserId(d.Session)
+
+	var apps []*models.UserApp
+	_, err := d.Txn.Select(&apps, "select * from dispatch_app where userid = $1 and UPPER(name) = UPPER($2)", u, app)
+	if err != nil {
+		panic(err)
+	}
+	if len(apps) != 1 {
+		panic(len(apps))
+	}
+
+	toDelete := apps[0]
+	count, err := d.Txn.Delete(toDelete)
+	if err != nil || count != 1 {
+		panic(err)
+	}
+
+	return d.Redirect(routes.Dispatch.Applications())
+}
+
+func (c Dispatch) Account() revel.Result {
+	if c.Session["user"] == "" {
+		return c.Redirect(routes.App.Login())
+	}
+	var users []*models.User
+
+	_, err := c.Txn.Select(&users, "select * from dispatch_user where userid = $1", GetUserId(c.Session))
+	if err != nil {
+		panic(err)
+	}
+	user := users[0]
+
+	return c.Render(user)
+}
+
+func (c Dispatch) ProcessAccount() revel.Result {
+	return c.Render()
 }

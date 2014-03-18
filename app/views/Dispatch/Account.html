@@ -1,0 +1,118 @@
+{{ set . "title" "My Account" }}
+{{ template "header.html" . }}
+
+<div class="container">
+  <div class="row">
+      {{ template "sidebar.html" . }}
+    <div class="col-sm-10">
+      <h3>Account Settings</h3>
+      <br/>
+      <ul class="nav nav-tabs">
+    <li class="active"><a data-toggle="tab" href="#general">
+        <i class="fa fa-cogs"></i>
+        General
+    </a></li>
+    <li><a data-toggle="tab" href="#identity">
+        <i class="fa fa-map-marker"></i>
+        Identity
+    </a></li>
+    <li><a data-toggle="tab" href="#subscription">
+        <i class="fa fa-group"></i>
+        Subscriptions
+    </a></li>
+    <li><a data-toggle="tab" href="#billing">
+        <i class="fa fa-credit-card"></i>
+        Billing and Plan
+    </a></li>
+      </ul>
+      <div class="tab-content">
+    <div class="tab-pane active" id="general">
+      <h5>General Settings</h5>
+      <form class="form-horizontal" role="form">
+        <div class="form-group">
+          <label for="inputName" class="col-sm-2 control-label">Full Name</label>
+          <div class="col-sm-10">
+        <input type="text" name="name" id="inputName" class="form-control" value="{{ .user.Name }}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="inputUsername" class="col-sm-2 control-label">Username</label>
+          <div class="col-sm-10">
+        <input type="text" name="username" id="inputUsername" class="form-control" value="{{ .user.Username }}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Change Password</label>
+          <div class="col-sm-5">
+        <input type="password" name="password1" class="form-control" placeholder="New Password">
+          </div>
+          <div class="col-sm-5">
+        <input type="password" name="password2" class="form-control" placeholder="Confirm New Password">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Current Password</label>
+          <div class="col-sm-10">
+        <input type="password" name="password" class="form-control">
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-10 col-sm-offset-2">
+        <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="tab-pane" id="identity">
+      <h5>Identity and Addresses</h5>
+      <p><a class="btn btn-xs btn-default" href="#"><i class="fa fa-plus"></i> Create New Identity</a></p>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+        <th>Identity</th>
+        <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+        <td>hleath@airdispatch.me</td>
+        <td>Registered / <a href="#">Remove</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tab-pane" id="subscription">
+      <h5>Manage Subscriptions</h5>
+      <form>
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="hunter.leath">
+        <span class="input-group-btn">
+          <button class="btn btn-primary" type="button"><i class="fa fa-plus"></i> Subscribe</button>
+        </span>
+      </div>
+      </form>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+        <th>Nickname</th>
+        <th>Address</th>
+        <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+        <td>Hunter Leath</td>
+        <td>hunter.leath</td>
+        <td><a href="#">Unsubscribe</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tab-pane" id="billing">
+    </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{ template "footer.html" . }}
