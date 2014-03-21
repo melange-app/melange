@@ -3,3 +3,5 @@ tmp/
 routes/
 *.db
 *.swp
+app/controllers/#dispatch.go#
+app/controllers/.#dispatch.go

@@ -1,0 +1,21 @@
+{{ set . "title" "Application Error" }}
+{{ template "header.html" . }}
+
+<div class="container">
+  <div class="row">
+    {{ template "sidebar.html" . }}
+    <div class="main col-sm-10 text-center">
+      <h1><i class="fa fa-minus-circle text-danger fa-5x"></i></h1>
+      <h1>Application Error</h1>
+      {{ if .error }}
+      <br/>
+      <p>{{ .error }}</p>
+      {{ end }}
+      <p class="text-muted"><a href="{{ .app.AppURL }}">{{ .app.AppURL }}</a></p>
+      <p class="text-danger"><a href="/app/{{ .app.Name }}/uninstall">Uninstall this Application</a></p>
+      <br/>
+    </div>
+  </div>
+</div>
+
+{{ template "footer.html" . }}
