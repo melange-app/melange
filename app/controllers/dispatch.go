@@ -107,7 +107,38 @@ func (c Dispatch) Account() revel.Result {
 	}
 	user := users[0]
 
-	return c.Render(user)
+	var subscriptions []*models.UserSubscription
+	_, err = c.Txn.Select(&subscriptions, "select * from dispatch_subscription where userid = $1", user.UserId)
+	if err != nil {
+		panic(err)
+	}
+
+	return c.Render(user, subscriptions)
+}
+
+func (c Dispatch) AddSubscription(address string) revel.Result {
+	// TODO: Verify the Address Somehow...
+	if false {
+		c.Flash.Error("Unable to verify that address. It has not been added to your subscriptions.")
+		return c.Redirect(routes.Dispatch.Account())
+	}
+
+	user := GetUserId(c.Session)
+	newSub := &models.UserSubscription{
+		UserId:  user,
+		Address: address,
+	}
+
+	err := c.Txn.Insert(newSub)
+	if err != nil {
+		panic(err)
+	}
+
+	return c.Redirect(routes.Dispatch.Account())
+}
+
+func (c Dispatch) RemoveSubscription(id int) revel.Result {
+	return c.Redirect(routes.Dispatch.Account())
 }
 
 func (c Dispatch) ProcessAccount() revel.Result {

@@ -69,23 +69,23 @@
       <table class="table table-striped">
         <thead>
           <tr>
-        <th>Identity</th>
-        <th>Actions</th>
+            <th>Identity</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-        <td>hleath@airdispatch.me</td>
-        <td>Registered / <a href="#">Remove</a></td>
+            <td>hleath@airdispatch.me</td>
+            <td>Registered / <a href="#">Remove</a></td>
           </tr>
         </tbody>
       </table>
     </div>
     <div class="tab-pane" id="subscription">
       <h5>Manage Subscriptions</h5>
-      <form>
+      <form action="/account/subscriptions/new" method="post">
       <div class="input-group">
-        <input type="text" class="form-control" placeholder="hunter.leath">
+        <input type="text" class="form-control" placeholder="hunter.leath" name="address">
         <span class="input-group-btn">
           <button class="btn btn-primary" type="button"><i class="fa fa-plus"></i> Subscribe</button>
         </span>
@@ -94,17 +94,27 @@
       <table class="table table-striped">
         <thead>
           <tr>
-        <th>Nickname</th>
-        <th>Address</th>
-        <th>Actions</th>
+            <th>Nickname</th>
+            <th>Address</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
+	  {{ range .subscriptions }}
           <tr>
-        <td>Hunter Leath</td>
-        <td>hunter.leath</td>
-        <td><a href="#">Unsubscribe</a></td>
+            <td><i>No Nickname</i></td>
+            <td>{{ .Address }}</td>
+            <td>
+	      <form method="post" action="/account/subscriptions/{{ .SubscriptionId }}/remove">
+		<button type="submit" class="btn btn-xs btn-link" style="padding:0;">Unsubscribe</button>
+	      </form>
+	    </td>
           </tr>
+	  {{ else }}
+	  <tr class="warning">
+	    <td colspan=3 class="text-center">Why not add a subscription?</td>
+	  </tr>
+	  {{ end }}
         </tbody>
       </table>
     </div>
