@@ -118,7 +118,7 @@ func (d Loader) LoadApp(app string, action string, message dpl.Message, user *dp
 			"error": "This plugin is no longer valid. You should contact the plugin developer.",
 			"app":   apps[0],
 		}
-		return d.RenderTemplate("load/error.html")
+		return d.RenderTemplate("loader/error.html")
 	}
 
 	// Create a Singleton that Hosts all the Plugins

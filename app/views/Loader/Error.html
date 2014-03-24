@@ -11,8 +11,11 @@
       <br/>
       <p>{{ .error }}</p>
       {{ end }}
-      <p class="text-muted"><a href="{{ .app.AppURL }}">{{ .app.AppURL }}</a></p>
-      <p class="text-danger"><a href="/app/{{ .app.Name }}/uninstall">Uninstall this Application</a></p>
+      <p class="text-muted">{{ .app.Name }} - <a href="{{ .app.AppURL }}">{{ .app.AppURL }}</a></p>
+      <br/>
+      <form action="/app/{{ .app.Name }}/uninstall" method="post">
+	<button class="btn btn-danger btn-sm">Uninstall this Application</button>
+      </form>
       <br/>
     </div>
   </div>
