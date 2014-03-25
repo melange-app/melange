@@ -137,8 +137,23 @@ func (c Dispatch) AddSubscription(address string) revel.Result {
 	return c.Redirect(routes.Dispatch.Account())
 }
 
-func (c Dispatch) RemoveSubscription(id int) revel.Result {
-	return c.Redirect(routes.Dispatch.Account())
+func (d Dispatch) RemoveSubscription(id int) revel.Result {
+	var apps []*models.UserSubscription
+	_, err := d.Txn.Select(&apps, "select * from dispatch_subscription where subscriptionid = $1", id)
+	if err != nil {
+		panic(err)
+	}
+	if len(apps) != 1 {
+		panic(len(apps))
+	}
+
+	toDelete := apps[0]
+	count, err := d.Txn.Delete(toDelete)
+	if err != nil || count != 1 {
+		panic(err)
+	}
+
+	return d.Redirect(routes.Dispatch.Account())
 }
 
 func (c Dispatch) ProcessAccount() revel.Result {
