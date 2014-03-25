@@ -34,11 +34,8 @@ func (m *MessageTest) Created() time.Time {
 }
 
 func (m *MessageTest) Sender() dpl.User {
-	url, _ := url.Parse("https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-ash4/302066_10151616869615972_963571219_n.jpg")
-	return dpl.User{
-		Name:   "Hunter Leath",
-		Avatar: url,
-	}
+	// url, _ := url.Parse("https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-ash4/302066_10151616869615972_963571219_n.jpg")
+	return nil
 }
 
 type PluginHost struct{}
@@ -55,7 +52,7 @@ func (p *PluginHost) GetURLForAction(
 	plugin *dpl.PluginInstance, // The Plugin Calling for the URL
 	action dpl.Action, // The Action
 	message dpl.Message, // MessageContext
-	user *dpl.User) (*url.URL, error) { // User Context
+	user dpl.User) (*url.URL, error) { // User Context
 
 	rawURL := fmt.Sprintf("/app/%s/%s", strings.ToLower(plugin.Name), action.Name)
 	if message != nil {
@@ -87,7 +84,7 @@ func (d Loader) LoadAppMessage(app string, action string, message int) revel.Res
 
 func (d Loader) LoadAppUser(app string, action string, username string) revel.Result {
 	d.SetAction("Loader", "LoadApp")
-	return d.LoadApp(app, action, nil, &dpl.User{})
+	return d.LoadApp(app, action, nil, nil)
 }
 
 // We should load the Application just once from the XML, then refresh it at a regular interval
