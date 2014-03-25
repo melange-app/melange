@@ -1,0 +1,24 @@
+{{ range . }}
+<div class="row message">
+  <div class="col-xs-3 col-sm-2 border c cf">
+    <img style="height: 50px;" src="https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-ash4/302066_10151616869615972_963571219_n.jpg" class="avatar img-responsive img-circle">
+  </div>
+  <div class="col-xs-9 col-sm-8 border c">
+    <h4>
+      <a href="#">Hunter Leath</a>
+    </h4>
+    <p>Today, I went to the fridge.</p>
+  </div>
+  <div class="col-sm-2 col-sm-offset-0 col-xs-offset-3 c cl">
+    <p class="date">5 minutes ago <br/> <a href="#">View in Notes App</a></p>
+  </div>
+</div>
+{{ else }}
+<hr/>
+<br/>
+<div class="text-shadowed text-center text-muted">
+  <i class="fa fa-4x fa-bullhorn"></i>
+  <h4>There doesn't seem to be anything here. You should add some friends.</h4>
+</div>
+<br/>
+{{ end }}

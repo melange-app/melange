@@ -30,25 +30,7 @@
       </div>
       <br/>
       <!-- Panel !-->
-      <div class="panel panel-default">
-        <div class="panel-body">
-            <div class="row message">
-                <div class="col-xs-3 col-sm-2">
-                    <img style="height: 50px;" src="https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-ash4/302066_10151616869615972_963571219_n.jpg" class="avatar img-responsive img-circle">
-                </div>
-                <div class="col-xs-9 col-sm-8">
-                    <h4>
-                        <a href="#">Hunter Leath</a>
-                    </h4>
-                    <p>Today, I was sitting.</p>
-                </div>
-                <div class="col-sm-2 col-sm-offset-0 col-xs-offset-3">
-                    <p class="date">5 minutes ago <br/> <a href="#">View in Notes App</a></p>
-                </div>
-            </div>
-        </div>
-      </div>
-      <!-- End Panel !-->
+      {{ template "messages.html" .recents }}
     </div>
   </div>
 </div>
