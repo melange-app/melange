@@ -39,7 +39,7 @@ func (d Dispatch) Profile() revel.Result {
 }
 
 func (d Dispatch) All() revel.Result {
-	return d.Todo()
+	return d.Render()
 }
 
 func (d Dispatch) Applications() revel.Result {
