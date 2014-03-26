@@ -95,7 +95,7 @@ func CreateAlertFromDescription(desc *server.MessageDescription) *Alert {
 	}
 }
 
-func (a *Alert) DownloadMessageFromAlert(db *gorp.DbMap, r routing.Router) (*message.Mail, error) {
+func (a *Alert) DownloadMessageFromAlert(db Selectable, r routing.Router) (*message.Mail, error) {
 	addr, err := r.Lookup(a.From)
 	if err != nil {
 		return nil, err
