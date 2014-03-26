@@ -17,4 +17,9 @@ func CreateTables(g *gorp.DbMap) {
 
 	// Add User Identity Tables
 	g.AddTableWithName(Identity{}, "dispatch_identity").SetKeys(true, "IdentityId")
+
+	// Add MailServer Tables
+	g.AddTableWithName(Message{}, "dispatch_messages").SetKeys(true, "MessageId")
+	g.AddTableWithName(Alert{}, "dispatch_alerts").SetKeys(true, "AlertId")
+	g.AddTableWithName(Component{}, "dispatch_components").SetKeys(true, "ComponentId")
 }
