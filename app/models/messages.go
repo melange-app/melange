@@ -10,6 +10,10 @@ import (
 	"github.com/coopernurse/gorp"
 )
 
+type Selectable interface {
+	Select(i interface{}, query string, args ...interface{}) ([]interface{}, error)
+}
+
 type Message struct {
 	MessageId int
 	Name      string

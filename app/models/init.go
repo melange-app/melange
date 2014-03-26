@@ -14,4 +14,7 @@ func CreateTables(g *gorp.DbMap) {
 
 	// Add UserSubscription Table
 	g.AddTableWithName(UserSubscription{}, "dispatch_subscription").SetKeys(true, "SubscriptionId")
+
+	// Add User Identity Tables
+	g.AddTableWithName(Identity{}, "dispatch_identity").SetKeys(true, "IdentityId")
 }

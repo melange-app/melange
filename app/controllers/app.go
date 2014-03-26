@@ -83,6 +83,12 @@ func (c App) ProcessRegistration(
 	u := models.CreateUser(username, password, name)
 	u.Save(c.Txn)
 
+	id, err := models.NewIdentityForUser(u)
+	if err != nil {
+		panic(err)
+	}
+	c.Txn.Insert(id)
+
 	c.Session["user"] = strconv.Itoa(u.UserId)
 	c.Flash.Success("Hi there, " + u.Name + " looks like it's your first time here. Why not try the tutorial?")
 
