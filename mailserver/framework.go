@@ -7,7 +7,9 @@ import (
 	"airdispat.ch/server"
 	"airdispat.ch/wire"
 	"errors"
+	"github.com/airdispatch/dpl"
 	"github.com/robfig/revel"
+	"melange/app/models"
 	"net"
 	"os"
 )
@@ -23,6 +25,55 @@ func getServerLocation() string {
 func Init() {
 	def := getServerLocation()
 	ServerLocation = revel.Config.StringDefault("server.location", def)
+}
+
+func Messages(r routing.Router,
+	db models.Selectable,
+	from *identity.Identity,
+	fromUser *models.User,
+	public bool, private bool, since int64) ([]dpl.Message, error) {
+
+	var out []dpl.Message
+	var err error
+
+	if public {
+		var s []*models.UserSubscription
+		_, err := db.Select(&s, "select * from dispatch_subscription where userid = $1", fromUser.UserId)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, v := range s {
+			msg, err := DownloadPublicMail(r, uint64(since), from, v.Address) // from, to)
+			if err != nil {
+				return nil, err
+			}
+			for _, txn := range msg.Content {
+				rmsg, err := DownloadMessage(r, txn.Name, nil, v.Address, txn.Location)
+				if err != nil {
+					return nil, err
+				}
+				out = append(out, &PluginMail{rmsg})
+			}
+		}
+	}
+
+	if private {
+		var ale []*models.Alert
+		_, err = db.Select(&ale, "select * from dispatch_alerts where \"to\" = $1 and timestamp > $2", from.Address.String(), since)
+		if err != nil {
+			return nil, err
+		}
+		for _, v := range ale {
+			msg, err := v.DownloadMessageFromAlert(db, r)
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, &PluginMail{msg})
+		}
+	}
+
+	return out, nil
 }
 
 func SendAlert(r routing.Router, msgName string, from *identity.Identity, to string) error {
@@ -57,6 +108,18 @@ func DownloadMessage(r routing.Router, msgName string, from *identity.Identity, 
 	}
 
 	return message.CreateMailFromBytes(bytes, h)
+}
+
+func DownloadMessageList(r routing.Router, m *server.MessageList, from *identity.Identity, to string) ([]*message.Mail, error) {
+	output := make([]*message.Mail, len(m.Content))
+	for i, v := range m.Content {
+		var err error
+		output[i], err = DownloadMessage(r, v.Name, from, to, v.Location)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return output, nil
 }
 
 func DownloadPublicMail(r routing.Router, since uint64, from *identity.Identity, to string) (*server.MessageList, error) {
