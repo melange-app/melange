@@ -5,3 +5,4 @@ routes/
 *.swp
 app/controllers/#dispatch.go#
 app/controllers/.#dispatch.go
+*#
