@@ -113,7 +113,13 @@ func (c Dispatch) Account() revel.Result {
 		panic(err)
 	}
 
-	return c.Render(user, subscriptions)
+	var identities []*models.Identity
+	_, err = c.Txn.Select(&identities, "select * from dispatch_identity where userid = $1", user.UserId)
+	if err != nil {
+		panic(err)
+	}
+
+	return c.Render(user, subscriptions, identities)
 }
 
 func (c Dispatch) AddSubscription(address string) revel.Result {

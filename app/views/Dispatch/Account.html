@@ -70,14 +70,18 @@
         <thead>
           <tr>
             <th>Identity</th>
+	    <th>Address</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
+	  {{ range .identities }}
           <tr>
-            <td>hleath@airdispatch.me</td>
-            <td>Registered / <a href="#">Remove</a></td>
+            <td><i>Not Registered</i></td>
+	    <td>{{ .Fingerprint }}</td>
+            <td><a href="#">Register</a> / <a href="#">Remove</a></td>
           </tr>
+	  {{ end }}
         </tbody>
       </table>
     </div>
@@ -119,6 +123,7 @@
       </table>
     </div>
     <div class="tab-pane" id="billing">
+      <h4 class="text-muted">Coming soon.</h4>
     </div>
       </div>
     </div>
