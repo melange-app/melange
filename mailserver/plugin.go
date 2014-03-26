@@ -1,16 +1,15 @@
 package mailserver
 
 import (
+	"airdispat.ch/identity"
 	"airdispat.ch/message"
+	"github.com/airdispatch/dpl"
+	"net/url"
 	"time"
 )
 
 type PluginMail struct {
 	*message.Mail
-}
-
-func (p *PluginMail) Timestamp() uint64 {
-	return uint64(p.Header().Timestamp)
 }
 
 func (p *PluginMail) Get(field string) ([]byte, error) {
@@ -25,7 +24,35 @@ func (p *PluginMail) Created() time.Time {
 	return time.Unix(p.Header().Timestamp, 0)
 }
 
-func (p *PluginMail) Sender() {
+func (p *PluginMail) Sender() dpl.User {
+	return &PluginUser{
+		loaded: p.Header().From,
+	}
 }
 
-type PluginUser struct{}
+// Abstract Getting User's Profile
+type PluginUser struct {
+	loaded *identity.Address
+}
+
+func (p *PluginUser) Name() string {
+	return "Name TODO"
+}
+
+func (p *PluginUser) DisplayAddress() string {
+	return "Display Address TODO"
+}
+
+func (p *PluginUser) Address() string {
+	return "Address TODO"
+}
+
+func (p *PluginUser) Avatar() *url.URL {
+	u, _ := url.Parse("http://google.com")
+	return u
+}
+
+func (p *PluginUser) Profile() *url.URL {
+	u, _ := url.Parse("http://google.com")
+	return u
+}
