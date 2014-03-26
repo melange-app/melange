@@ -31,13 +31,12 @@ GET     /app                                    Dispatch.Applications
 POST    /app/new                                Dispatch.AddApplication
 
 # App Controllers
-GET     /app/:app                               Loader.LoadApp
+GET     /app/:app                               Loader.LoadAppDefault
 POST    /app/:app/uninstall                     Dispatch.UninstallApplication
-GET     /app/:app/:action                       Loader.LoadApp
+GET     /app/:app/:action                       Loader.LoadAppAction
 GET     /app/:app/:action/m/:message            Loader.LoadAppMessage
 GET     /app/:app/:action/u/:username           Loader.LoadAppUser
 POST    /app/:app/send                          Loader.SendMessage
-POST    /app/:app/:action                       Loader.AppPost
 
 # GET     /dashboard                            App.Dashboard
 
