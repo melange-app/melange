@@ -125,6 +125,7 @@ func (d Loader) LoadApp(app string, action string, message dpl.Message, user dpl
 	GlobalHost := &PluginHost{
 		User: u.(*models.User),
 		Txn:  d.Txn,
+		R:    mailserver.LookupRouter,
 	}
 
 	plugin := o.CreateInstance(GlobalHost, nil)
@@ -145,11 +146,45 @@ func (d Loader) LoadApp(app string, action string, message dpl.Message, user dpl
 }
 
 func (d Loader) SendMessage(app string) revel.Result {
+	var toAddr []string
+	var components []*models.Component
 	for key, value := range d.Params.Form {
 		if key == "to" {
 			// To Address
+			toAddr = value
+		} else {
+			components = append(components,
+				&models.Component{
+					Name: key,
+					Data: []byte(value[0]),
+				})
 		}
-		revel.INFO.Printf("%s %s", key, value)
 	}
+
+	u, err := d.Txn.Get(&models.User{}, GetUserId(d.Session))
+	if err != nil {
+		panic(err)
+	}
+
+	fromSub, err := models.UserIdentities(u.(*models.User), d.Txn)
+	if err != nil {
+		panic(err)
+	}
+
+	msg, err := models.CreateMessage(d.Txn, fromSub[0].Address.String(), toAddr, components)
+	if err != nil {
+		panic(err)
+	}
+
+	if toAddr != nil {
+		mailserver.InitRouter()
+		for _, addr := range toAddr {
+			err := mailserver.SendAlert(mailserver.LookupRouter, msg.Name, fromSub[0], addr)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
 	return d.Redirect(routes.Loader.LoadAppDefault(app))
 }
