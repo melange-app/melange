@@ -8,10 +8,17 @@ import (
 	"airdispat.ch/wire"
 	"errors"
 	"github.com/coopernurse/gorp"
+	"strconv"
+	"time"
 )
 
 type Selectable interface {
 	Select(i interface{}, query string, args ...interface{}) ([]interface{}, error)
+}
+
+type Editable interface {
+	Insert(list ...interface{}) error
+	Update(list ...interface{}) (int64, error)
 }
 
 type Message struct {
@@ -20,6 +27,36 @@ type Message struct {
 	From      string
 	To        []string
 	Timestamp int
+}
+
+func CreateMessage(db Editable, from string, to []string, comp []*Component) (*Message, error) {
+	stamp := time.Now().Unix()
+	msg := &Message{
+		From:      from,
+		To:        to,
+		Timestamp: int(stamp),
+	}
+
+	err := db.Insert(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	msg.Name = strconv.Itoa(msg.MessageId)
+	_, err = db.Update(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range comp {
+		v.MessageId = msg.MessageId
+		err := db.Insert(v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return msg, nil
 }
 
 func (m *Message) ToDispatch(dbm *gorp.DbMap, to string) (*message.Mail, error) {
