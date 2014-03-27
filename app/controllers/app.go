@@ -4,6 +4,7 @@ import (
 	"github.com/robfig/revel"
 	"melange/app/models"
 	"melange/app/routes"
+	"melange/mailserver"
 	"strconv"
 )
 
@@ -83,11 +84,18 @@ func (c App) ProcessRegistration(
 	u := models.CreateUser(username, password, name)
 	u.Save(c.Txn)
 
-	id, err := models.NewIdentityForUser(u)
+	id, err := models.NewIdentityForUser(u, u.Username)
 	if err != nil {
 		panic(err)
 	}
 	c.Txn.Insert(id)
+
+	mailserver.InitRouter()
+
+	err = id.Register(mailserver.RegistrationRouter)
+	if err != nil {
+		panic(err)
+	}
 
 	c.Session["user"] = strconv.Itoa(u.UserId)
 	c.Flash.Success("Hi there, " + u.Name + " looks like it's your first time here. Why not try the tutorial?")
