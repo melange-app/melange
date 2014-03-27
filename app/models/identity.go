@@ -4,16 +4,18 @@ import (
 	"airdispat.ch/identity"
 	"airdispat.ch/routing"
 	"bytes"
+	"github.com/robfig/revel"
 )
 
 type Identity struct {
 	IdentityId  int
 	UserId      int
+	Alias       string
 	Fingerprint string
 	Data        []byte
 }
 
-func NewIdentityForUser(u *User) (*Identity, error) {
+func NewIdentityForUser(u *User, alias string) (*Identity, error) {
 	id, err := identity.CreateIdentity()
 	if err != nil {
 		return nil, err
@@ -28,6 +30,7 @@ func NewIdentityForUser(u *User) (*Identity, error) {
 	return &Identity{
 		UserId:      u.UserId,
 		Fingerprint: id.Address.String(),
+		Alias:       alias,
 		Data:        b.Bytes(),
 	}, nil
 }
@@ -81,5 +84,12 @@ func (a *Identity) Register(r routing.Router) error {
 		return err
 	}
 
-	return r.Register(adId)
+	loc, ok := revel.Config.String("server.location")
+	if !ok {
+		panic("Must have server.location on Configuration Variable")
+	}
+
+	adId.SetLocation(loc)
+
+	return r.Register(adId, a.Alias)
 }
