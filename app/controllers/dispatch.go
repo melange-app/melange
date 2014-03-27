@@ -5,7 +5,9 @@ import (
 	"github.com/robfig/revel"
 	"melange/app/models"
 	"melange/app/routes"
+	"melange/mailserver"
 	"net/http"
+	"time"
 )
 
 type Dispatch struct {
@@ -30,7 +32,21 @@ func (c Dispatch) Init() revel.Result {
 
 func (d Dispatch) Dashboard() revel.Result {
 	// Download all recents from subscribed, download all recents from alerts, sort them chronologically
-	recents := []int{0}
+	u, err := d.Txn.Get(&models.User{}, GetUserId(d.Session))
+	if err != nil {
+		panic(err)
+	}
+
+	id, err := models.UserIdentities(u.(*models.User), d.Txn)
+	if err != nil {
+		panic(err)
+	}
+
+	recents, err := mailserver.Messages(mailserver.LookupRouter, d.Txn, id[0], u.(*models.User), true, true, time.Now().Unix())
+	if err != nil {
+		panic(err)
+	}
+
 	return d.Render(recents)
 }
 
