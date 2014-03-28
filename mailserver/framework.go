@@ -12,6 +12,7 @@ import (
 	"melange/app/models"
 	"net"
 	"os"
+	"strings"
 )
 
 var ServerLocation string
@@ -31,7 +32,7 @@ func Messages(r routing.Router,
 	db models.Selectable,
 	from *identity.Identity,
 	fromUser *models.User,
-	public bool, private bool, since int64) ([]dpl.Message, error) {
+	public bool, private bool, self bool, since int64) ([]dpl.Message, error) {
 
 	var out []dpl.Message
 	var err error
@@ -70,6 +71,21 @@ func Messages(r routing.Router,
 				return nil, err
 			}
 			out = append(out, &PluginMail{msg})
+		}
+	}
+
+	if self {
+		var msg []*models.Message
+		_, err = db.Select(&msg, "select * from dispatch_messages where \"from\" = $1 and timestamp > $2", from.Address.String(), since)
+		if err != nil {
+			return nil, err
+		}
+		for _, v := range msg {
+			dmsg, err := v.ToDispatch(db, strings.Split(v.To, ",")[0])
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, &PluginMail{dmsg})
 		}
 	}
 
