@@ -48,7 +48,7 @@ func (p *PluginUser) Address() string {
 }
 
 func (p *PluginUser) Avatar() *url.URL {
-	u, _ := url.Parse("http://google.com")
+	u, _ := url.Parse("http://placehold.it/400x400")
 	return u
 }
 
