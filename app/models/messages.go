@@ -7,8 +7,8 @@ import (
 	"airdispat.ch/server"
 	"airdispat.ch/wire"
 	"errors"
-	"github.com/coopernurse/gorp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -25,7 +25,7 @@ type Message struct {
 	MessageId int
 	Name      string
 	From      string
-	To        []string
+	To        string
 	Timestamp int
 }
 
@@ -33,7 +33,7 @@ func CreateMessage(db Editable, from string, to []string, comp []*Component) (*M
 	stamp := time.Now().Unix()
 	msg := &Message{
 		From:      from,
-		To:        to,
+		To:        strings.Join(to, ","),
 		Timestamp: int(stamp),
 	}
 
@@ -59,9 +59,9 @@ func CreateMessage(db Editable, from string, to []string, comp []*Component) (*M
 	return msg, nil
 }
 
-func (m *Message) ToDispatch(dbm *gorp.DbMap, to string) (*message.Mail, error) {
+func (m *Message) ToDispatch(dbm Selectable, to string) (*message.Mail, error) {
 	legal := false
-	for _, v := range m.To {
+	for _, v := range strings.Split(m.To, ",") {
 		if v == to {
 			legal = true
 			break
@@ -79,7 +79,7 @@ func (m *Message) ToDispatch(dbm *gorp.DbMap, to string) (*message.Mail, error) 
 
 	fromAddr := identity.CreateAddressFromString(m.From)
 	toAddr := identity.CreateAddressFromString(to)
-	newMessage := message.CreateMail(fromAddr, toAddr)
+	newMessage := message.CreateMail(fromAddr, toAddr, time.Unix(int64(m.Timestamp), 0))
 
 	for _, v := range components {
 		newMessage.Components.AddComponent(message.CreateComponent(v.Name, v.Data))
@@ -90,7 +90,7 @@ func (m *Message) ToDispatch(dbm *gorp.DbMap, to string) (*message.Mail, error) 
 func (m *Message) ToDescription(to string) (*server.MessageDescription, error) {
 	// Location: "SERVER LOCATION"
 	legal := false
-	for _, v := range m.To {
+	for _, v := range strings.Split(m.To, ",") {
 		if v == to {
 			legal = true
 			break
