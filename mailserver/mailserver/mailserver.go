@@ -125,7 +125,7 @@ func (m *melangeServer) RetrieveMessageListForUser(since uint64, author *identit
 		m.HandleError(&server.ServerError{"Loading messages from DB", err})
 	}
 
-	out := &server.MessageList{}
+	out := server.CreateMessageList(author, forAddr)
 
 	for _, v := range results {
 		desc, err := v.ToDescription(forAddr.String())
