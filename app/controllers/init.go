@@ -5,6 +5,7 @@ package controllers
 import (
 	"github.com/robfig/revel"
 	"html/template"
+	"time"
 )
 
 func init() {
@@ -14,6 +15,11 @@ func init() {
 			return template.HTMLAttr("class='active'")
 		}
 		return template.HTMLAttr("")
+	}
+
+	revel.TemplateFuncs["since"] = func(t time.Time) string {
+		n := time.Now().Truncate(time.Second)
+		return n.Sub(t).String()
 	}
 
 	revel.OnAppStart(Init)
