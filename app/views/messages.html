@@ -1,16 +1,18 @@
 {{ range . }}
 <div class="row message">
   <div class="col-xs-3 col-sm-2 border c cf">
-    <img style="height: 50px;" src="https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-ash4/302066_10151616869615972_963571219_n.jpg" class="avatar img-responsive img-circle">
+    <img style="height: 50px;" src="{{ .Sender.Avatar }}" class="avatar img-responsive img-circle">
   </div>
   <div class="col-xs-9 col-sm-8 border c">
     <h4>
-      <a href="#">Hunter Leath</a>
+      <a href="#">{{ .Sender.Name }}</a>
     </h4>
-    <p>Today, I went to the fridge.</p>
+    {{ range .Components }}
+    <p><strong>{{ .Key }}</strong> {{ .String }}</p>
+    {{ end }}
   </div>
   <div class="col-sm-2 col-sm-offset-0 col-xs-offset-3 c cl">
-    <p class="date">5 minutes ago <br/> <a href="#">View in Notes App</a></p>
+    <p class="date">{{ since .Created }} ago<br/> <a href="#">View in Notes App</a></p>
   </div>
 </div>
 {{ else }}
