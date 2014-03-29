@@ -12,12 +12,21 @@ type PluginMail struct {
 	*message.Mail
 }
 
+func (p *PluginMail) Components() []dpl.Component {
+	var out []dpl.Component = make([]dpl.Component, len(p.Mail.Components))
+	i := 0
+	for _, v := range p.Mail.Components {
+		out[i] = v
+		i++
+	}
+	return out
+}
 func (p *PluginMail) Get(field string) ([]byte, error) {
-	return p.Components.GetComponent(field), nil
+	return p.Mail.Components.GetComponent(field), nil
 }
 
 func (p *PluginMail) Has(field string) bool {
-	return p.Components.HasComponent(field)
+	return p.Mail.Components.HasComponent(field)
 }
 
 func (p *PluginMail) Created() time.Time {
