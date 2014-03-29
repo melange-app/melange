@@ -41,7 +41,7 @@ func (a *Router) LookupAlias(from string) (*identity.Address, error) {
 	}
 
 	url := tracker.GetTrackingServerLocationFromURL(comp[1])
-	t := tracker.CreateTrackerListRouterWithStrings(a.Origin, url)
+	t := &tracker.TrackerRouter{url, a.Origin}
 
 	return t.LookupAlias(from)
 }

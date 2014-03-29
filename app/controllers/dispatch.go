@@ -27,6 +27,8 @@ func (c Dispatch) Init() revel.Result {
 
 	c.RenderArgs["apps"] = apps
 
+	mailserver.InitRouter()
+
 	return nil
 }
 
