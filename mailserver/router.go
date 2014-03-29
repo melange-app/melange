@@ -35,7 +35,7 @@ type Router struct {
 }
 
 func (a *Router) LookupAlias(from string) (*identity.Address, error) {
-	comp := strings.Split("@", from)
+	comp := strings.Split(from, "@")
 	if len(comp) != 2 {
 		return nil, errors.New("Can't use lookup router without tracker address.")
 	}
