@@ -126,6 +126,7 @@ func (m *melangeServer) RetrieveMessageListForUser(since uint64, author *identit
 	_, err := m.Map.Select(&results, "select * from dispatch_messages where \"from\" = $1 and timestamp > $2", author.String(), since)
 	if err != nil {
 		m.HandleError(&server.ServerError{"Loading messages from DB", err})
+		return nil
 	}
 
 	out := server.CreateMessageList(author, forAddr)
@@ -134,6 +135,7 @@ func (m *melangeServer) RetrieveMessageListForUser(since uint64, author *identit
 		desc, err := v.ToDescription(forAddr.String())
 		if err != nil {
 			m.HandleError(&server.ServerError{"Loading description.", err})
+			return nil
 		}
 		out.AddMessageDescription(desc)
 	}
