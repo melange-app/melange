@@ -100,7 +100,7 @@ func (m *melangeServer) IdentityForUser(addr *identity.Address) *identity.Identi
 
 func (m *melangeServer) RetrieveMessageForUser(name string, author *identity.Address, forAddr *identity.Address) *message.Mail {
 	var results []*models.Message
-	_, err := m.Map.Select(&results, "select * from dispatch_messages where name = $1 and from = $2", name, author.String())
+	_, err := m.Map.Select(&results, "select * from dispatch_messages where name = $1 and \"from\" = $2", name, author.String())
 	if err != nil {
 		m.HandleError(&server.ServerError{"Finding Messages for User", err})
 		return nil
@@ -120,7 +120,7 @@ func (m *melangeServer) RetrieveMessageForUser(name string, author *identity.Add
 
 func (m *melangeServer) RetrieveMessageListForUser(since uint64, author *identity.Address, forAddr *identity.Address) *server.MessageList {
 	var results []*models.Message
-	_, err := m.Map.Select(&results, "select * from dispatch_messages where from = $1 and timestamp > $2", author.String(), since)
+	_, err := m.Map.Select(&results, "select * from dispatch_messages where \"from\" = $1 and timestamp > $2", author.String(), since)
 	if err != nil {
 		m.HandleError(&server.ServerError{"Loading messages from DB", err})
 	}
