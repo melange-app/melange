@@ -11,6 +11,7 @@ import (
 	"github.com/coopernurse/gorp"
 	_ "github.com/lib/pq"
 	"melange/app/models"
+	"melange/mailserver"
 	"net"
 	"os"
 )
@@ -65,10 +66,12 @@ func main() {
 	}
 	handler.LogMessage("Loaded Address", loadedKey.Address.String())
 
+	mailserver.InitRouter()
 	adServer := server.Server{
 		LocationName: *me,
 		Key:          loadedKey,
 		Delegate:     handler,
+		Router:       mailserver.LookupRouter,
 	}
 	StartServer(adServer, handler)
 }

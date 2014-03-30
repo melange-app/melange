@@ -23,7 +23,10 @@ func InitRouter() {
 		}
 	}
 	if LookupRouter == nil {
-		LookupRouter = &Router{ServerKey}
+		LookupRouter = &Router{
+			Origin:      ServerKey,
+			TrackerList: []string{"mailserver.airdispat.ch:5000"},
+		}
 	}
 }
 
@@ -31,7 +34,8 @@ var RegistrationRouter routing.Router
 var LookupRouter routing.Router
 
 type Router struct {
-	Origin *identity.Identity
+	Origin      *identity.Identity
+	TrackerList []string
 }
 
 func (a *Router) LookupAlias(from string) (*identity.Address, error) {
@@ -47,7 +51,8 @@ func (a *Router) LookupAlias(from string) (*identity.Address, error) {
 }
 
 func (a *Router) Lookup(from string) (*identity.Address, error) {
-	return nil, errors.New("Can't use lookup router for non-aliased names.")
+	t := tracker.CreateTrackerListRouterWithStrings(a.Origin, a.TrackerList...)
+	return t.Lookup(from)
 }
 
 func (a *Router) Register(key *identity.Identity, alias string) error {
