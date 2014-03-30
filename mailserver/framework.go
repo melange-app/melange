@@ -154,5 +154,9 @@ func DownloadPublicMail(r routing.Router, since uint64, from *identity.Identity,
 		return nil, errors.New("Wrong message type.")
 	}
 
+	if bytes == nil {
+		// No messages available.
+		return &server.MessageList{make([]*server.MessageDescription, 0)}, nil
+	}
 	return server.CreateMessageListFromBytes(bytes, h)
 }
