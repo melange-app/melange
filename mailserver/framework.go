@@ -114,7 +114,7 @@ func DownloadMessage(r routing.Router, msgName string, from *identity.Identity, 
 	addr.Location = toServer
 
 	txMsg := server.CreateTransferMessage(msgName, from.Address, addr)
-	bytes, typ, h, err := message.SendMessageAndReceive(txMsg, from, addr)
+	bytes, typ, h, err := message.SendMessageAndReceiveWithoutTimestamp(txMsg, from, addr)
 	if err != nil {
 		return nil, err
 	}
