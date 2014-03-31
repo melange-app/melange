@@ -102,6 +102,24 @@ func (m *melangeServer) IdentityForUser(addr *identity.Address) *identity.Identi
 }
 
 func (m *melangeServer) RetrieveMessageForUser(name string, author *identity.Address, forAddr *identity.Address) *message.Mail {
+	if name == "profile" {
+		id, err := models.IdentityFromFingerprint(author.String(), m.Map)
+		if err != nil {
+			return nil
+		}
+		user := &models.User{}
+		_, err = m.Map.Get(&user, id.UserId)
+		if err != nil {
+			return nil
+		}
+
+		m := message.CreateMail(id, forAddr, time.Now())
+		m.Components.AddComponent(message.CreateComponent("airdispat.ch/profile/name", []byte(user.Name)))
+		m.Components.AddComponent(message.CreateComponent("airdispat.ch/profile/avatar", []byte(user.GetAvatar())))
+
+		return m
+	}
+
 	var results []*models.Message
 	_, err := m.Map.Select(&results, "select * from dispatch_messages where name = $1 and \"from\" = $2", name, author.String())
 	if err != nil {

@@ -3,6 +3,8 @@ package mailserver
 import (
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
+	"airdispat.ch/routing"
+	"fmt"
 	"github.com/airdispatch/dpl"
 	"net/url"
 	"time"
@@ -10,6 +12,18 @@ import (
 
 type PluginMail struct {
 	*message.Mail
+	Profile *message.Mail
+}
+
+func CreatePluginMail(r routing.Router, m *message.Mail, checking *identity.Identity) *PluginMail {
+	profile, err := GetProfile(r, checking, m.Header().From.String())
+	if err != nil {
+		profile = nil
+	}
+	return &PluginMail{
+		Mail:    m,
+		Profile: profile,
+	}
 }
 
 func (p *PluginMail) Components() []dpl.Component {
@@ -35,33 +49,51 @@ func (p *PluginMail) Created() time.Time {
 
 func (p *PluginMail) Sender() dpl.User {
 	return &PluginUser{
-		loaded: p.Header().From,
+		loaded:  p.Header().From,
+		profile: p.Profile,
 	}
 }
 
 // Abstract Getting User's Profile
 type PluginUser struct {
-	loaded *identity.Address
+	loaded  *identity.Address
+	profile *message.Mail
 }
 
 func (p *PluginUser) Name() string {
-	return "Name TODO"
+	profile := p.profile
+	if profile != nil {
+		if profile.Components.HasComponent("airdispat.ch/profile/name") {
+			return profile.Components.GetStringComponent("airdispat.ch/profile/name")
+		}
+	}
+	return p.loaded.String()
 }
 
 func (p *PluginUser) DisplayAddress() string {
-	return "Display Address TODO"
+	return p.loaded.String()
 }
 
 func (p *PluginUser) Address() string {
-	return "Address TODO"
+	return p.loaded.String()
 }
 
 func (p *PluginUser) Avatar() *url.URL {
+	profile := p.profile
+	if profile != nil {
+		if profile.Components.HasComponent("airdispat.ch/profile/avatar") {
+			b := profile.Components.GetStringComponent("airdispat.ch/profile/avatar")
+			u, err := url.Parse(b)
+			if err == nil {
+				return u
+			}
+		}
+	}
 	u, _ := url.Parse("http://placehold.it/400x400")
 	return u
 }
 
 func (p *PluginUser) Profile() *url.URL {
-	u, _ := url.Parse("http://google.com")
+	u, _ := url.Parse(fmt.Sprintf("http://www.airdispatch.me/p/%v", p.loaded.String()))
 	return u
 }

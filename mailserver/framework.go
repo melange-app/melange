@@ -54,7 +54,7 @@ func Messages(r routing.Router,
 				if err != nil {
 					return nil, err
 				}
-				out = append(out, &PluginMail{rmsg})
+				out = append(out, CreatePluginMail(r, rmsg, from))
 			}
 		}
 	}
@@ -70,7 +70,7 @@ func Messages(r routing.Router,
 			if err != nil {
 				return nil, err
 			}
-			out = append(out, &PluginMail{msg})
+			out = append(out, CreatePluginMail(r, msg, from))
 		}
 	}
 
@@ -85,7 +85,7 @@ func Messages(r routing.Router,
 			if err != nil {
 				return nil, err
 			}
-			out = append(out, &PluginMail{dmsg})
+			out = append(out, CreatePluginMail(r, dmsg, from))
 		}
 	}
 
@@ -106,12 +106,18 @@ func SendAlert(r routing.Router, msgName string, from *identity.Identity, to str
 	return nil
 }
 
+func GetProfile(r routing.Router, from *identity.Identity, to string) (*message.Mail, error) {
+	return DownloadMessage(r, "profile", from, to, "")
+}
+
 func DownloadMessage(r routing.Router, msgName string, from *identity.Identity, to string, toServer string) (*message.Mail, error) {
 	addr, err := r.LookupAlias(to)
 	if err != nil {
 		return nil, err
 	}
-	addr.Location = toServer
+	if toServer != "" {
+		addr.Location = toServer
+	}
 
 	txMsg := server.CreateTransferMessage(msgName, from.Address, addr)
 	bytes, typ, h, err := message.SendMessageAndReceiveWithoutTimestamp(txMsg, from, addr)
