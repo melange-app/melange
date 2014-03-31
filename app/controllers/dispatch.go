@@ -61,27 +61,27 @@ func (d Dispatch) Dashboard() revel.Result {
 }
 
 func (d Dispatch) Profile() revel.Result {
-	u, err := d.Txn.Get(&models.User{}, GetUserId(d.Session))
+	user, err := d.Txn.Get(&models.User{}, GetUserId(d.Session))
 	if err != nil {
 		panic(err)
 	}
 
-	id, err := models.UserIdentities(u.(*models.User), d.Txn)
+	id, err := models.UserIdentities(user.(*models.User), d.Txn)
 	if err != nil {
 		panic(err)
 	}
 
-	recents, err := mailserver.Messages(mailserver.LookupRouter,
+	messages, err := mailserver.Messages(mailserver.LookupRouter,
 		d.Txn,
 		id[0],
-		u.(*models.User),
+		user.(*models.User),
 		false, false, true,
 		time.Now().Add(-7*24*time.Hour).Unix())
 	if err != nil {
 		panic(err)
 	}
 
-	return d.Render(recents)
+	return d.Render(messages, user)
 }
 
 func (d Dispatch) All() revel.Result {

@@ -2,10 +2,12 @@ package models
 
 import (
 	"code.google.com/p/go.crypto/bcrypt"
+	"crypto/md5"
 	"errors"
 	"fmt"
 	"github.com/coopernurse/gorp"
 	"github.com/robfig/revel"
+	"io"
 )
 
 var (
@@ -17,8 +19,19 @@ type User struct {
 	Username       string
 	Password       string `db:"-"`
 	Name           string
+	Avatar         string
+	Description    string
 	HashedPassword []byte
 	Transient      bool `db:"-"`
+}
+
+func (u *User) GetAvatar() string {
+	if u.Avatar == "" {
+		h := md5.New()
+		io.WriteString(h, fmt.Sprintf("%v@%v", u.Username, "airdispat.ch"))
+		return fmt.Sprintf("http://www.gravatar.com/avatar/%x?d=identicon&size=500", h.Sum(nil))
+	}
+	return u.Avatar
 }
 
 func (u *User) String() string {

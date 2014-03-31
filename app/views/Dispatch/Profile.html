@@ -7,17 +7,17 @@
     <div class="main col-sm-10" style="padding-top: 20px;">
       <div class="row">
         <div class="col-sm-3">
-          <img class="img-responsive img-circle" src="https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-ash4/302066_10151616869615972_963571219_n.jpg">
+          <img class="img-responsive img-circle" src="{{ .user.GetAvatar }}">
         </div>
         <div class="col-sm-9 profile-header">
-          <h1>Hunter Leath</h1>
+          <h1>{{ .user.Name }}</h1>
           <h4 class="no-margin">About</h4>
-          <p class="date no-margin">University of Virginia, AirDispatch</p>
+	  <p>{{ .user.Description }}</p>
+          <!--<p class="date no-margin">University of Virginia, AirDispatch</p>
           <hr/>
           <div class="row">
             <div class="col-sm-6">
-              <p>I'm a Second Year at the University of Virginia, and I like to
-              write code to solve big problems. Follow me at  <a href="http://hunterleath.com">my website</a> or on AD here.</p>
+              <p>{{ .user.Description }}</p>
             </div>
             <div class="col-sm-6">
               <p class="no-margin"><strong>Eating Ice Cream:</strong> <i class="fa
@@ -25,12 +25,12 @@
               <p class="no-margin"><strong>Ready for Slice:</strong> <i class="fa
                 fa-check"></i></p>
             </div>
-          </div>
+          </div>!-->
         </div>
       </div>
       <br/>
       <!-- Panel !-->
-      {{ template "messages.html" .recents }}
+      {{ template "messages.html" .messages }}
     </div>
   </div>
 </div>
