@@ -67,6 +67,9 @@ func (m *Message) ToDispatch(dbm Selectable, to string) (*message.Mail, error) {
 			break
 		}
 	}
+	if m.To == "" {
+		legal = true
+	}
 	if !legal {
 		return nil, errors.New("Unable to find message for user.")
 	}
@@ -95,6 +98,9 @@ func (m *Message) ToDescription(to string) (*server.MessageDescription, error) {
 			legal = true
 			break
 		}
+	}
+	if m.To == "" {
+		legal = true
 	}
 	if !legal {
 		return nil, errors.New("Unable to find user for that message.")
