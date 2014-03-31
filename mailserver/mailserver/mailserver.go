@@ -137,6 +137,7 @@ func (m *melangeServer) RetrieveMessageListForUser(since uint64, author *identit
 			m.HandleError(&server.ServerError{"Loading description.", err})
 			return nil
 		}
+		desc.Location = *me
 		out.AddMessageDescription(desc)
 	}
 
