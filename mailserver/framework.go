@@ -50,7 +50,7 @@ func Messages(r routing.Router,
 				return nil, err
 			}
 			for _, txn := range msg.Content {
-				rmsg, err := DownloadMessage(r, txn.Name, nil, v.Address, txn.Location)
+				rmsg, err := DownloadMessage(r, txn.Name, from, v.Address, txn.Location)
 				if err != nil {
 					return nil, err
 				}
