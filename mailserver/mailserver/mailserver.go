@@ -14,6 +14,7 @@ import (
 	"melange/mailserver"
 	"net"
 	"os"
+	"time"
 )
 
 var port = flag.String("port", "2048", "select the port on which to run the mail server")
@@ -103,8 +104,9 @@ func (m *melangeServer) IdentityForUser(addr *identity.Address) *identity.Identi
 
 func (m *melangeServer) RetrieveMessageForUser(name string, author *identity.Address, forAddr *identity.Address) *message.Mail {
 	if name == "profile" {
-		id, err := models.IdentityFromFingerprint(author.String(), m.Map)
-		if err != nil {
+		id := &models.Identity{}
+		err := m.Map.SelectOne(&id, "select * from dispatch_identity where fingerprint = $1", author.String())
+		if err == nil {
 			return nil
 		}
 		user := &models.User{}
@@ -113,7 +115,13 @@ func (m *melangeServer) RetrieveMessageForUser(name string, author *identity.Add
 			return nil
 		}
 
-		m := message.CreateMail(id, forAddr, time.Now())
+		did, err := id.ToDispatch()
+		if err != nil {
+			panic(err)
+			return nil
+		}
+
+		m := message.CreateMail(did.Address, forAddr, time.Now())
 		m.Components.AddComponent(message.CreateComponent("airdispat.ch/profile/name", []byte(user.Name)))
 		m.Components.AddComponent(message.CreateComponent("airdispat.ch/profile/avatar", []byte(user.GetAvatar())))
 
