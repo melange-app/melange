@@ -104,20 +104,30 @@ func (m *melangeServer) IdentityForUser(addr *identity.Address) *identity.Identi
 
 func (m *melangeServer) RetrieveMessageForUser(name string, author *identity.Address, forAddr *identity.Address) *message.Mail {
 	if name == "profile" {
-		id := &models.Identity{}
-		err := m.Map.SelectOne(&id, "select * from dispatch_identity where fingerprint = $1", author.String())
-		if err == nil {
+		var id []*models.Identity
+		_, err := m.Map.Select(&id, "select * from dispatch_identity where fingerprint = $1", author.String())
+		if err != nil {
+			m.HandleError(&server.ServerError{"Loading Profile Identity", err})
 			return nil
 		}
-		user := &models.User{}
-		_, err = m.Map.Get(&user, id.UserId)
+		if len(id) != 1 {
+			// Couldn't find user
+			m.HandleError(&server.ServerError{"Finding Profile User", errors.New(fmt.Sprintf("Found number of ids %v", len(id)))})
+			return nil
+		}
+		u, err := m.Map.Get(&models.User{}, id[0].UserId)
 		if err != nil {
+			m.HandleError(&server.ServerError{"Getting Profile User", err})
+			return nil
+		}
+		user, ok := u.(*models.User)
+		if !ok {
 			return nil
 		}
 
-		did, err := id.ToDispatch()
+		did, err := id[0].ToDispatch()
 		if err != nil {
-			panic(err)
+			m.HandleError(&server.ServerError{"Changing ID To Dispatch Profile", err})
 			return nil
 		}
 

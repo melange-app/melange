@@ -6,6 +6,7 @@ import (
 	"airdispat.ch/routing"
 	"fmt"
 	"github.com/airdispatch/dpl"
+	"log"
 	"net/url"
 	"time"
 )
@@ -16,8 +17,9 @@ type PluginMail struct {
 }
 
 func CreatePluginMail(r routing.Router, m *message.Mail, checking *identity.Identity) *PluginMail {
-	profile, err := GetProfile(r, checking, m.Header().From.String())
+	profile, err := GetProfile(r, checking, fmt.Sprintf("/%v", m.Header().From.String()))
 	if err != nil {
+		log.Println("Got error getting profile", err)
 		profile = nil
 	}
 	return &PluginMail{
