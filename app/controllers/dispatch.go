@@ -190,8 +190,10 @@ func (c Dispatch) AddSubscription(address string) revel.Result {
 }
 
 func (d Dispatch) RemoveSubscription(id int) revel.Result {
+	u := GetUserId(d.Session)
+
 	var apps []*models.UserSubscription
-	_, err := d.Txn.Select(&apps, "select * from dispatch_subscription where subscriptionid = $1", id)
+	_, err := d.Txn.Select(&apps, "select * from dispatch_subscription where subscriptionid = $1 and userid = $2", id, u)
 	if err != nil {
 		panic(err)
 	}
@@ -202,6 +204,35 @@ func (d Dispatch) RemoveSubscription(id int) revel.Result {
 	toDelete := apps[0]
 	count, err := d.Txn.Delete(toDelete)
 	if err != nil || count != 1 {
+		panic(err)
+	}
+
+	return d.Redirect(routes.Dispatch.Account())
+}
+
+func (d Dispatch) RegisterIdentity(id int) revel.Result {
+	u := GetUserId(d.Session)
+
+	var ids []*models.Identity
+	_, err := d.Txn.Select(&ids, "select * from dispatch_identity where identityid = $1 and userid = $2", id, u)
+	if err != nil {
+		panic(err)
+	}
+	if len(ids) != 1 {
+		panic(len(ids))
+	}
+
+	toRegister := ids[0]
+
+	mailserver.InitRouter()
+	did, err := toRegister.ToDispatch()
+	if err != nil {
+		panic(err)
+	}
+	did.SetLocation(revel.Config.StringDefault("server.location", ""))
+
+	err = mailserver.RegistrationRouter.Register(did, toRegister.Alias)
+	if err != nil {
 		panic(err)
 	}
 

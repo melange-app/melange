@@ -77,9 +77,13 @@
         <tbody>
 	  {{ range .identities }}
           <tr>
-            <td><i>Not Registered</i></td>
-	    <td>{{ .Fingerprint }}</td>
-            <td><a href="#">Register</a> / <a href="#">Remove</a></td>
+			  <td><i>{{ .Alias }}@airdispat.ch</i></td>
+			<td>{{ .Fingerprint }}</td>
+            <td>
+				<form method="post" action="/account/identity/{{ .IdentityId }}/register">
+					<button type="submit" class="btn btn-xs btn-link" style="padding:0;">Register</button>
+				</form>
+			</td>
           </tr>
 	  {{ end }}
         </tbody>
@@ -109,10 +113,10 @@
             <td><i>No Nickname</i></td>
             <td>{{ .Address }}</td>
             <td>
-	      <form method="post" action="/account/subscriptions/{{ .SubscriptionId }}/remove">
-		<button type="submit" class="btn btn-xs btn-link" style="padding:0;">Unsubscribe</button>
-	      </form>
-	    </td>
+			  <form method="post" action="/account/subscriptions/{{ .SubscriptionId }}/remove">
+				<button type="submit" class="btn btn-xs btn-link" style="padding:0;">Unsubscribe</button>
+			  </form>
+			</td>
           </tr>
 	  {{ else }}
 	  <tr class="warning">

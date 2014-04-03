@@ -21,6 +21,8 @@ POST    /account                                Dispatch.ProcessAccount
 POST    /account/subscriptions/new              Dispatch.AddSubscription
 POST    /account/subscriptions/:id/remove       Dispatch.RemoveSubscription
 
+POST    /account/identity/:id/register          Dispatch.RegisterIdentity
+
 # Login User Center
 GET     /dashboard                              Dispatch.Dashboard
 GET     /profile                                Dispatch.Profile
