@@ -8,11 +8,18 @@ import (
 	"airdispat.ch/tracker"
 	"errors"
 	"strings"
+	"sync"
 )
+
+var cache map[string]*identity.Address
+var cLock sync.RWMutex
 
 var ServerKey *identity.Identity
 
 func InitRouter() {
+	if cache == nil {
+		cache = make(map[string]*identity.Address)
+	}
 	if ServerKey == nil {
 		ServerKey, _ = identity.CreateIdentity()
 	}
@@ -39,6 +46,13 @@ type Router struct {
 }
 
 func (a *Router) LookupAlias(from string) (*identity.Address, error) {
+	cLock.RLock()
+	test, ok := cache[from]
+	if ok {
+		return test, nil
+	}
+	cLock.RUnlock()
+
 	if from[0] == '/' {
 		return a.Lookup(from[1:])
 	}
@@ -50,12 +64,36 @@ func (a *Router) LookupAlias(from string) (*identity.Address, error) {
 	url := tracker.GetTrackingServerLocationFromURL(comp[1])
 	t := &tracker.TrackerRouter{url, a.Origin}
 
-	return t.LookupAlias(comp[0])
+	addr, err := t.LookupAlias(comp[0])
+	if err == nil {
+		cLock.Lock()
+		cache[from] = addr
+		cache[addr.String()] = addr
+		cLock.Unlock()
+		return addr, nil
+	}
+	return nil, err
 }
 
 func (a *Router) Lookup(from string) (*identity.Address, error) {
-	t := tracker.CreateTrackerListRouterWithStrings(a.Origin, a.TrackerList...)
-	return t.Lookup(from)
+	cLock.RLock()
+	test, ok := cache[from]
+	if ok {
+		return test, nil
+	}
+	cLock.RUnlock()
+
+	for _, v := range a.TrackerList {
+		a, err := (&tracker.TrackerRouter{v, ServerKey}).Lookup(from)
+		if err == nil {
+			cLock.Lock()
+			cache[from] = a
+			cache[a.String()] = a
+			cLock.Unlock()
+			return a, nil
+		}
+	}
+	return nil, errors.New("Couldn't find address in Trackers.")
 }
 
 func (a *Router) Register(key *identity.Identity, alias string) error {
