@@ -1,6 +1,6 @@
 <dpl>
   <name>Notes</name>
-  <path>airdispat.ch/notes</path>
+  <path>airdispatch.me/apps/notes.dpl</path>
   <tags>
     <tag name="note" type="public">
       <field>airdispat.ch/notes/title</field>

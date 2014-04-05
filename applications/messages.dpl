@@ -1,0 +1,21 @@
+<dpl>
+	<name>Messages</name>
+	<path>airdispatch.me/apps/messages.dpl</path>
+	<tags>
+		<tag name="message" type="private">
+			<field>airdispat.ch/messages/body</field>
+			<field>airdispat.ch/messages/subject</field>
+		</tag>
+	</tags>
+	<action name="list" default="true">
+		<h2>Messages</h2>
+		<p>
+			<a href="#" class="btn btn-sm">Create Message</a>
+		</p>
+		{{ range tag "message" nil 0 }}
+		<p>{{ .Get "airdispat.ch/messages/subject" }}</p> 
+		{{ end }}
+	</action>
+	<action name="create">
+	</action>
+</dpl>
