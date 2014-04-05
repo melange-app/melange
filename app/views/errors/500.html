@@ -1,16 +1,12 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<title>Application error</title>
-	</head>
-	<body>
-		{{if eq .RunMode "dev"}}
-		{{template "errors/500-dev.html" .}}
-		{{else}}
-		<h1>Oops, an error occured</h1>
-		<p>
-			This exception has been logged.
-		</p>
-		{{end}}
-	</body>
-</html>
+{{ set . "title" "Error Occurred" }}
+{{ set . "auth" true }}
+{{ template "header.html" . }}
+
+<div class="container text-center">
+      <h1><i class="fa fa-minus-circle text-danger fa-5x"></i></h1>
+      <h1>AirDispatch Error</h1>
+	  <br/>
+	  <p>Please try again in a few minutes.</p>
+</div>
+
+{{ template "footer.html" . }}
