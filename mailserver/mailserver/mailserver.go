@@ -78,10 +78,20 @@ func main() {
 }
 
 func StartServer(theServer server.Server, handler *melangeServer) {
-	err := theServer.StartServer(*port)
-	if err != nil {
-		handler.HandleError(&server.ServerError{"Starting Server", err})
-		os.Exit(1)
+	go func() {
+		err := theServer.StartServer(*port)
+		if err != nil {
+			handler.HandleError(&server.ServerError{"Starting Server", err})
+			os.Exit(1)
+		}
+	}()
+	for {
+		fmt.Print("ad> ")
+		var prompt string
+		fmt.Scan(&prompt)
+		if prompt == "quit" {
+			return
+		}
 	}
 }
 

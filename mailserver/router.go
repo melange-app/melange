@@ -8,11 +8,13 @@ import (
 	"airdispat.ch/tracker"
 	"errors"
 	"strings"
-	"sync"
+
+//	"sync"
 )
 
 var cache map[string]*identity.Address
-var cLock sync.RWMutex
+
+// var cLock sync.RWMutex
 
 var ServerKey *identity.Identity
 
@@ -46,12 +48,12 @@ type Router struct {
 }
 
 func (a *Router) LookupAlias(from string) (*identity.Address, error) {
-	cLock.RLock()
+	// cLock.RLock()
 	test, ok := cache[from]
 	if ok {
 		return test, nil
 	}
-	cLock.RUnlock()
+	// cLock.RUnlock()
 
 	if from[0] == '/' {
 		return a.Lookup(from[1:])
@@ -66,30 +68,30 @@ func (a *Router) LookupAlias(from string) (*identity.Address, error) {
 
 	addr, err := t.LookupAlias(comp[0])
 	if err == nil {
-		cLock.Lock()
+		// cLock.Lock()
 		cache[from] = addr
 		cache[addr.String()] = addr
-		cLock.Unlock()
+		// cLock.Unlock()
 		return addr, nil
 	}
 	return nil, err
 }
 
 func (a *Router) Lookup(from string) (*identity.Address, error) {
-	cLock.RLock()
+	// cLock.RLock()
 	test, ok := cache[from]
 	if ok {
 		return test, nil
 	}
-	cLock.RUnlock()
+	// cLock.RUnlock()
 
 	for _, v := range a.TrackerList {
 		a, err := (&tracker.TrackerRouter{v, ServerKey}).Lookup(from)
 		if err == nil {
-			cLock.Lock()
+			// cLock.Lock()
 			cache[from] = a
 			cache[a.String()] = a
-			cLock.Unlock()
+			// cLock.Unlock()
 			return a, nil
 		}
 	}
