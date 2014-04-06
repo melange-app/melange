@@ -13,9 +13,9 @@
       {{ end }}
       <form method="post" action="/app/new">
         <div class="input-group">
-          <input type="text" class="form-control" placeholder="airdispatch.me/applications/notes.dpl" name="url">
+          <input type="text" class="form-control app-url" placeholder="airdispatch.me/applications/notes.dpl" name="url">
           <span class="input-group-btn">
-            <button class="btn btn-primary" type="submit"><i class="fa fa-plus"></i> Install</button>
+            <button class="btn btn-primary installer" type="submit"><i class="fa fa-plus"></i> Install</button>
           </span>
         </div>
       </form>
@@ -49,15 +49,15 @@
       <h4>Suggested Applications</h4>
       <p class="text-muted small">Click to Install</p>
       <div class="list-group">
-        <a href="#" class="list-group-item">
+        <a href="#" class="list-group-item add-app" data-url="http://airdispatch.me/apps/notes.dpl">
           <strong>AirDispatch Notes</strong>
           Manage public notes from you and your friends.
         </a>
-        <a href="#" class="list-group-item">
+        <a href="#" class="list-group-item add-app" data-url="http://airdispatch.me/apps/messages.dpl">
           <strong>AirDispatch Messages</strong>
           Send large messages akin to email.
         </a>
-        <a href="#" class="list-group-item">
+        <a href="#" class="list-group-item add-app" data-url="http://airdispatch.me/apps/chat.dpl">
           <strong>AirDispatch Chat</strong>
           Quickly chat with friends and family.
         </a>

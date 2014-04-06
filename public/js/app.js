@@ -3,6 +3,11 @@ $(document).ready(function() {
       removeNotification($(this).parent());
     });
 
+
+    $(".add-app").click(function () {
+      $(".app-url").val($(this).attr("data-url"));
+      $(".installer").removeClass("btn-primary").addClass("btn-danger");
+    });
     // addNotification("http://cdn.macrumors.com/article-new/2013/12/app-store.jpg", "Test", "5 minutes ago", "http://google.com", 60000);
 });
 
@@ -33,12 +38,3 @@ function addNotification(image, text, time, url, ttl) {
     removeNotification(note);
   }, ttl*1000);
 }
-
-// <div class="notification">
-//   <a href="#" class="dismiss pull-right">dismiss</a>
-//   <a href="#">
-//     <img src="http://cdn.macrumors.com/article-new/2013/12/app-store.jpg">
-//     <p><strong>itunes.apple.com</strong> is requesting that you login</p>
-//     <p class="date">5 minutes ago</p>
-//   </a>
-// </div>
