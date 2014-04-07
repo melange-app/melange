@@ -143,7 +143,7 @@ func (a *Alert) DownloadMessageFromAlert(db Selectable, r routing.Router) (*mess
 	if err != nil {
 		return nil, err
 	}
-	if a.Location != nil {
+	if a.Location != "" {
 		addr.Location = a.Location
 	}
 
