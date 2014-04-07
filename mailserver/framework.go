@@ -24,6 +24,10 @@ func getServerLocation() string {
 }
 
 func Init() {
+	init()
+}
+
+func init() {
 	def := getServerLocation()
 	ServerLocation = revel.Config.StringDefault("server.location", def)
 }
