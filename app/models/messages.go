@@ -143,15 +143,21 @@ func (a *Alert) DownloadMessageFromAlert(db Selectable, r routing.Router) (*mess
 	if err != nil {
 		return nil, err
 	}
+	if a.Location != nil {
+		addr.Location = a.Location
+	}
 
 	sender := IdentityFromFingerprint(a.To, db)
 	if sender == nil {
-		return nil, errors.New("adsf")
+		return nil, errors.New("Unable to get identity from fingerprint.")
 	}
 
 	msgDescription := server.CreateTransferMessage("testMessage", sender.Address, addr)
 
 	data, messageType, h, err := message.SendMessageAndReceive(msgDescription, sender, addr)
+	if err != nil {
+		return nil, err
+	}
 
 	if messageType != wire.MailCode {
 		return nil, errors.New("Unexpected message type.")
