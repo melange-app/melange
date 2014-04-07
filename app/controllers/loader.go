@@ -177,6 +177,7 @@ func (d Loader) SendMessage(app string) revel.Result {
 	}
 
 	if toAddr != nil {
+		mailserver.Init()
 		mailserver.InitRouter()
 		for _, addr := range toAddr {
 			err := mailserver.SendAlert(mailserver.LookupRouter, msg.Name, fromSub[0], addr)

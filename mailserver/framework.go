@@ -28,10 +28,6 @@ func Init() {
 	ServerLocation = revel.Config.StringDefault("server.location", def)
 }
 
-func init() {
-	Init()
-}
-
 func Messages(r routing.Router,
 	db models.Selectable,
 	from *identity.Identity,
