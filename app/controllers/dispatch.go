@@ -117,7 +117,7 @@ func (d Dispatch) AddApplication(url string) revel.Result {
 		panic(err)
 	}
 
-	return d.Redirect(routes.Dispatch.Applications())
+	return d.Redirect(routes.Loader.LoadAppDefault(plugin.Name))
 }
 
 func (d Dispatch) UninstallApplication(app string) revel.Result {
@@ -239,6 +239,6 @@ func (d Dispatch) RegisterIdentity(id int) revel.Result {
 	return d.Redirect(routes.Dispatch.Account())
 }
 
-func (c Dispatch) ProcessAccount() revel.Result {
-	return c.Render()
+func (d Dispatch) ProcessAccount(name string, username string, password1 string, password2 string, password string) revel.Result {
+	return d.Redirect(routes.Dispatch.Account())
 }

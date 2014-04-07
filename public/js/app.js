@@ -6,7 +6,7 @@ $(document).ready(function() {
 
     $(".add-app").click(function () {
       $(".app-url").val($(this).attr("data-url"));
-      $(".installer").removeClass("btn-primary").addClass("btn-danger");
+      $(".installer").removeClass("btn-primary").addClass("btn-danger").click();
     });
     // addNotification("http://cdn.macrumors.com/article-new/2013/12/app-store.jpg", "Test", "5 minutes ago", "http://google.com", 60000);
 });
