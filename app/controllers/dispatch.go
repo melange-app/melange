@@ -170,8 +170,10 @@ func (c Dispatch) Account() revel.Result {
 
 func (c Dispatch) AddSubscription(address string) revel.Result {
 	// TODO: Verify the Address Somehow...
-	if false {
-		c.Flash.Error("Unable to verify that address. It has not been added to your subscriptions.")
+	mailserver.InitRouter()
+	_, err := mailserver.LookupRouter.LookupAlias(address)
+	if err != nil {
+		c.Flash.Error("Unable to find that address. It has not been added.")
 		return c.Redirect(routes.Dispatch.Account())
 	}
 
@@ -181,7 +183,7 @@ func (c Dispatch) AddSubscription(address string) revel.Result {
 		Address: address,
 	}
 
-	err := c.Txn.Insert(newSub)
+	err = c.Txn.Insert(newSub)
 	if err != nil {
 		panic(err)
 	}
