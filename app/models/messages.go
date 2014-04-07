@@ -152,9 +152,9 @@ func (a *Alert) DownloadMessageFromAlert(db Selectable, r routing.Router) (*mess
 		return nil, errors.New("Unable to get identity from fingerprint.")
 	}
 
-	msgDescription := server.CreateTransferMessage("testMessage", sender.Address, addr)
+	msgDescription := server.CreateTransferMessage(a.Name, sender.Address, addr)
 
-	data, messageType, h, err := message.SendMessageAndReceive(msgDescription, sender, addr)
+	data, messageType, h, err := message.SendMessageAndReceiveWithoutTimestamp(msgDescription, sender, addr)
 	if err != nil {
 		return nil, err
 	}

@@ -8,14 +8,13 @@ import (
 	"airdispat.ch/wire"
 	"errors"
 	"github.com/airdispatch/dpl"
-	"github.com/robfig/revel"
 	"melange/app/models"
 	"net"
 	"os"
 	"strings"
 )
 
-var ServerLocation string
+var ServerLocation string = "www.airdispatch.me"
 
 func getServerLocation() string {
 	s, _ := os.Hostname()
@@ -24,8 +23,9 @@ func getServerLocation() string {
 }
 
 func Init() {
-	def := getServerLocation()
-	ServerLocation = revel.Config.StringDefault("server.location", def)
+	// def := getServerLocation()
+	// ServerLocation = revel.Config.StringDefault("server.location", def)
+	// ServerLocation = "www.airdispatch.me:2048"
 }
 
 func Messages(r routing.Router,

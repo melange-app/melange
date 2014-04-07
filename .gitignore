@@ -8,3 +8,4 @@ app/controllers/#dispatch.go#
 app/controllers/.#dispatch.go
 mailserver
 *#
+*.tracker

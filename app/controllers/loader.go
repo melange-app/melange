@@ -171,7 +171,18 @@ func (d Loader) SendMessage(app string) revel.Result {
 		panic(err)
 	}
 
-	msg, err := models.CreateMessage(d.Txn, fromSub[0].Address.String(), toAddr, components)
+	mailserver.InitRouter()
+
+	outAddr := make([]string, len(toAddr))
+	for i, v := range toAddr {
+		addr, err := mailserver.LookupRouter.LookupAlias(v)
+		if err != nil {
+			d.Flash.Error("Couldn't send message to non-existant user.")
+		}
+		outAddr[i] = addr.String()
+	}
+
+	msg, err := models.CreateMessage(d.Txn, fromSub[0].Address.String(), outAddr, components)
 	if err != nil {
 		panic(err)
 	}
