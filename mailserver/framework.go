@@ -24,12 +24,12 @@ func getServerLocation() string {
 }
 
 func Init() {
-	init()
+	def := getServerLocation()
+	ServerLocation = revel.Config.StringDefault("server.location", def)
 }
 
 func init() {
-	def := getServerLocation()
-	ServerLocation = revel.Config.StringDefault("server.location", def)
+	Init()
 }
 
 func Messages(r routing.Router,
