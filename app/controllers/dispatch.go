@@ -240,5 +240,26 @@ func (d Dispatch) RegisterIdentity(id int) revel.Result {
 }
 
 func (d Dispatch) ProcessAccount(name string, username string, password1 string, password2 string, password string) revel.Result {
+	u, err := d.Txn.Get(&models.User{}, GetUserId(d.Session))
+	if err != nil {
+		panic(err)
+	}
+
+	user := u.(*models.User)
+	user.Name = name
+
+	if user.VerifyPassword(password) {
+		if password1 == password2 {
+			user.UpdatePassword(password1)
+		} else {
+			d.Flash.Error("New passwords do not match.")
+		}
+	} else {
+		if password != "" {
+			d.Flash.Error("Current Password is not correct. Did not update username or password.")
+		}
+	}
+
+	user.Save(d.Txn)
 	return d.Redirect(routes.Dispatch.Account())
 }

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"bytes"
 	"code.google.com/p/go.crypto/bcrypt"
 	"crypto/md5"
 	"errors"
@@ -71,15 +72,24 @@ func AuthenticateUser(username string, password string, dbm *gorp.Transaction) (
 }
 
 func CreateUser(username string, password string, name string) *User {
-	bcryptPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	newUser := &User{
-		Name:           name,
-		Username:       username,
-		Password:       password,
-		HashedPassword: bcryptPassword,
-		Transient:      true,
+		Name:      name,
+		Username:  username,
+		Password:  password,
+		Transient: true,
 	}
+	newUser.UpdatePassword(password)
 	return newUser
+}
+
+func (u *User) VerifyPassword(password string) bool {
+	bcryptPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return bytes.Equal(bcryptPassword, u.HashedPassword)
+}
+
+func (u *User) UpdatePassword(password string) {
+	bcryptPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	u.HashedPassword = bcryptPassword
 }
 
 func (u *User) Save(txn *gorp.Transaction) error {

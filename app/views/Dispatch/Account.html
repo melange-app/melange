@@ -7,128 +7,134 @@
     <div class="col-sm-10">
       <h3>Account Settings</h3>
       <br/>
+      {{ if .flash.error }}
+      <div class="alert alert-danger">
+        <p>{{ .flash.error }}</p>
+      </div>
+      {{ end }}
       <ul class="nav nav-tabs">
-    <li class="active"><a data-toggle="tab" href="#general">
-        <i class="fa fa-cogs"></i>
-        General
-    </a></li>
-    <li><a data-toggle="tab" href="#identity">
-        <i class="fa fa-map-marker"></i>
-        Identity
-    </a></li>
-    <li><a data-toggle="tab" href="#subscription">
-        <i class="fa fa-group"></i>
-        Subscriptions
-    </a></li>
-    <li><a data-toggle="tab" href="#billing">
-        <i class="fa fa-credit-card"></i>
-        Billing and Plan
-    </a></li>
+        <li class="active"><a data-toggle="tab" href="#general">
+            <i class="fa fa-cogs"></i>
+            General
+        </a></li>
+        <li><a data-toggle="tab" href="#identity">
+            <i class="fa fa-map-marker"></i>
+            Identity
+        </a></li>
+        <li><a data-toggle="tab" href="#subscription">
+            <i class="fa fa-group"></i>
+            Subscriptions
+        </a></li>
+        <li><a data-toggle="tab" href="#billing">
+            <i class="fa fa-credit-card"></i>
+            Billing and Plan
+        </a></li>
       </ul>
       <div class="tab-content">
-    <div class="tab-pane active" id="general">
-      <h5>General Settings</h5>
-      <form class="form-horizontal" role="form">
-        <div class="form-group">
-          <label for="inputName" class="col-sm-2 control-label">Full Name</label>
-          <div class="col-sm-10">
-        <input type="text" name="name" id="inputName" class="form-control" value="{{ .user.Name }}">
-          </div>
+        <div class="tab-pane active" id="general">
+          <h5>General Settings</h5>
+          <form class="form-horizontal" role="form" method="post" action="/account">
+            <div class="form-group">
+              <label for="inputName" class="col-sm-2 control-label">Full Name</label>
+              <div class="col-sm-10">
+                <input type="text" name="name" id="inputName" class="form-control" value="{{ .user.Name }}">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="inputUsername" class="col-sm-2 control-label">Username</label>
+              <div class="col-sm-10">
+                <input type="text" name="username" id="inputUsername" class="form-control" value="{{ .user.Username }}">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">Change Password</label>
+              <div class="col-sm-5">
+                <input type="password" name="password1" class="form-control" placeholder="New Password">
+              </div>
+              <div class="col-sm-5">
+                <input type="password" name="password2" class="form-control" placeholder="Confirm New Password">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">Current Password</label>
+              <div class="col-sm-10">
+                <input type="password" name="password" class="form-control">
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-10 col-sm-offset-2">
+                <button type="submit" class="btn btn-primary">Save</button>
+              </div>
+            </div>
+          </form>
         </div>
-        <div class="form-group">
-          <label for="inputUsername" class="col-sm-2 control-label">Username</label>
-          <div class="col-sm-10">
-        <input type="text" name="username" id="inputUsername" class="form-control" value="{{ .user.Username }}">
-          </div>
+        <div class="tab-pane" id="identity">
+          <h5>Identity and Addresses</h5>
+          <p><a class="btn btn-xs btn-default" href="#"><i class="fa fa-plus"></i> Create New Identity</a></p>
+          <p><a class="btn btn-xs btn-default" href="#"><i class="fa fa-plus"></i> Purchase Secure Identity</a></p>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Identity</th>
+                <th>Address</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{ range .identities }}
+              <tr>
+                <td><i>{{ .Alias }}@airdispat.ch</i></td>
+                <td>{{ .Fingerprint }}</td>
+                <td>
+                  <form method="post" action="/account/identity/{{ .IdentityId }}/register">
+                    <button type="submit" class="btn btn-xs btn-link" style="padding:0;">Register</button>
+                  </form>
+                </td>
+              </tr>
+              {{ end }}
+            </tbody>
+          </table>
         </div>
-        <div class="form-group">
-          <label class="col-sm-2 control-label">Change Password</label>
-          <div class="col-sm-5">
-        <input type="password" name="password1" class="form-control" placeholder="New Password">
+        <div class="tab-pane" id="subscription">
+          <h5>Manage Subscriptions</h5>
+          <form action="/account/subscriptions/new" method="post">
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="hunter.leath" name="address">
+            <span class="input-group-btn">
+              <button class="btn btn-primary" type="submit"><i class="fa fa-plus"></i> Subscribe</button>
+            </span>
           </div>
-          <div class="col-sm-5">
-        <input type="password" name="password2" class="form-control" placeholder="Confirm New Password">
-          </div>
+          </form>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Nickname</th>
+                <th>Address</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{ range .subscriptions }}
+              <tr>
+                <td><i>No Nickname</i></td>
+                <td>{{ .Address }}</td>
+                <td>
+                  <form method="post" action="/account/subscriptions/{{ .SubscriptionId }}/remove">
+                    <button type="submit" class="btn btn-xs btn-link" style="padding:0;">Unsubscribe</button>
+                  </form>
+                </td>
+              </tr>
+              {{ else }}
+              <tr class="warning">
+                <td colspan=3 class="text-center">Why not add a subscription?</td>
+              </tr>
+              {{ end }}
+            </tbody>
+          </table>
         </div>
-        <div class="form-group">
-          <label class="col-sm-2 control-label">Current Password</label>
-          <div class="col-sm-10">
-        <input type="password" name="password" class="form-control">
-          </div>
+        <div class="tab-pane" id="billing">
+          <h4 class="text-muted">Coming soon.</h4>
         </div>
-        <div class="form-group">
-          <div class="col-sm-10 col-sm-offset-2">
-        <button type="submit" class="btn btn-primary">Save</button>
-          </div>
-        </div>
-      </form>
-    </div>
-    <div class="tab-pane" id="identity">
-      <h5>Identity and Addresses</h5>
-      <p><a class="btn btn-xs btn-default" href="#"><i class="fa fa-plus"></i> Create New Identity</a></p>
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Identity</th>
-	    <th>Address</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-	  {{ range .identities }}
-          <tr>
-			  <td><i>{{ .Alias }}@airdispat.ch</i></td>
-			<td>{{ .Fingerprint }}</td>
-            <td>
-				<form method="post" action="/account/identity/{{ .IdentityId }}/register">
-					<button type="submit" class="btn btn-xs btn-link" style="padding:0;">Register</button>
-				</form>
-			</td>
-          </tr>
-	  {{ end }}
-        </tbody>
-      </table>
-    </div>
-    <div class="tab-pane" id="subscription">
-      <h5>Manage Subscriptions</h5>
-      <form action="/account/subscriptions/new" method="post">
-      <div class="input-group">
-        <input type="text" class="form-control" placeholder="hunter.leath" name="address">
-        <span class="input-group-btn">
-          <button class="btn btn-primary" type="submit"><i class="fa fa-plus"></i> Subscribe</button>
-        </span>
-      </div>
-      </form>
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Nickname</th>
-            <th>Address</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-	  {{ range .subscriptions }}
-          <tr>
-            <td><i>No Nickname</i></td>
-            <td>{{ .Address }}</td>
-            <td>
-			  <form method="post" action="/account/subscriptions/{{ .SubscriptionId }}/remove">
-				<button type="submit" class="btn btn-xs btn-link" style="padding:0;">Unsubscribe</button>
-			  </form>
-			</td>
-          </tr>
-	  {{ else }}
-	  <tr class="warning">
-	    <td colspan=3 class="text-center">Why not add a subscription?</td>
-	  </tr>
-	  {{ end }}
-        </tbody>
-      </table>
-    </div>
-    <div class="tab-pane" id="billing">
-      <h4 class="text-muted">Coming soon.</h4>
-    </div>
       </div>
     </div>
   </div>
