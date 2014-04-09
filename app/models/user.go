@@ -30,7 +30,7 @@ func (u *User) GetAvatar() string {
 	if u.Avatar == "" {
 		h := md5.New()
 		io.WriteString(h, fmt.Sprintf("%v@%v", u.Username, "airdispat.ch"))
-		return fmt.Sprintf("http://www.gravatar.com/avatar/%x?d=identicon&size=500", h.Sum(nil))
+		return fmt.Sprintf("//www.gravatar.com/avatar/%x?d=identicon&size=500", h.Sum(nil))
 	}
 	return u.Avatar
 }
