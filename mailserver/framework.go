@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-var ServerLocation string = "www.airdispatch.me"
+var ServerLocation string = "www.airdispatch.me:2048"
 
 func getServerLocation() string {
 	s, _ := os.Hostname()
