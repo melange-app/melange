@@ -11,6 +11,7 @@ import (
 	"melange/app/models"
 	"net"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -88,6 +89,8 @@ func Messages(r routing.Router,
 			out = append(out, CreatePluginMail(r, dmsg, from))
 		}
 	}
+
+	sort.Sort(dpl.MessageList(out))
 
 	return out, nil
 }
