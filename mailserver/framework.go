@@ -55,7 +55,7 @@ func Messages(r routing.Router,
 				if err != nil {
 					return nil, err
 				}
-				out = append(out, CreatePluginMail(r, rmsg, from))
+				out = append(out, CreatePluginMail(r, rmsg, from, true))
 			}
 		}
 	}
@@ -71,7 +71,7 @@ func Messages(r routing.Router,
 			if err != nil {
 				return nil, err
 			}
-			out = append(out, CreatePluginMail(r, msg, from))
+			out = append(out, CreatePluginMail(r, msg, from, false))
 		}
 	}
 
@@ -86,7 +86,7 @@ func Messages(r routing.Router,
 			if err != nil {
 				return nil, err
 			}
-			out = append(out, CreatePluginMail(r, dmsg, from))
+			out = append(out, CreatePluginMail(r, dmsg, from, false))
 		}
 	}
 

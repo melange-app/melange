@@ -17,17 +17,20 @@ type PluginMail struct {
 	TProfile *message.Mail
 }
 
-func CreatePluginMail(r routing.Router, m *message.Mail, checking *identity.Identity) *PluginMail {
+func CreatePluginMail(r routing.Router, m *message.Mail, checking *identity.Identity, public bool) *PluginMail {
 	profile, err := GetProfile(r, checking, fmt.Sprintf("/%v", m.Header().From.String()))
 	if err != nil {
 		log.Println("Got error getting profile", err)
 		profile = nil
 	}
 
-	to, err := GetProfile(r, checking, fmt.Sprintf("/%v", m.Header().To.String()))
-	if err != nil {
-		log.Println("Go an error getting to profile.", err)
-		to = nil
+	var to *message.Mail
+	if !public {
+		to, err = GetProfile(r, checking, fmt.Sprintf("/%v", m.Header().To.String()))
+		if err != nil {
+			log.Println("Go an error getting to profile.", err)
+			to = nil
+		}
 	}
 
 	return &PluginMail{
@@ -66,7 +69,7 @@ func (p *PluginMail) Sender() dpl.User {
 	}
 }
 
-func (p *PluginMail) To() []dpl.User {
+func (p *PluginMail) From() []dpl.User {
 	if p.TProfile != nil {
 		return []dpl.User{&PluginUser{
 			loaded:  p.Header().To,

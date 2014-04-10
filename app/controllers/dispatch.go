@@ -90,7 +90,30 @@ func (d Dispatch) Profile() revel.Result {
 }
 
 func (d Dispatch) All() revel.Result {
-	return d.Render()
+	u, err := d.Txn.Get(&models.User{}, GetUserId(d.Session))
+	if err != nil {
+		panic(err)
+	}
+
+	id, err := models.UserIdentities(u.(*models.User), d.Txn)
+	if err != nil {
+		panic(err)
+	}
+	if len(id) == 0 {
+		panic("Not enough IDs")
+	}
+
+	recents, err := mailserver.Messages(mailserver.LookupRouter,
+		d.Txn,
+		id[0],
+		u.(*models.User),
+		true, true, true,
+		0)
+	if err != nil {
+		panic(err)
+	}
+
+	return d.Render(recents)
 }
 
 func (d Dispatch) Applications() revel.Result {

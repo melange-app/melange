@@ -1,11 +1,11 @@
 {{ range . }}
-<div class="row message">
+<div class="row message {{ if .From }}mail{{ else }}subscribed{{ end}}">
   <div class="col-xs-3 col-sm-2 border c cf">
     <img style="height: 50px;" src="{{ .Sender.Avatar }}" class="avatar img-responsive img-circle">
   </div>
   <div class="col-xs-9 col-sm-8 border c">
     <h4>
-      <a href="#">{{ .Sender.Name }} {{ if .From }} <i class="fa fa-chevron-right"></i> {{ end }} {{ range .From }} {{ .Name }} {{ end }}</a>
+      <a href="#">{{ .Sender.Name }} {{ if .From }} <i class="fa fa-caret-right"></i> {{ end }} {{ range .From }} {{ .Name }} {{ end }}</a>
     </h4>
     {{ call .news . }}
     {{ range .Components }}
