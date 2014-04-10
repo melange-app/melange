@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/airdispatch/dpl"
 	"github.com/robfig/revel"
+	"html/template"
 	"melange/app/models"
 	"melange/app/routes"
 	"melange/mailserver"
@@ -28,6 +29,10 @@ func (c Dispatch) Init() revel.Result {
 	c.RenderArgs["apps"] = apps
 
 	mailserver.InitRouter()
+
+	c.RenderArgs["news"] = func(m dpl.Message) template.HTML {
+		return ""
+	}
 
 	return nil
 }
