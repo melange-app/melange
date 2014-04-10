@@ -1,5 +1,5 @@
 {{ range . }}
-<div class="row message">
+<div class="row message {{ if .From }}mail{{ else }}subscribed{{ end}}">
   <div class="col-xs-3 col-sm-2 border c cf">
     <img style="height: 50px;" src="{{ .Sender.Avatar }}" class="avatar img-responsive img-circle">
   </div>
