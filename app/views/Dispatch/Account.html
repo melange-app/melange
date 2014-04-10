@@ -133,7 +133,41 @@
           </table>
         </div>
         <div class="tab-pane" id="billing">
-          <h4 class="text-muted">Coming soon.</h4>
+          <h5>Billing and Plan</h5>
+        <form action="" method="POST" id="payment-form">
+          <span class="payment-errors"></span>
+          <div class="row">
+            <div class="col-xs-8">
+              <div class="form-group">
+                <label for="id_number">Card Number</label>
+                  <input class="form-control" id="id_number" type="text" size="20" data-stripe="number" placeholder="XXXX XXXX XXXX 5722"/>
+              </div>
+            </div>
+            <div class="col-xs-4">
+              <div class="form-group">
+                <label for="id_cvc">CVC</label>
+                  <input class="form-control" id="id_cvc" type="text" size="4" data-stripe="cvc"/>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-xs-6">
+              <div class="form-group">
+                <label for="id_exp_m">Expiration Month</label>
+                  <input class="form-control" id="id_exp_m" type="text" size="2" data-stripe="exp-month"/>
+              </div>
+            </div>
+            <div class="col-xs-6">
+              <div class="form-group">
+                <label for="id_exp_y">Expiration Year</label>
+                  <input class="form-control" id="id_exp_y" type="text" size="4" data-stripe="exp-year"/>
+              </div>
+            </div>  
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Submit Payment</button>
+          </div>
+        </form>
         </div>
       </div>
     </div>

@@ -13,7 +13,8 @@ import (
 
 type PluginMail struct {
 	*message.Mail
-	Profile *message.Mail
+	Profile  *message.Mail
+	TProfile *message.Mail
 }
 
 func CreatePluginMail(r routing.Router, m *message.Mail, checking *identity.Identity) *PluginMail {
@@ -22,10 +23,28 @@ func CreatePluginMail(r routing.Router, m *message.Mail, checking *identity.Iden
 		log.Println("Got error getting profile", err)
 		profile = nil
 	}
-	return &PluginMail{
-		Mail:    m,
-		Profile: profile,
+
+	to, err := GetProfile(r, checking, fmt.Sprintf("/%v", m.Header().To.String()))
+	if err != nil {
+		log.Println("Go an error getting to profile.", err)
+		to = nil
 	}
+
+	return &PluginMail{
+		Mail:     m,
+		Profile:  profile,
+		TProfile: to,
+	}
+}
+
+func (p *PluginMail) To() []dpl.User {
+	if p.TProfile != nil {
+		return []dpl.User{&PluginUser{
+			loaded:  p.Header().To,
+			profile: p.TProfile,
+		}}
+	}
+	return nil
 }
 
 func (p *PluginMail) Components() []dpl.Component {
