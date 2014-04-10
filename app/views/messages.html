@@ -5,7 +5,7 @@
   </div>
   <div class="col-xs-9 col-sm-8 border c">
     <h4>
-      <a href="#">{{ .Sender.Name }} {{ if .To }} <i class="fa fa-chevron-right"></i> {{ end }} {{ range .To }} {{ .Name }} {{ end }}</a>
+      <a href="#">{{ .Sender.Name }} {{ if .From }} <i class="fa fa-chevron-right"></i> {{ end }} {{ range .From }} {{ .Name }} {{ end }}</a>
     </h4>
     {{ range .Components }}
     <p><strong>{{ .Key }}</strong> {{ .String }}</p>

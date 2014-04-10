@@ -37,16 +37,6 @@ func CreatePluginMail(r routing.Router, m *message.Mail, checking *identity.Iden
 	}
 }
 
-func (p *PluginMail) To() []dpl.User {
-	if p.TProfile != nil {
-		return []dpl.User{&PluginUser{
-			loaded:  p.Header().To,
-			profile: p.TProfile,
-		}}
-	}
-	return nil
-}
-
 func (p *PluginMail) Components() []dpl.Component {
 	var out []dpl.Component = make([]dpl.Component, len(p.Mail.Components))
 	i := 0
@@ -56,6 +46,7 @@ func (p *PluginMail) Components() []dpl.Component {
 	}
 	return out
 }
+
 func (p *PluginMail) Get(field string) ([]byte, error) {
 	return p.Mail.Components.GetComponent(field), nil
 }
@@ -73,6 +64,16 @@ func (p *PluginMail) Sender() dpl.User {
 		loaded:  p.Header().From,
 		profile: p.Profile,
 	}
+}
+
+func (p *PluginMail) To() []dpl.User {
+	if p.TProfile != nil {
+		return []dpl.User{&PluginUser{
+			loaded:  p.Header().To,
+			profile: p.TProfile,
+		}}
+	}
+	return nil
 }
 
 // Abstract Getting User's Profile
