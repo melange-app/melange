@@ -1,4 +1,4 @@
-package mailservermagit
+package mailserver
 
 import (
 	"airdispat.ch/identity"
