@@ -11,6 +11,22 @@ $(document).ready(function() {
     // addNotification("http://cdn.macrumors.com/article-new/2013/12/app-store.jpg", "Test", "5 minutes ago", "http://google.com", 60000);
 });
 
+var show_private = 1;
+var show_public = 2;
+
+function showOnly(num) {
+    if (num & show_private == show_private) {
+	$(".message.mail").show();
+    } else {
+	$(".message.mail").hide();
+    }
+    if (num & show_public == show_public) {
+	$(".message.subscribed").show();
+    } else {
+	$(".message.subscribed").hide();
+    }
+}
+
 function removeNotification(elem) {
   $(elem).animate({
     right: "-370px"

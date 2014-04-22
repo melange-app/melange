@@ -11,6 +11,18 @@ import (
 	"time"
 )
 
+type MelangeMessage interface {
+	dpl.Message
+	// DisplayNews() template.HTML
+	// Tags() []dpl.Tag
+}
+
+type MessageList []MelangeMessage
+
+func (m MessageList) Len() int               { return len(m) }
+func (m MessageList) Less(i int, j int) bool { return m[i].Created().After(m[j].Created()) }
+func (m MessageList) Swap(i int, j int)      { m[i], m[j] = m[j], m[i] }
+
 type PluginMail struct {
 	*message.Mail
 	Profile  *message.Mail

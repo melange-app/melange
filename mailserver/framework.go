@@ -7,7 +7,6 @@ import (
 	"airdispat.ch/server"
 	"airdispat.ch/wire"
 	"errors"
-	"github.com/airdispatch/dpl"
 	"melange/app/models"
 	"net"
 	"os"
@@ -33,9 +32,9 @@ func Messages(r routing.Router,
 	db models.Selectable,
 	from *identity.Identity,
 	fromUser *models.User,
-	public bool, private bool, self bool, since int64) ([]dpl.Message, error) {
+	public bool, private bool, self bool, since int64) ([]MelangeMessage, error) {
 
-	var out []dpl.Message
+	var out []MelangeMessage
 	var err error
 
 	if public {
@@ -90,7 +89,7 @@ func Messages(r routing.Router,
 		}
 	}
 
-	sort.Sort(dpl.MessageList(out))
+	sort.Sort(MessageList(out))
 
 	return out, nil
 }

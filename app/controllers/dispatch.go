@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"bytes"
 	"github.com/airdispatch/dpl"
 	"github.com/robfig/revel"
 	"html/template"
@@ -31,7 +32,7 @@ func (c Dispatch) Init() revel.Result {
 	mailserver.InitRouter()
 
 	c.RenderArgs["news"] = func(m dpl.Message) template.HTML {
-		return ""
+		return "hello"
 	}
 
 	return nil
@@ -52,7 +53,7 @@ func (d Dispatch) Dashboard() revel.Result {
 		panic("Not enough IDs")
 	}
 
-	recents, err := mailserver.Messages(mailserver.LookupRouter,
+	msgs, err := mailserver.Messages(mailserver.LookupRouter,
 		d.Txn,
 		id[0],
 		u.(*models.User),
@@ -60,6 +61,62 @@ func (d Dispatch) Dashboard() revel.Result {
 		time.Now().Add(-7*24*time.Hour).Unix())
 	if err != nil {
 		panic(err)
+	}
+
+	var apps []*models.UserApp
+	_, err = d.Txn.Select(&apps, "select * from dispatch_app where userid = $1", GetUserId(d.Session))
+	var loadedApps []*dpl.PluginInstance = make([]*dpl.PluginInstance, len(apps))
+	for i, v := range apps {
+		resp, err := http.Get(v.AppURL)
+		if err != nil {
+			// Couldn't load that application
+			resp.Body.Close()
+			continue
+		}
+		o, err := dpl.ParseDPLStream(resp.Body)
+		if err != nil {
+			// Couldn't parse that application
+			resp.Body.Close()
+			continue
+		}
+
+		plugin := o.CreateInstance(&PluginHost{
+			User: u.(*models.User),
+			Txn:  d.Txn,
+			R:    mailserver.LookupRouter,
+		}, nil)
+		loadedApps[i] = plugin
+		resp.Body.Close()
+	}
+
+	type DisplayMessage struct {
+		mailserver.MelangeMessage
+		Display template.HTML
+	}
+	recents := make([]DisplayMessage, 0)
+	for _, v := range msgs {
+		rendered := false
+		for _, a := range loadedApps {
+			for _, t := range a.Tag {
+				if t.FeedAction != "" {
+					match := true
+					for _, f := range t.Fields {
+						if !v.Has(f.Name) && !f.Optional {
+							match = false
+						}
+					}
+					if match {
+						// Do Something
+					}
+				}
+			}
+		}
+		if !rendered {
+			t, _ := template.New("").Parse(`{{ range .Components }}<p><strong>{{ .Key }}</strong> {{ .String }}</p>{{ end }}`)
+			var b bytes.Buffer
+			t.Execute(&b, v)
+			recents = append(recents, DisplayMessage{v, template.HTML(b.String())})
+		}
 	}
 
 	return d.Render(recents)

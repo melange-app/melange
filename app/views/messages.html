@@ -5,11 +5,14 @@
   </div>
   <div class="col-xs-9 col-sm-8 border c">
     <h4>
-      <a href="#">{{ .Sender.Name }} {{ if .From }} <i class="fa fa-caret-right"></i> {{ end }} {{ range .From }} {{ .Name }} {{ end }}</a>
+      <a href="{{ .Sender.Profile }}">{{ .Sender.Name }}</a> {{ if .From }} <i class="fa fa-caret-right"></i> {{ end }} {{ range .From }} <a href="{{ .Profile }}">{{ .Name }}</a> {{ end }}
     </h4>
-    {{ call .news . }}
+    {{ if .Display }}
+    {{ .Display }}
+    {{ else }}
     {{ range .Components }}
     <p><strong>{{ .Key }}</strong> {{ .String }}</p>
+    {{ end }}
     {{ end }}
   </div>
   <div class="col-sm-2 col-sm-offset-0 col-xs-offset-3 c cl">

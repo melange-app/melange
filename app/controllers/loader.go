@@ -32,7 +32,12 @@ func (p *PluginHost) GetMessages(plugin *dpl.PluginInstance, tag dpl.Tag, predic
 		return nil, err
 	}
 
-	return mailserver.Messages(p.R, p.Txn, fromSub[0], p.User, true, true, true, time.Now().Add(-7*24*time.Hour).Unix())
+	messages, err := mailserver.Messages(p.R, p.Txn, fromSub[0], p.User, true, true, true, time.Now().Add(-7*24*time.Hour).Unix())
+	var out []dpl.Message = make([]dpl.Message, len(messages))
+	for i, v := range messages {
+		out[i] = v
+	}
+	return out, err
 }
 
 func (p *PluginHost) SendURL(plugin *dpl.PluginInstance) *url.URL {
