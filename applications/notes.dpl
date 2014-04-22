@@ -11,7 +11,14 @@
   <action name="feed">
     <div class="row">
       <div class="col-sm-10">
-        <h1>Someone wrote a note.</h1>
+		  <div class="panel panel-default" style="margin: 5px 0;">
+			  <div class="panel-heading">
+				  {{ .Message.Get "airdispat.ch/notes/title" }}
+		  		</div>
+				<div class="panel-body">
+				  {{ .Message.Get "airdispat.ch/notes/body" }}
+				</div>
+		  </div>
       </div>
     </div>
   </action>
