@@ -2,11 +2,15 @@
 	<name>Messages</name>
 	<path>airdispatch.me/apps/messages.dpl</path>
 	<tags>
-		<tag name="message" type="private">
+		<tag name="message" type="private" feed="feed">
 			<field>airdispat.ch/messages/body</field>
 			<field>airdispat.ch/messages/subject</field>
 		</tag>
 	</tags>
+	<action name="feed">
+		<h5>Subject: {{ .Message.Get "airdispat.ch/messages/subject" }}</h5>
+		<p>{{ .Message.Get "airdispat.ch/messages/body" }}</p>
+	</action>
 	<action name="list" default="true">
 		<h2>Messages</h2>
 		<div class="btn-group pull-right">
