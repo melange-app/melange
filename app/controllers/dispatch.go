@@ -106,6 +106,12 @@ func (d Dispatch) Dashboard() revel.Result {
 					}
 					if match {
 						// Do Something
+						d, err := a.RunActionWithContext(t.FeedAction, v, nil)
+						if err != nil {
+							continue
+						}
+						rendered = true
+						recents = append(recents, DisplayMessage{v, d})
 					}
 				}
 			}
