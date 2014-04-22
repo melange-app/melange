@@ -70,7 +70,6 @@ func (d Dispatch) Dashboard() revel.Result {
 		resp, err := http.Get(v.AppURL)
 		if err != nil {
 			// Couldn't load that application
-			resp.Body.Close()
 			continue
 		}
 		o, err := dpl.ParseDPLStream(resp.Body)
