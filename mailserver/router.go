@@ -7,20 +7,20 @@ import (
 	"airdispat.ch/routing"
 	"airdispat.ch/tracker"
 	"errors"
+	"github.com/huntaub/go-cache"
 	"strings"
-
-//	"sync"
+	"time"
 )
 
-var cache map[string]*identity.Address
+var routeCache *cache.Cache
 
 // var cLock sync.RWMutex
 
 var ServerKey *identity.Identity
 
 func InitRouter() {
-	if cache == nil {
-		cache = make(map[string]*identity.Address)
+	if routeCache == nil {
+		routeCache = cache.NewCache(1 * time.Hour)
 	}
 	if ServerKey == nil {
 		ServerKey, _ = identity.CreateIdentity()
@@ -48,12 +48,10 @@ type Router struct {
 }
 
 func (a *Router) LookupAlias(from string) (*identity.Address, error) {
-	// cLock.RLock()
-	test, ok := cache[from]
-	if ok {
-		return test, nil
+	test, stale := routeCache.Get(from)
+	if !stale {
+		return test.(*identity.Address), nil
 	}
-	// cLock.RUnlock()
 
 	if from[0] == '/' {
 		return a.Lookup(from[1:])
@@ -68,30 +66,24 @@ func (a *Router) LookupAlias(from string) (*identity.Address, error) {
 
 	addr, err := t.LookupAlias(comp[0])
 	if err == nil {
-		// cLock.Lock()
-		cache[from] = addr
-		cache[addr.String()] = addr
-		// cLock.Unlock()
+		routeCache.Store(from, addr)
+		routeCache.Store(addr.String(), addr)
 		return addr, nil
 	}
 	return nil, err
 }
 
 func (a *Router) Lookup(from string) (*identity.Address, error) {
-	// cLock.RLock()
-	test, ok := cache[from]
-	if ok {
-		return test, nil
+	test, stale := routeCache.Get(from)
+	if !stale {
+		return test.(*identity.Address), nil
 	}
-	// cLock.RUnlock()
 
 	for _, v := range a.TrackerList {
 		a, err := (&tracker.TrackerRouter{v, ServerKey}).Lookup(from)
 		if err == nil {
-			// cLock.Lock()
-			cache[from] = a
-			cache[a.String()] = a
-			// cLock.Unlock()
+			routeCache.Store(from, a)
+			routeCache.Store(a.String(), a)
 			return a, nil
 		}
 	}

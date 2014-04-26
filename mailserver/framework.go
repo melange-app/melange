@@ -7,14 +7,18 @@ import (
 	"airdispat.ch/server"
 	"airdispat.ch/wire"
 	"errors"
+	"fmt"
+	"github.com/huntaub/go-cache"
 	"melange/app/models"
 	"net"
 	"os"
 	"sort"
 	"strings"
+	"time"
 )
 
 var ServerLocation string = "www.airdispatch.me:2048"
+var messageCache, publicCache *cache.Cache
 
 func getServerLocation() string {
 	s, _ := os.Hostname()
@@ -33,6 +37,12 @@ func Messages(r routing.Router,
 	from *identity.Identity,
 	fromUser *models.User,
 	public bool, private bool, self bool, since int64) ([]MelangeMessage, error) {
+	if messageCache == nil {
+		messageCache = cache.NewCache(time.Minute * 15)
+	}
+	if publicCache == nil {
+		publicCache = cache.NewCache(time.Minute * 5)
+	}
 
 	var out []MelangeMessage
 	var err error
@@ -45,16 +55,31 @@ func Messages(r routing.Router,
 		}
 
 		for _, v := range s {
-			msg, err := DownloadPublicMail(r, uint64(since), from, v.Address) // from, to)
-			if err != nil {
-				return nil, err
-			}
-			for _, txn := range msg.Content {
-				rmsg, err := DownloadMessage(r, txn.Name, from, v.Address, txn.Location)
+			var msg *server.MessageList
+			list, stale := publicCache.Get(v.Address)
+			if !stale {
+				msg = list.(*server.MessageList)
+			} else {
+				var err error
+				msg, err = DownloadPublicMail(r, uint64(since), from, v.Address) // from, to)
 				if err != nil {
 					return nil, err
 				}
-				out = append(out, CreatePluginMail(r, rmsg, from, true))
+				publicCache.Store(v.Address, msg)
+			}
+			for _, txn := range msg.Content {
+				murl := fmt.Sprintf("%v::%v", txn.Location, txn.Name)
+				cmsg, stale := messageCache.Get(murl)
+				if !stale {
+					out = append(out, CreatePluginMail(r, cmsg.(*message.Mail), from, true))
+				} else {
+					rmsg, err := DownloadMessage(r, txn.Name, from, v.Address, txn.Location)
+					if err != nil {
+						return nil, err
+					}
+					messageCache.Store(murl, rmsg)
+					out = append(out, CreatePluginMail(r, rmsg, from, true))
+				}
 			}
 		}
 	}
@@ -66,11 +91,18 @@ func Messages(r routing.Router,
 			return nil, err
 		}
 		for _, v := range ale {
-			msg, err := v.DownloadMessageFromAlert(db, r)
-			if err != nil {
-				return nil, err
+			murl := fmt.Sprintf("%v::%v", v.Location, v.Name)
+			cmsg, stale := messageCache.Get(murl)
+			if !stale {
+				out = append(out, CreatePluginMail(r, cmsg.(*message.Mail), from, true))
+			} else {
+				msg, err := v.DownloadMessageFromAlert(db, r)
+				if err != nil {
+					return nil, err
+				}
+				messageCache.Store(murl, msg)
+				out = append(out, CreatePluginMail(r, msg, from, false))
 			}
-			out = append(out, CreatePluginMail(r, msg, from, false))
 		}
 	}
 

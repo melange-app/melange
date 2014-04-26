@@ -6,10 +6,13 @@ import (
 	"airdispat.ch/routing"
 	"fmt"
 	"github.com/airdispatch/dpl"
+	"github.com/huntaub/cache"
 	"log"
 	"net/url"
 	"time"
 )
+
+var profileCache *cache.Cache
 
 type MelangeMessage interface {
 	dpl.Message
@@ -30,18 +33,37 @@ type PluginMail struct {
 }
 
 func CreatePluginMail(r routing.Router, m *message.Mail, checking *identity.Identity, public bool) *PluginMail {
-	profile, err := GetProfile(r, checking, fmt.Sprintf("/%v", m.Header().From.String()))
-	if err != nil {
-		log.Println("Got error getting profile", err)
-		profile = nil
+	if profileCache == nil {
+		profileCache = cache.NewCache(time.Hour * 1)
+	}
+	var profile *message.Mail
+	pf, stale := profileCache.Get(m.Header().From.String())
+	if !stale {
+		profile = pf.(*message.Mail)
+	} else {
+		pf, err := GetProfile(r, checking, fmt.Sprintf("/%v", m.Header().From.String()))
+		if err != nil {
+			log.Println("Got error getting profile", err)
+			profile = nil
+		} else {
+			profile = pf
+			profileCache.Store(m.Header().From.String(), profile)
+		}
 	}
 
 	var to *message.Mail
 	if !public {
-		to, err = GetProfile(r, checking, fmt.Sprintf("/%v", m.Header().To.String()))
-		if err != nil {
-			log.Println("Go an error getting to profile.", err)
-			to = nil
+		p, stale := profileCache.Get(m.Header().To.String())
+		if !stale {
+			to = p.(*message.Mail)
+		} else {
+			to, err := GetProfile(r, checking, fmt.Sprintf("/%v", m.Header().To.String()))
+			if err != nil {
+				log.Println("Go an error getting to profile.", err)
+				to = nil
+			} else {
+				profileCache.Store(m.Header().To.String(), to)
+			}
 		}
 	}
 
