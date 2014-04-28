@@ -1,0 +1,19 @@
+{{ set . "title" "Developer Center" }}
+{{ set . "auth" true }}
+{{ set . "dev" true }}
+{{ template "header.html" . }}
+<div class="background">
+  <div class="container">
+    <h1>Melange Developer Center <small>Create Plugins</small></h1>
+  </div>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.4.6/d3.min.js"></script>
+<script src="/public/js/trianglify.js"></script>
+<script>
+  $(document).ready(function() {
+  var t = new Trianglify();
+  var pattern = t.generate(document.body.clientWidth, document.body.clientHeight);
+  document.body.setAttribute('style', 'background-image: '+pattern.dataUrl);
+});
+</script>
+{{ template "footer.html" . }}

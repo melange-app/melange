@@ -40,7 +40,8 @@ GET     /app/:app/:action/m/:message            Loader.LoadAppMessage
 GET     /app/:app/:action/u/:username           Loader.LoadAppUser
 POST    /app/:app/send                          Loader.SendMessage
 
-# GET     /dashboard                            App.Dashboard
+# Developer Center
+GET     /developer                              Developer.Home
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
