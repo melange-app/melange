@@ -2,7 +2,7 @@
   <name>Notes</name>
   <path>airdispatch.me/apps/notes.dpl</path>
   <tags>
-    <tag name="note" type="public" feed="feed">
+    <tag name="note" type="public" feed="feed" view="view">
       <field>airdispat.ch/notes/title</field>
       <field>airdispat.ch/notes/body</field>
       <field optional="true">airdispat.ch/notes/category</field>

@@ -3,8 +3,39 @@
 {{ set . "dev" true }}
 {{ template "header.html" . }}
 <div class="background">
-  <div class="container">
-    <h1>Melange Developer Center <small>Create Plugins</small></h1>
+  <div class="container" style="position: relative; height: 100%;">
+    <h1 style="position: absolute; bottom: 0;">Melange Developer Center</h1>
+  </div>
+</div>
+<br/>
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 col-md-offset-3">
+      <p>The Melange Developer Center is here to help with the creation of rich plugins for the AirDispatch ecosystem using the <a href="http://github.com/airdispatch/dpl">Dispatch Plugin Language (DPL)</a>. AirDispatch plugins function equivalently to Views in MVC architecture. This is to ensure that user data is protected despite loading code from third-parties. An AirDispatch plugin is able to specify types of messages that it wants to receive, different actions that lay out how to display those messages, and views to create those messages.</p>
+    </div>
+  </div>
+  <br/>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="panel panel-default">
+	<div class="panel-heading">
+	  Dispatch Plugin Language
+	</div>
+	<div class="panel-body">
+	  We have tons of information to help you create your very first AirDispatch plugin. Maybe you would like to start with the <a href="#">plugin tutorial</a>, or maybe you'd rather read the <a href="http://godoc.org/github.com/airdispatch/dpl">API Docs</a>.
+	</div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="panel panel-default">
+	<div class="panel-heading">
+	  Developer Tools
+	</div>
+	<div class="list-group">
+	  <a class="list-group-item" href="/developer/tools/test"><i class="fa fa-fw fa-gears"></i> Plugin Viewer</a>
+	</div>
+      </div>
+    </div>
   </div>
 </div>
 <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.4.6/d3.min.js"></script>
@@ -13,7 +44,7 @@
   $(document).ready(function() {
   var t = new Trianglify();
   var pattern = t.generate(document.body.clientWidth, document.body.clientHeight);
-  document.body.setAttribute('style', 'background-image: '+pattern.dataUrl);
+  $(".background")[0].setAttribute('style', 'height: 200px; position: relative; background-image: '+pattern.dataUrl);
 });
 </script>
 {{ template "footer.html" . }}

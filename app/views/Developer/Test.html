@@ -1,0 +1,114 @@
+{{ set . "title" "Test DPL Plugin" }}
+{{ set . "auth" true }}
+{{ set . "dev" true }}
+{{ template "header.html" . }}
+<div class="container">
+  <h1>DPL Playground</h1>
+  <p>The form will live preview any compliant DPL plugin.</p>
+  <div class="row">
+    <div class="col-md-6">
+      <br/>
+      <form class="form">
+	<div class="form-group">
+	  <label for="url">Application URL</label>
+	  <input class="form-control" name="url" id="url" placeholder="http://airdispatch.me/apps/notes.dpl" type="text" value="{{ .url }}"/>
+	</div>
+	<div class="form-group">
+	  <label for="action">Name of Action</label>
+	  <input class="form-control" name="action" id="action" placeholder="view" type="text" value="{{ .action }}"/>
+	</div>
+	<div class="form-group">
+	  <label for="context">DPL Context</label>
+	  <textarea style="max-width: 100%" class="form-control" name="context" id="context">{{ .context }}</textarea>
+	</div>
+	<button type="submit" class="btn btn-success btn-sm"><i class="fa fa-eye"></i> Preview</button>
+      </form>
+    </div>
+    <div class="col-md-6">
+      <h3>Preview Window</h3>
+      <div id="preview" style="border: dotted 1px black; min-height: 200px;">
+	{{ if .display }}
+	{{ .display }}
+	{{ else }}
+	{{ if .error }}
+	<div class="alert alert-danger">
+	  Error Processing Plugin: {{ .error }}
+	</div>
+	{{ else  }}
+	<p style="text-align: center;">Nothing to Preview</p>
+	{{ end }}
+	{{ end }}
+      </div>
+    </div>
+  </div>
+  {{ if .stack }}
+  <hr/>
+  <p>Got the following Stack Trace:</p>
+  <pre>{{ .stack }}</pre>
+  {{ end }}
+  <hr/>
+  <h2>Cheatsheet</h2>
+  <pre>
+&lt;dpl&gt;
+  &lt;name&gt;Notes&lt;/name&gt;
+  &lt;path&gt;airdispatch.me/apps/notes.dpl&lt;/path&gt;
+  &lt;tags&gt;
+    &lt;tag name="note" type="public" feed="feed"&gt;
+      &lt;field&gt;airdispat.ch/notes/title&lt;/field&gt;
+      &lt;field&gt;airdispat.ch/notes/body&lt;/field&gt;
+      &lt;field optional="true"&gt;airdispat.ch/notes/category&lt;/field&gt;
+    &lt;/tag&gt;
+  &lt;/tags&gt;
+  &lt;action name="feed"&gt;
+    &lt;div class="row"&gt;
+      &lt;div class="col-sm-10"&gt;
+	  &lt;div class="panel panel-default" style="margin: 5px 0;"&gt;
+	      &lt;div class="panel-heading"&gt;
+		  &#123;&#123; .Message.Get "airdispat.ch/notes/title" &#125;&#125;
+		  &lt;/div&gt;
+	      &lt;div class="panel-body"&gt;
+		  &#123;&#123; .Message.Get "airdispat.ch/notes/body" &#125;&#125;
+		  &lt;/div&gt;
+	        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/action&gt;
+  &lt;action name="list" default="true"&gt;
+    &lt;h2&gt;Notes&lt;/h2&gt;
+    &lt;p&gt;
+      &lt;a href='&#123;&#123; action "create" &#125;&#125;' class="btn btn-xs btn-danger"&gt;&lt;i class="fa fa-edit"&gt;&lt;/i&gt; Create a Note&lt;/a&gt;
+      &lt;a href='&#123;&#123; action "mine" &#125;&#125;' class="btn btn-xs btn-primary"&gt;&lt;i class="fa fa-user"&gt;&lt;/i&gt; My Notes&lt;/a&gt;
+    &lt;/p&gt;
+    &lt;div class="row"&gt;
+      &#123;&#123; range tag "note" nil 0 &#125;&#125;
+      &lt;div class="col-md-6"&gt;
+        &lt;div class="panel panel-default note"&gt;
+          &lt;div class="panel-body" style="padding: 10px;"&gt;
+            &lt;div class="row"&gt;
+              &lt;div class="col-xs-3"&gt;
+                &lt;img src="&#123;&#123; .Sender.Avatar &#125;&#125;" class="img-responsive img-circle"/&gt;
+              &lt;/div&gt;
+	      &lt;div class="col-xs-9"&gt;
+                &lt;h5&gt;&lt;a href='&#123;&#123; .Sender.Profile &#125;&#125;'&gt;&#123;&#123; .Sender.Name &#125;&#125;&lt;/a&gt;&lt;/h5&gt;
+                &lt;h4 class="title"&gt;&lt;a href='&#123;&#123; actionc "view" . &#125;&#125;'&gt;&#123;&#123; .Get "airdispat.ch/notes/title" &#125;&#125;&lt;/a&gt;&lt;/h4&gt;
+                &lt;blockquote class="blockquote"&gt;&#123;&#123; .Get "airdispat.ch/notes/body" &#125;&#125;&lt;/blockquote&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class="panel-footer"&gt;
+            &lt;p class="pull-right date"&gt;&#123;&#123; .Created "January 2, 2006 at 3:04PM" &#125;&#125;&lt;/p&gt;
+            &lt;a href='&#123;&#123; actionc "view" . &#125;&#125;'&gt;Read More&lt;/a&gt; · &lt;a href='&#123;&#123; actionc "edit" . &#125;&#125;' class="text-danger"&gt;Edit&lt;/a&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &#123;&#123; else &#125;&#125;
+      &lt;div class="col-md-12"&gt;
+        &lt;p&gt;Unable to find any notes. Maybe try adding some friends?&lt;/p&gt;
+      &lt;/div&gt;
+      &#123;&#123; end &#125;&#125;
+    &lt;/div&gt;
+  &lt;/action&gt;
+&lt;/dpl&gt;
+  </pre>
+</div>
+{{ template "footer.html" . }}

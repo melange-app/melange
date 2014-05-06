@@ -18,8 +18,15 @@ func init() {
 	}
 
 	revel.TemplateFuncs["since"] = func(t time.Time) string {
-		n := time.Now().Truncate(time.Second)
-		return n.Sub(t).String()
+		/*n := time.Now().Truncate(time.Second)
+		if SameDay(n, t) {
+			return fmt.Sprintf("%v hours ago", n.Truncate(time.Hour).Sub(t.Truncate(time.Hour)).String())
+		} else if SameDay(n.Add(-24*time.Hour), t) {
+			return "Yesterday"
+		} else {
+			return fmt.Sprintf("%d days ago", n.Sub(t)/(24*time.Hour))
+		}*/
+		return t.Format("Jan 2 at 3:04 PM")
 	}
 
 	revel.OnAppStart(Init)
@@ -29,4 +36,8 @@ func init() {
 	revel.InterceptMethod((*GorpController).Rollback, revel.FINALLY)
 
 	revel.InterceptMethod((*Dispatch).Init, revel.BEFORE)
+}
+
+func SameDay(t1 time.Time, t2 time.Time) bool {
+	return false
 }
