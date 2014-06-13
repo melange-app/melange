@@ -3,11 +3,13 @@ package controllers
 import (
 	"fmt"
 	"github.com/airdispatch/dpl"
-	"github.com/robfig/revel"
+	"github.com/revel/revel"
 	"html/template"
+	"melange/mailserver"
 	"net/http"
 	"net/url"
 	"runtime"
+	"strings"
 )
 
 type Developer struct {
@@ -59,6 +61,24 @@ func (d *Developer) Test(url string, action string, context string) (result reve
 
 	result = d.Render(url, action, context, display)
 	return
+}
+
+func (d *Developer) Address(a string) revel.Result {
+	if a == "" {
+		return d.Render()
+	}
+	mailserver.InitRouter()
+
+	if strings.Contains(a, "@") {
+		lookupType := "alias"
+		addr, err := mailserver.LookupRouter.LookupAlias(a)
+		return d.Render(a, addr, err, lookupType)
+	} else {
+		lookupType := "standard"
+		addr, err := mailserver.LookupRouter.Lookup(a)
+		return d.Render(a, addr, err, lookupType)
+	}
+	return d.Render(a)
 }
 
 type DevelopHost struct {

@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"github.com/coopernurse/gorp"
 	_ "github.com/lib/pq"
-	r "github.com/robfig/revel"
-	"github.com/robfig/revel/modules/db/app"
+	r "github.com/revel/revel"
+	"github.com/revel/revel/modules/db/app"
 	"melange/app/models"
 )
 

@@ -6,7 +6,7 @@ import (
 	"airdispat.ch/routing"
 	"fmt"
 	"github.com/airdispatch/dpl"
-	"github.com/huntaub/cache"
+	"github.com/huntaub/go-cache"
 	"log"
 	"net/url"
 	"time"

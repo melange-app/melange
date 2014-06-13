@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/airdispatch/dpl"
 	"github.com/coopernurse/gorp"
-	"github.com/robfig/revel"
+	"github.com/revel/revel"
 	"melange/app/models"
 	"melange/app/routes"
 	"melange/mailserver"

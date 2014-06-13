@@ -1,11 +1,23 @@
+# Simple Revel Based Ignores
 test-results/
 tmp/
 routes/
+
+# Ignore Databases and Logs
 *.db
-*.swp
 *.log
+
+# Ignore Binaries
+mailserver
+
+# Editor Based Files
+*.swp
+*#
+*~
 app/controllers/#dispatch.go#
 app/controllers/.#dispatch.go
-mailserver
-*#
+
+# Ignore Tracker Files and Key Files 
 *.tracker
+*.tk
+*.pk

@@ -43,6 +43,7 @@ POST    /app/:app/send                          Loader.SendMessage
 # Developer Center
 GET     /developer                              Developer.Home
 GET     /developer/tools/test                   Developer.Test
+GET     /developer/tools/address                Developer.Address
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

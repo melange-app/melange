@@ -3,7 +3,7 @@ package controllers
 import (
 	"bytes"
 	"github.com/airdispatch/dpl"
-	"github.com/robfig/revel"
+	"github.com/revel/revel"
 	"html/template"
 	"melange/app/models"
 	"melange/app/routes"

@@ -3,7 +3,7 @@ package controllers
 // This File Defines the TemplateTags that get passed into the each Template
 
 import (
-	"github.com/robfig/revel"
+	"github.com/revel/revel"
 	"html/template"
 	"time"
 )
