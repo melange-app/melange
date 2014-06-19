@@ -7,6 +7,7 @@ import (
 	"airdispat.ch/routing"
 	"airdispat.ch/tracker"
 	"errors"
+	"fmt"
 	"github.com/huntaub/go-cache"
 	"strings"
 	"time"
@@ -80,6 +81,7 @@ func (a *Router) Lookup(from string) (*identity.Address, error) {
 	}
 
 	for _, v := range a.TrackerList {
+		fmt.Println(v, ServerKey)
 		a, err := (&tracker.TrackerRouter{v, ServerKey}).Lookup(from)
 		if err == nil {
 			routeCache.Store(from, a)

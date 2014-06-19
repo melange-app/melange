@@ -7,6 +7,9 @@ module:testrunner
 # Basic Index
 GET     /                                       App.Index
 
+# Other Pages
+GET     /terms-of-service                       App.TOS
+
 # Login Related Actions
 GET     /login                                  App.Login
 POST    /login                                  App.ProcessLogin

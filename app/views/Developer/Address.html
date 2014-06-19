@@ -39,6 +39,7 @@
 	<td>Lookup Type</td>
 	<td>{{ .lookupType }}</td>
       </tr>
+      {{ if .addr }}
       <tr>
 	<td>Location</td>
 	<td>{{ .addr.Location }}</td>
@@ -55,6 +56,7 @@
 	<td>SigningKey</td>
 	<td>{{ .addr.SigningKey }}</td>
       </tr>
+      {{ end }}
     </tbody>
   </table>
   {{ end }}

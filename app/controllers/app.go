@@ -25,6 +25,10 @@ func (c App) Index() revel.Result {
 	return c.Render()
 }
 
+func (c App) TOS() revel.Result {
+	return c.Render()
+}
+
 // This action controls Logout
 func (c App) Logout() revel.Result {
 	delete(c.Session, "user")
