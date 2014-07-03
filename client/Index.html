@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="melangeApp">
+  <head>
+    <meta charset="utf-8">
+    <link rel="shortcut icon" href="/icon.png" type="image/png">
+    <title>Melange</title>
+    <!-- CSS Frameworks -->
+    <link href="http://common.melange.127.0.0.1.xip.io:9001/css/bootswatch-yeti/3.1.1" rel="stylesheet" type="text/css">
+    <link href="http://common.melange.127.0.0.1.xip.io:9001/css/font-awesome/4.1.0" rel="stylesheet" type="text/css">
+    <!-- Less Styles -->
+    <link href="css/melange.less" rel="stylesheet/less" type="text/css">
+    <!-- Less Compiler -->
+    <script src="http://common.melange.127.0.0.1.xip.io:9001/js/less/1.7.3"></script>
+    <!-- Load Jquery -->
+    <script src="http://common.melange.127.0.0.1.xip.io:9001/js/jquery/1.11.1"></script>
+    <script src="http://common.melange.127.0.0.1.xip.io:9001/js/jquery/shim"></script>
+    <script src="http://common.melange.127.0.0.1.xip.io:9001/js/bootstrap/3.1.1"></script>
+    <!-- Angular -->
+    <script src="http://common.melange.127.0.0.1.xip.io:9001/js/angular/1.2.18"></script>
+    <script src="http://common.melange.127.0.0.1.xip.io:9001/js/angular-route/1.2.18"></script>
+    <script src="http://common.melange.127.0.0.1.xip.io:9001/js/angular-resource/1.2.18"></script>
+    <!-- Application -->
+    <script src="app/app.js"></script>
+    <script src="app/services.js"></script>
+    <script src="app/controllers.js"></script>
+    <script src="app/filters.js"></script>
+    <script src="app/directives.js"></script>
+  </head>
+  <body ng-controller="SidebarCtrl">
+
+    <!-- Navbar Container -->
+    <div ng-include="'partials/navbar.html'"></div>
+
+    <!-- Container for Sidebar -->
+    <div
+      ng-show="page.indexOf('/startup') !== 0"
+      class="sidebar"
+      ng-include="'partials/sidebar.html'">
+    </div>
+
+    <!-- Container for Page -->
+    <div ng-class="page.substring(1).replace('/', '-')" class="full-height">
+      <!-- Load Page -->
+      <div
+        ng-class="
+          {
+            'main': page.indexOf('/startup') !== 0,
+            'container': page.indexOf('/startup') === 0,
+            'container-fluid': page.indexOf('/startup') !== 0 &amp;&amp; page.indexOf('/plugin') !== 0,
+          }"
+        class="ng-view">
+      </div>
+    </div>
+
+    <!-- Plugin Code Context -->
+    <div class="plugin-context">
+      <mlg-plugin-code ng-repeat="thePlugin in allPlugins" plugin="thePlugin"></mlg-plugin-code>
+    </div>
+
+  </body>
+</html>

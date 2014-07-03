@@ -1,0 +1,50 @@
+.navbar .divider {
+  height: 45px;
+  margin: 0 10px;
+  border-left: 1px solid @frame-border;
+}
+
+.navbar, .navbar a.navbar-brand {
+  .draggable;
+}
+
+.navbar a, .navbar input {
+  .nondraggable;
+}
+
+@searchbar-offset: 35px;
+
+.navbar form[role="search"] input {
+  border-radius: 20px;
+  margin-left: @searchbar-offset;
+  padding-left: 30px;
+  width: 250px;
+}
+
+.navbar form[role="search"] .form-group {
+  position: relative;
+}
+
+.navbar form[role="search"] .form-group i {
+  position: absolute;
+  top: 8px;
+  left: @searchbar-offset + 10px;
+  color: #d9d9d9;
+  font-size: 18px;
+}
+
+.navbar-default {
+  background-color: @frame-background;
+  border-bottom: 1px solid @frame-border;
+}
+
+.navbar li.icon a {
+  color: @frame-text;
+  padding-right: 10px;
+  padding-left: 0;
+}
+
+.navbar li.icon a:hover {
+  background-color: @frame-background;
+  color: @frame-text-hover;
+}

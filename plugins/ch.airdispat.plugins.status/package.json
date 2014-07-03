@@ -1,0 +1,16 @@
+{
+  "id": "ch.airdispat.plugins.status",
+  "name": "Status",
+  "version": "0.0.1",
+  "description": "Publish small statuses.",
+  "permissions": {
+    "read-message": ["airdispat.ch/status/body"],
+    "send-message": ["airdispat.ch/status/body"]
+  },
+  "hideSidebar": true,
+  "author": {
+    "name": "Hunter Leath",
+    "email": "h@hunterleath.com"
+  },
+  "homepage": "http://airdispat.ch/plugins/status"
+}

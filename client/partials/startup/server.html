@@ -1,0 +1,57 @@
+<div class="toolbar">
+  <p><a href="#startup/new" class="btn btn-danger"><i class="fa fa-arrow-left"></i> Back</a></p>
+</div>
+<h1>New Account <small>Step 2 of 3</small></h1>
+<p>Choose your providers. Don't worry, you can always change these later. (Or add more addresses.)</p>
+<hr/>
+<div class="row">
+  <div class="col-sm-6">
+    <h4>Mail Provider</h4>
+    <div class="list-group">
+      <a href=""
+         class="list-group-item"
+         ng-class="{ selected: $index == $parent.selectedMail }"
+         ng-repeat="provider in mailProviders"
+         ng-click="$parent.selectedMail = $index">
+        <div class="row">
+          <div class="col-sm-2">
+            <img ng-src="{{ provider.img }}" class="img-responsive">
+          </div>
+          <div class="col-sm-9">
+            <h4>{{ provider.name }}</h4>
+            <p>{{ provider.description }}</p>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <h4>Address Provider</h4>
+    <div class="list-group">
+      <a href=""
+         class="list-group-item"
+         ng-class="{ selected: $index == $parent.selectedAddress }"
+         ng-repeat="provider in addressProviders"
+         ng-click="$parent.selectedAddress = $index">
+        <div class="row">
+          <div class="col-sm-2">
+            <img ng-src="{{ provider.img }}" class="img-responsive">
+          </div>
+          <div class="col-sm-9">
+            <h4>{{ provider.name }}</h4>
+            <p>{{ provider.description }}</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    <h4>Address Registration</h4>
+    <div class="input-group" style="width: 100%;">
+      <input type="text" class="form-control">
+      <span class="input-group-addon" ng-show="selectedAddress != -1">@{{ addressProviders[selectedAddress].suffix }}</span>
+    </div>
+  </div>
+</div>
+<hr/>
+<div class="text-right">
+  <a href="#startup/confirm" class="btn btn-primary">Continue <i class="fa fa-arrow-right"></i></a>
+</div>

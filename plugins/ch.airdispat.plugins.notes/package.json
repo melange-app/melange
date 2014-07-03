@@ -1,0 +1,15 @@
+{
+  "id": "ch.airdispat.plugins.notes",
+  "name": "Notes",
+  "version": "0.0.1",
+  "description": "Publish notes to people who follow you.",
+  "permissions": {
+    "read-message": ["airdispat.ch/notes/title", "airdispat.ch/notes/body", "airdispat.ch/notes/date"],
+    "send-message": ["airdispat.ch/notes/title", "airdispat.ch/notes/body", "airdispat.ch/notes/date"]
+  },
+  "author": {
+    "name": "Hunter Leath",
+    "email": "h@hunterleath.com"
+  },
+  "homepage": "http://airdispat.ch/plugins/notes"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "ch.airdispat.plugins.news",
+  "name": "News",
+  "version": "0.0.1",
+  "description": "Quick live tiles for your news pleasure.",
+  "author": {
+    "name": "Hunter Leath",
+    "email": "h@hunterleath.com"
+  },
+  "hideSidebar": true,
+  "homepage": "http://airdispat.ch/plugins/news"
+}
