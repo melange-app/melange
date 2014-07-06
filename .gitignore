@@ -8,7 +8,6 @@ routes/
 *.log
 
 # Ignore Binaries
-mailserver
 
 # Editor Based Files
 *.swp
