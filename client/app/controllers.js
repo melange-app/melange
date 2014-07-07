@@ -11,6 +11,26 @@ melangeControllers.controller('SidebarCtrl', ['$scope', '$location', '$route', '
     $scope.reload = $route.reload;
     $scope.allPlugins = plugins.query();
 
+    $scope.containerClass = function(page) {
+      if (page === undefined) { return }
+
+      if (page.indexOf('/startup') === 0) {
+        return ['container']
+      } else {
+        if (page.indexOf('/plugin') !== 0) {
+          return ['container-fluid', 'main']
+        }
+        return ['main']
+      }
+    }
+
+    $scope.outerClass = function(page) {
+      if (page === undefined) { return }
+
+      var title = page.substring(1).replace('/', '-');
+      return [title, title.split('-')[0]]
+    }
+
   }]);
 
 melangeControllers.controller('SettingsCtrl', ['$scope',

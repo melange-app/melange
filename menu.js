@@ -3,6 +3,7 @@
 // ---------
 module.exports = function(app) {
   var Menu = require('menu')
+  var BrowserWindow = require('browser-window')
   var template = [
     {
       label: 'Melange',

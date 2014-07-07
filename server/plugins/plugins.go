@@ -1,4 +1,4 @@
-package main
+package plugins
 
 import (
 	"encoding/json"
@@ -8,44 +8,43 @@ import (
 	"mime"
 	"net/http"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
 )
 
-func main() {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Kill)
-	go func() {
-		for sig := range c {
-			fmt.Println("Got the Interrupt", sig)
-			os.Exit(0)
-		}
-	}()
-
-	s := &http.Server{
-		Addr:    ":9001",
-		Handler: &Router{},
-	}
-	err := s.ListenAndServe()
-	if err != nil {
-		fmt.Println(err)
-	}
+type Server struct {
+	Suffix  string
+	Common  string
+	Plugins string
 }
 
-type Router struct{}
+func (p *Server) CommonURL() string {
+	return p.Common + p.Suffix
+}
 
-const SUFFIX string = ".127.0.0.1.xip.io:9001"
-const COMMON string = "http://common.melange" + SUFFIX
-const PLUGINS string = "http://*.plugins.melange" + SUFFIX
+func (p *Server) PluginURL() string {
+	return p.Plugins + p.Suffix
+}
+
+func (p *Server) Run(port int) error {
+	s := &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: &Router{p},
+	}
+	return s.ListenAndServe()
+}
+
+type Router struct {
+	p *Server
+}
 
 func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	// Different Behavior Based on Host
 
 	url := strings.Split(req.Host, ".melange")
-	if len(url) != 2 || !(strings.HasPrefix(url[1], ":") || url[1] == SUFFIX) {
+	if len(url) != 2 || !(strings.HasPrefix(url[1], ":") || url[1] == r.p.Suffix) {
 		WriteView(&HTTPError{403, "Cannot access this service out of Melange."}, res)
 		return
 	}
@@ -60,7 +59,7 @@ func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 				"img-src *;"+
 				"font-src 'self' %[1]s;"+
 				"script-src 'self' 'unsafe-eval' %[1]s;"+
-				"style-src 'self' 'unsafe-inline' %[1]s", COMMON),
+				"style-src 'self' 'unsafe-inline' %[1]s", r.p.CommonURL()),
 			View: view,
 		}, res)
 	} else if mode == "common" {
@@ -94,7 +93,7 @@ func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 					"frame-src 'self' %[2]s;"+
 					"style-src 'self' %[1]s 'unsafe-inline';"+
 					"connect-src 'self' %[1]s;"+
-					"font-src 'self' %[1]s;", COMMON, PLUGINS),
+					"font-src 'self' %[1]s;", r.p.CommonURL(), r.p.PluginURL()),
 				View: view,
 			}, res)
 		}

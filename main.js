@@ -40,7 +40,7 @@ var go = {};
 app.on('will-finish-launching', function() {
   // Launch Go Server
   if(debug) {
-    go = spawn("go", ["run", __dirname + "/server/plugins/server.go"], {
+    go = spawn("go", ["run", __dirname + "/go/src/melange/server.go"], {
       env: {
         "GOPATH": __dirname + '/go',
         "GOROOT": process.env["GOROOT"],

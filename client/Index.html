@@ -39,15 +39,10 @@
     </div>
 
     <!-- Container for Page -->
-    <div ng-class="page.substring(1).replace('/', '-')" class="full-height">
+    <div ng-class="outerClass(page)" class="full-height">
       <!-- Load Page -->
       <div
-        ng-class="
-          {
-            'main': page.indexOf('/startup') !== 0,
-            'container': page.indexOf('/startup') === 0,
-            'container-fluid': page.indexOf('/startup') !== 0 &amp;&amp; page.indexOf('/plugin') !== 0,
-          }"
+        ng-class="containerClass(page)"
         class="ng-view">
       </div>
     </div>
