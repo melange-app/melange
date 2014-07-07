@@ -28,7 +28,7 @@ melangeControllers.controller('SidebarCtrl', ['$scope', '$location', '$route', '
       if (page === undefined) { return }
 
       var title = page.substring(1).replace('/', '-');
-      return [title, title.split('-')[0]]
+      return title
     }
 
   }]);
