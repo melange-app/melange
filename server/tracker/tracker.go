@@ -5,59 +5,58 @@ import (
 	"airdispat.ch/message"
 	"airdispat.ch/tracker"
 	"encoding/gob"
-	"flag"
 	"fmt"
 	"os"
 )
 
-var port = flag.String("port", "2048", "select the port on which to run the tracking server")
-var key_file = flag.String("key", "", "the file that will save or load your keys")
-var save_file = flag.String("save", "", "the file that will save or load the tracker addresses")
+type Tracker struct {
+	// FS Information
+	KeyFile  string
+	SaveFile string
+	// Storage
+	StoredAddresses  map[string]*message.SignedMessage
+	AliasedAddresses map[string]*message.SignedMessage
+	// Composition
+	tracker.BasicTracker
+}
 
-var storedAddresses map[string]*message.SignedMessage
-var aliasedAddresses map[string]*message.SignedMessage
-
-func main() {
-	flag.Parse()
-
+func (t *Tracker) Run(port int) error {
 	// Initialize the Database of Addresses
-	storedAddresses = make(map[string]*message.SignedMessage)
-	aliasedAddresses = make(map[string]*message.SignedMessage)
+	t.StoredAddresses = make(map[string]*message.SignedMessage)
+	t.AliasedAddresses = make(map[string]*message.SignedMessage)
 
-	loadedKey, err := identity.LoadKeyFromFile(*key_file)
+	loadedKey, err := identity.LoadKeyFromFile(t.KeyFile)
 
 	if err != nil {
 
 		loadedKey, err = identity.CreateIdentity()
 		if err != nil {
-			fmt.Println("Unable to Create Tracker Key")
-			return
+			return err
 		}
 
-		if *key_file != "" {
+		if t.KeyFile != "" {
 
-			err = loadedKey.SaveKeyToFile(*key_file)
+			err = loadedKey.SaveKeyToFile(t.KeyFile)
 			if err != nil {
-				fmt.Println("Unable to Save Tracker Key")
-				return
+				return err
 			}
 		}
 
 	}
 	fmt.Println("Loaded Address", loadedKey.Address.String())
 
-	delegate := &myTracker{}
 	theTracker := &tracker.Tracker{
 		Key:      loadedKey,
-		Delegate: delegate,
+		Delegate: t,
 	}
-	LoadRecords(delegate)
-	theTracker.StartServer(*port)
+	t.LoadRecords()
+	theTracker.StartServer(fmt.Sprintf("%d", port))
+	return nil
 }
 
-func LoadRecords(t *myTracker) {
-	if *save_file != "" {
-		f, err := os.Open(*save_file)
+func (t *Tracker) LoadRecords() {
+	if t.SaveFile != "" {
+		f, err := os.Open(t.SaveFile)
 		if err != nil {
 			t.LogMessage("Unable to open file:", err.Error())
 			return
@@ -70,20 +69,20 @@ func LoadRecords(t *myTracker) {
 			return
 		}
 
-		storedAddresses = out[0]
-		aliasedAddresses = out[1]
+		t.StoredAddresses = out[0]
+		t.AliasedAddresses = out[1]
 	}
 }
 
-func SaveRecords(t *myTracker) {
-	if *save_file != "" {
-		f, err := os.Create(*save_file)
+func (t *Tracker) SaveRecords() {
+	if t.SaveFile != "" {
+		f, err := os.Create(t.SaveFile)
 		if err != nil {
 			t.LogMessage("Unable to create file:", err.Error())
 			return
 		}
 		enc := gob.NewEncoder(f)
-		err = enc.Encode([]map[string]*message.SignedMessage{storedAddresses, aliasedAddresses})
+		err = enc.Encode([]map[string]*message.SignedMessage{t.StoredAddresses, t.AliasedAddresses})
 		if err != nil {
 			t.LogMessage("Unable to encode messages:", err.Error())
 			return
@@ -91,28 +90,24 @@ func SaveRecords(t *myTracker) {
 	}
 }
 
-type myTracker struct {
-	tracker.BasicTracker
-}
-
-func (t *myTracker) SaveRecord(address *identity.Address, record *message.SignedMessage, alias string) {
+func (t *Tracker) SaveRecord(address *identity.Address, record *message.SignedMessage, alias string) {
 	// Store the RegisterdAddress in the Database
-	storedAddresses[address.String()] = record
+	t.StoredAddresses[address.String()] = record
 
 	if alias != "" {
-		aliasedAddresses[alias] = record
+		t.AliasedAddresses[alias] = record
 	}
-	go SaveRecords(t)
+	go t.SaveRecords()
 }
 
-func (*myTracker) GetRecordByAddress(address *identity.Address) *message.SignedMessage {
+func (t *Tracker) GetRecordByAddress(address *identity.Address) *message.SignedMessage {
 	// Lookup the Address (by address) in the Database
-	info, _ := storedAddresses[address.String()]
+	info, _ := t.StoredAddresses[address.String()]
 	return info
 }
 
-func (*myTracker) GetRecordByAlias(alias string) *message.SignedMessage {
+func (t *Tracker) GetRecordByAlias(alias string) *message.SignedMessage {
 	// Lookup the Address (by address) in the Database
-	info, _ := aliasedAddresses[alias]
+	info, _ := t.AliasedAddresses[alias]
 	return info
 }

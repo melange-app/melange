@@ -4,13 +4,14 @@ import (
 	"melange"
 	"melange/dispatcher"
 	"melange/plugins"
-	// "melange/tracker"
+	"melange/tracker"
 )
 
 // Main Server
 type Melange struct {
-	Plugins plugins.Server
-	// Dispatcher dispatcher.Server
+	Plugins    plugins.Server
+	Dispatcher dispatcher.Server
+	Tracker    tracker.Server
 }
 
 func (m *Melange) Post(f *melange.Server, msg *melange.Message) {

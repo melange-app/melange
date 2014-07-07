@@ -9,8 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/huntaub/go-cache"
-	"net"
-	"os"
 	"sort"
 	"strings"
 	"time"
@@ -18,12 +16,6 @@ import (
 
 var ServerLocation string = "www.airdispatch.me:2048"
 var messageCache, publicCache *cache.Cache
-
-func getServerLocation() string {
-	s, _ := os.Hostname()
-	ips, _ := net.LookupHost(s)
-	return ips[0] + ":2048"
-}
 
 func Init() {
 	// def := getServerLocation()
