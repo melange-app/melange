@@ -1,0 +1,73 @@
+package framework
+
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+)
+
+type Plugin struct {
+	Id          string              `json:"id"`
+	Name        string              `json:"name"`
+	Version     string              `json:"version"`
+	Description string              `json:"description"`
+	Permissions map[string][]string `json:"permissions"`
+	Author      Author              `json:"author"`
+	Homepage    string              `json:"homepage"`
+	HideSidebar bool                `json:"hideSidebar"`
+	Tiles       []Tile              `json:"tiles"`
+}
+
+type Tile struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	View        string `json:"view"`
+	Size        string `json:"size"`
+}
+
+type Author struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Homepage string `json:"homepage"`
+}
+
+func LoadPlugins(pluginPath string) View {
+	files, err := ioutil.ReadDir(pluginPath)
+	if err != nil {
+		return Error500
+	}
+
+	output := []Plugin{}
+	for _, v := range files {
+		if _, err := os.Stat(filepath.Join(pluginPath, v.Name(), "package.json")); err == nil && v.IsDir() {
+			packageJSON, err := os.Open(filepath.Join(pluginPath, v.Name(), "package.json"))
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			var plugin Plugin
+			decoder := json.NewDecoder(packageJSON)
+			err = decoder.Decode(&plugin)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			if plugin.Id != v.Name() {
+				continue
+			}
+
+			output = append(output, plugin)
+
+			packageJSON.Close()
+		}
+	}
+	bytes, err := json.Marshal(output)
+	if err != nil {
+		return Error500
+	}
+	return &RawView{bytes, "application/json"}
+}

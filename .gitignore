@@ -23,3 +23,5 @@ app/controllers/.#dispatch.go
 
 # Ignore the Temporary Gopath
 go/
+
+data/*

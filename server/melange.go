@@ -4,10 +4,10 @@ type Server interface {
   Run(port int) error
 }
 
-type Delegate interface {
-  Post(f *Server, m *Message)
+type Enabler struct {
+  Server
 }
 
-type Message struct {
-
+func (t *Enabler) Enable(port int) error {
+  return t.Server.Run(port)
 }
