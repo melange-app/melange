@@ -30,6 +30,11 @@ melangeApp.config(['$routeProvider',
         templateUrl: 'partials/all.html',
         controller: 'AllCtrl'
       }).
+      // Contact Routes
+      when('/contacts', {
+        templateUrl: 'partials/contacts.html',
+        controller: 'ContactsCtrl'
+      }).
       // Plugin Routes
       when('/plugin/:pluginid/:action', {
         templateUrl: 'partials/plugin/loader.html',

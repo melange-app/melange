@@ -38,6 +38,11 @@ melangeControllers.controller('SettingsCtrl', ['$scope',
 
   }]);
 
+melangeControllers.controller('ContactsCtrl', ['$scope',
+  function($scope) {
+
+  }]);
+
 melangeControllers.controller('DashboardCtrl', ['$scope',
   function($scope, $sce) {
     $scope.tiles = [
