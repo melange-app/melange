@@ -1,4 +1,4 @@
-package mailserver
+package dispatcher
 
 // This file describes two routes that are used throughout the Melange System.
 

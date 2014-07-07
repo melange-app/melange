@@ -1,4 +1,4 @@
-package mailserver
+package dispatcher
 
 import (
 	"airdispat.ch/identity"
@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/huntaub/go-cache"
-	"melange/app/models"
 	"net"
 	"os"
 	"sort"

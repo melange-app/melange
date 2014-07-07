@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"melange"
 	"mime"
 	"net/http"
 	"os"
@@ -15,9 +16,10 @@ import (
 )
 
 type Server struct {
-	Suffix  string
-	Common  string
-	Plugins string
+	Suffix   string
+	Common   string
+	Plugins  string
+	Delegate melange.Delegate
 }
 
 func (p *Server) CommonURL() string {

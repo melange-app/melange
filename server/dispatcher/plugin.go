@@ -1,4 +1,4 @@
-package mailserver
+package dispatcher
 
 import (
 	"airdispat.ch/identity"
