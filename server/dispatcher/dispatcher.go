@@ -85,52 +85,37 @@ func (s *Server) Run(port int) error {
 	return adServer.StartServer(fmt.Sprintf("%d", port))
 }
 
-func (m *Server) SaveMessageDescription(alert *server.MessageDescription) {
-	a := CreateAlertFromDescription(alert)
-	err := m.dbmap.Insert(a)
-	if err != nil {
-		m.HandleError(CreateError("Saving new alert to db.", err))
-	}
+func (m *Server) SaveMessageDescription(alert *message.EncryptedMessage) {
+	// a := CreateAlertFromDescription(alert)
+	// err := m.dbmap.Insert(a)
+	// if err != nil {
+	// 	m.HandleError(CreateError("Saving new alert to db.", err))
+	// 	// return err
+	// }
 }
 
-func (m *Server) RetrieveMessageForUser(name string, author *identity.Address, forAddr *identity.Address) *message.Mail {
-	var results []*OutgoingMessage
-	_, err := m.dbmap.Select(&results, "select * from dispatch_messages where name = $1 and \"from\" = $2", name, author.String())
+func (m *Server) RetrieveMessageForUser(name string, author *identity.Address, forAddr *identity.Address) *message.EncryptedMessage {
+	msg, err := m.GetOutgoingMessageWithName(name, author.String(), forAddr.String())
 	if err != nil {
-		m.HandleError(CreateError("Finding Messages for User", err))
-		return nil
-	}
-	if len(results) != 1 {
-		m.HandleError(CreateError("Finding Messages for User", errors.New("Found wrong number of messages.")))
+		m.HandleError(CreateError("Getting message from DB.", err))
 		return nil
 	}
 
-	out, err := results[0].ToDispatch(m.dbmap, forAddr.String())
-	if err != nil {
-		m.HandleError(CreateError("Creating Dispatch Message", err))
-		return nil
-	}
-	return out
+	return msg.ToDispatch(forAddr.String())
 }
 
-func (m *Server) RetrieveMessageListForUser(since uint64, author *identity.Address, forAddr *identity.Address) *server.MessageList {
-	var results []*OutgoingMessage
-	_, err := m.dbmap.Select(&results, "select * from dispatch_messages where \"from\" = $1 and timestamp > $2 and \"to\" = ''", author.String(), since)
+func (m *Server) RetrieveMessageListForUser(since uint64, author *identity.Address, forAddr *identity.Address) []*message.EncryptedMessage {
+	results, err := m.GetOutgoingPublicMessagesFor(since, author.String(), forAddr.String())
 	if err != nil {
-		m.HandleError(CreateError("Loading messages from DB", err))
+		m.HandleError(CreateError("Getting messages from DB.", err))
 		return nil
 	}
 
-	out := server.CreateMessageList(author, forAddr)
+	out := make([]*message.EncryptedMessage, 0)
 
 	for _, v := range results {
-		desc, err := v.ToDescription(forAddr.String())
-		if err != nil {
-			m.HandleError(CreateError("Loading description.", err))
-			return nil
-		}
-		desc.Location = m.Me
-		out.AddMessageDescription(desc)
+		d := v.ToDispatch(forAddr.String())
+		out = append(out, d)
 	}
 
 	return out
