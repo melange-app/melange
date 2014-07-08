@@ -86,12 +86,10 @@ func (s *Server) Run(port int) error {
 }
 
 func (m *Server) SaveMessageDescription(alert *message.EncryptedMessage) {
-	// a := CreateAlertFromDescription(alert)
-	// err := m.dbmap.Insert(a)
-	// if err != nil {
-	// 	m.HandleError(CreateError("Saving new alert to db.", err))
-	// 	// return err
-	// }
+	err := m.SaveIncomingMessage(alert)
+	if err != nil {
+		m.HandleError(CreateError("Saving new alert to db.", err))
+	}
 }
 
 func (m *Server) RetrieveMessageForUser(name string, author *identity.Address, forAddr *identity.Address) *message.EncryptedMessage {

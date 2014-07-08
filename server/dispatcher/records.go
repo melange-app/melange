@@ -3,7 +3,6 @@ package dispatcher
 import (
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
-	"airdispat.ch/server"
 	"fmt"
 	"strings"
 	"time"
@@ -13,18 +12,16 @@ import (
 const (
 	TableNameUser     = "melange_user"
 	TableNameIdentity = "melange_identity"
-	TableNameOutgoing = "melange_outgoing"
-	TableNameIncoming = "melange_incoming"
+	TableNameMessage  = "melange_message"
 	TableNameStorage  = "melange_storage"
 )
 
 // Primary Key Names
 const (
-	PKUser     = "UserId"
-	PKIdentity = "IdentityId"
-	PKOutgoing = "MessageId"
-	PKIncoming = "AlertId"
-	PKStorage  = "RecordId"
+	PKUser     = "Id"
+	PKIdentity = "Id"
+	PKMessage  = "Id"
+	PKStorage  = "Id"
 )
 
 // Create the Table Objects
@@ -34,23 +31,22 @@ func (s *Server) CreateTables() {
 	s.dbmap.AddTableWithName(Identity{}, TableNameIdentity).SetKeys(true, PKIdentity)
 
 	// Message Management
-	s.dbmap.AddTableWithName(OutgoingMessage{}, TableNameOutgoing).SetKeys(true, PKOutgoing)
-	s.dbmap.AddTableWithName(IncomingAlert{}, TableNameIncoming).SetKeys(true, PKIncoming)
+	s.dbmap.AddTableWithName(Message{}, TableNameMessage).SetKeys(true, PKMessage)
 
 	// Storage
 	s.dbmap.AddTableWithName(Storage{}, TableNameStorage).SetKeys(true, PKStorage)
 }
 
 // Outgoing Messages
-type OutgoingMessage struct {
+type Message struct {
 	Id int
 	// Recipient Information
 	To     string
 	Sender string
 	// Message Information
-	Name    string
-	Data    []byte
-	Alerted int
+	Name string
+	Data []byte
+	Type int
 	// Encryption Information
 	EncKey  []byte
 	EncType []byte
@@ -60,12 +56,12 @@ type OutgoingMessage struct {
 	allowed []string
 }
 
-const QueryOutgoingNamed = "select * from " + TableNameOutgoing + "o where o.Sender = :owner and o.Name = :name and o.To like :recv"
-const QueryOutgoingPublic = "select * from " + TableNameOutgoing + "o where o.Sender = :owner and (o.To like :recv or o.To = '') and o.Received > :time and o.Alerted = 0"
+const QueryOutgoingNamed = "select * from " + TableNameMessage + "o where o.Sender = :owner and o.Name = :name and o.To like :recv and o.Type = 1"
+const QueryOutgoingPublic = "select * from " + TableNameMessage + "o where o.Sender = :owner and (o.To like :recv or o.To = '') and o.Received > :time and o.Type = 0"
 
 // Return Outgoing Message Named
-func (m *Server) GetOutgoingMessageWithName(name string, owner string, receiver string) (*OutgoingMessage, error) {
-	var result *OutgoingMessage
+func (m *Server) GetOutgoingMessageWithName(name string, owner string, receiver string) (*Message, error) {
+	var result *Message
 
 	// Create the Query
 	err := m.dbmap.SelectOne(&result, QueryOutgoingNamed,
@@ -82,8 +78,8 @@ func (m *Server) GetOutgoingMessageWithName(name string, owner string, receiver 
 }
 
 // Return Outgoing Public Messages for a Receiver
-func (m *Server) GetOutgoingPublicMessagesFor(since uint64, owner string, receiver string) ([]*OutgoingMessage, error) {
-	var results []*OutgoingMessage
+func (m *Server) GetOutgoingPublicMessagesFor(since uint64, owner string, receiver string) ([]*Message, error) {
+	var results []*Message
 
 	// Create the Query
 	_, err := m.dbmap.Select(&results, QueryOutgoingPublic,
@@ -99,20 +95,20 @@ func (m *Server) GetOutgoingPublicMessagesFor(since uint64, owner string, receiv
 	return results, err
 }
 
-// Save Outgoing Message
-func (m *Server) SaveOutgoingMessage(name string, to []string, from string, message *message.EncryptedMessage, alerted bool) error {
-	// Convert Bool to Int
-	sqlAlerted := 0
-	if alerted {
-		sqlAlerted = 1
-	}
+const (
+	TypeOutgoingPublic = iota
+	TypeOutgoingPrivate
+	TypeIncoming
+)
 
-	out := &OutgoingMessage{
+// Save Outgoing Message
+func (m *Server) SaveMessage(name string, to []string, from string, message *message.EncryptedMessage, messageType int) error {
+	out := &Message{
 		To:       strings.Join(to, ","),
 		Sender:   from,
 		Name:     name,
 		Data:     message.Data,
-		Alerted:  sqlAlerted,
+		Type:     messageType,
 		EncKey:   message.EncryptionKey,
 		EncType:  message.EncryptionType,
 		Received: time.Now().Unix(),
@@ -121,7 +117,7 @@ func (m *Server) SaveOutgoingMessage(name string, to []string, from string, mess
 }
 
 // Change Outgoing Message into Encrypted Message
-func (o *OutgoingMessage) ToDispatch(retriever string) *message.EncryptedMessage {
+func (o *Message) ToDispatch(retriever string) *message.EncryptedMessage {
 	return &message.EncryptedMessage{
 		Data:           o.Data,
 		EncryptionKey:  o.EncKey,
@@ -130,15 +126,28 @@ func (o *OutgoingMessage) ToDispatch(retriever string) *message.EncryptedMessage
 	}
 }
 
-type IncomingAlert struct {
-	Id       int
-	Owner    int
-	Data     []byte
-	Received time.Time
+// Save Outgoing Message
+func (m *Server) SaveIncomingMessage(message *message.EncryptedMessage) error {
+	return m.SaveMessage("", []string{message.To.String()}, "", message, TypeIncoming)
 }
 
-func CreateAlertFromDescription(m *server.MessageDescription) *IncomingAlert {
-	return nil
+const QueryIncoming = "select * from " + TableNameMessage + "o where o.To = :owner and o.Received > :time and o.Type = 2"
+
+// Return Incoming Messages Since
+func (m *Server) GetIncomingMessagesSince(since uint64, owner string) ([]*Message, error) {
+	var results []*Message
+
+	// Create the Query
+	_, err := m.dbmap.Select(&results, QueryIncoming,
+		map[string]interface{}{
+			"owner": owner,
+			"time":  since,
+		})
+	if err != nil {
+		return nil, err
+	}
+
+	return results, err
 }
 
 type Storage struct {
