@@ -54,7 +54,7 @@ func (s *Store) GetConnection() error {
 }
 
 func (s *Store) CreateTables() error {
-	_, err := s.connection.Exec("CREATE TABLE IF NOT EXISTS ? (key TEXT, value TEXT)", s.TableName())
+	_, err := s.connection.Exec("CREATE TABLE IF NOT EXISTS " + s.TableName() + " (key TEXT, value TEXT)")
 	return err
 }
 
@@ -63,7 +63,7 @@ func (s *Store) dbLocation() string {
 }
 
 func (s *Store) Set(key string, value string) error {
-	r, err := s.connection.Exec("UPDATE ? SET value = ? WHERE key = ?", s.TableName(), value, key)
+	r, err := s.connection.Exec("UPDATE "+s.TableName()+" SET value = ? WHERE key = ?", value, key)
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (s *Store) Set(key string, value string) error {
 	}
 
 	if count == 0 {
-		_, err := s.connection.Exec("INSERT INTO ? VALUES (?, ?)", s.TableName(), key, value)
+		_, err := s.connection.Exec("INSERT INTO "+s.TableName()+" VALUES (?, ?)", key, value)
 		return err
 	}
 	return nil
@@ -90,7 +90,7 @@ func (s *Store) GetDefault(key string, alt string) (string, error) {
 
 func (s *Store) Get(key string) (string, error) {
 	// Select Rows
-	rows, err := s.connection.Query("SELECT value FROM ? WHERE key=?", s.TableName(), key)
+	rows, err := s.connection.Query("SELECT value FROM "+s.TableName()+" WHERE key=?", key)
 	if err != nil {
 		return "", err
 	}
