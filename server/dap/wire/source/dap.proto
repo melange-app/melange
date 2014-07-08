@@ -1,0 +1,83 @@
+package wire;
+
+// -------
+// Account Management
+// -------
+
+// Register Message alerts a DAP server that a user
+// wants to register themselves with a new account.
+message Register {
+	repeated Data keys = 1;
+}
+
+// Unregister message alerts a DAP server that a user
+// wants to leave a server completely.
+message Unregister {
+	repeated Data keys = 1;
+}
+
+// TODO: Add the ability to link and unlink devices not
+// originally connected to the account.
+
+// -------
+// Message Management
+// -------
+
+// Download Messages will return a list of all message
+// descriptions reived after `since`.
+message DownloadMessages {
+	optional uint64 since = 1;
+	optional bool context = 2;
+}
+
+// Publish Message will create a new message on the server
+// the server must send an alert to the addresses in the `To`
+// field if the `alert` field is `true`.
+message PublishMessage {
+	required bytes data  = 1;
+	repeated string to   = 2;
+	optional bool alert  = 3;
+	optional string name = 4;
+}
+
+// Update Message will update a message with name `name`, to
+// `data`.
+message UpdateMessage {
+	required string name = 1;
+	required bytes data  = 2;
+}
+
+// ---------
+// Arbitrary Data Store
+// ---------
+
+// Data will alert the server to store `data` under the name
+// `key`.
+message Data {
+	required string key = 1;
+	required bytes data = 2;
+}
+
+// Get Data will return the data stored under `key`.
+message GetData {
+	required string key = 1;
+}
+
+// ------
+// Server Responses
+// ------
+
+// A response from the server. Must include a response code,
+// may include a message, and a length (number of additional
+// messages the client must download).
+message Response {
+	required uint32 code    = 1;
+	optional string message = 2;
+	optional uint64 length  = 3;
+}
+
+// An encapsulated message that includes its context.
+message ResponseMessage {
+	required bytes data   = 1;
+	repeated Data context = 2;
+}
