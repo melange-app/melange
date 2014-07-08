@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"melange/app"
 	"melange/dispatcher"
 	"melange/tracker"
@@ -35,5 +36,8 @@ func (m *Melange) Run(port int) error {
 
 func main() {
 	mel := &Melange{}
-	mel.Run(9001)
+	err := mel.Run(9001)
+	if err != nil {
+		fmt.Println("Error Starting Server", err)
+	}
 }
