@@ -35,7 +35,7 @@ func (h *Handler) HandlesType(typ string) bool {
 }
 
 // Handle the DAP Request
-func (h *Handler) HandleType(typ string, data []byte, head message.Header) ([]message.Message, error) {
+func (h *Handler) HandleMessage(typ string, data []byte, head message.Header) ([]message.Message, error) {
 	// I love that Golang doesn't have Generics. I promise!
 	switch typ {
 	case wire.RegisterCode:

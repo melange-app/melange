@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/coopernurse/gorp"
 	_ "github.com/lib/pq"
+	"melange/dap"
 )
 
 func CreateError(location string, error error) *server.ServerError {
@@ -74,11 +75,19 @@ func (s *Server) Run(port int) error {
 	}
 	s.LogMessage("Loaded Address", loadedKey.Address.String())
 
+	handlers := []server.Handler{
+		&dap.Handler{
+			Key:      loadedKey,
+			Delegate: s,
+		},
+	}
+
 	// Create the AirDispatch Server
 	adServer := server.Server{
 		LocationName: s.Me,
 		Key:          loadedKey,
 		Delegate:     s,
+		Handlers:     handlers,
 		// Router:       mailserver.LookupRouter,
 	}
 
