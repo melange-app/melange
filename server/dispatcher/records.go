@@ -43,6 +43,7 @@ type Message struct {
 	// Recipient Information
 	To     string
 	Sender string
+	Owner  int
 	// Message Information
 	Name string
 	Data []byte
@@ -56,41 +57,64 @@ type Message struct {
 	allowed []string
 }
 
-const QueryOutgoingNamed = "select * from " + TableNameMessage + "o where o.Sender = :owner and o.Name = :name and o.To like :recv and o.Type = 1"
-const QueryOutgoingPublic = "select * from " + TableNameMessage + "o where o.Sender = :owner and (o.To like :recv or o.To = '') and o.Received > :time and o.Type = 0"
+const QueryOutgoingNamed = "select * from " + TableNameMessage + "o where o.Owner = :owner and o.Name = :name and o.To like :recv and o.Type = 1"
+const QueryAnyNamed = "select * from " + TableNameMessage + "o where o.Owner = :owner and o.Name = :name"
+const QueryOutgoingPublic = "select * from " + TableNameMessage + "o where o.Owner = :owner and (o.To like :recv or o.To = '') and o.Received > :time and o.Type = 0"
 
-// Return Outgoing Message Named
-func (m *Server) GetOutgoingMessageWithName(name string, owner string, receiver string) (*Message, error) {
-	var result *Message
-
-	// Create the Query
-	err := m.dbmap.SelectOne(&result, QueryOutgoingNamed,
-		map[string]interface{}{
-			"name":  name,
-			"recv":  fmt.Sprintf("%%%s%%", receiver),
-			"owner": owner,
-		})
+func (m *Server) GetAnyMessageWithName(name string, owner string) (*Message, error) {
+	user, err := m.UserForIdentity(owner)
 	if err != nil {
 		return nil, err
 	}
+
+	var result *Message
+
+	// Create the Query
+	err = m.dbmap.SelectOne(&result, QueryAnyNamed,
+		map[string]interface{}{
+			"name":  name,
+			"owner": user.Id,
+		})
+
+	return result, err
+}
+
+// Return Outgoing Message Named
+func (m *Server) GetOutgoingMessageWithName(name string, owner string, receiver string) (*Message, error) {
+	user, err := m.UserForIdentity(owner)
+	if err != nil {
+		return nil, err
+	}
+
+	var result *Message
+
+	// Create the Query
+	err = m.dbmap.SelectOne(&result, QueryOutgoingNamed,
+		map[string]interface{}{
+			"name":  name,
+			"recv":  fmt.Sprintf("%%%s%%", receiver),
+			"owner": user.Id,
+		})
 
 	return result, err
 }
 
 // Return Outgoing Public Messages for a Receiver
 func (m *Server) GetOutgoingPublicMessagesFor(since uint64, owner string, receiver string) ([]*Message, error) {
-	var results []*Message
-
-	// Create the Query
-	_, err := m.dbmap.Select(&results, QueryOutgoingPublic,
-		map[string]interface{}{
-			"recv":  fmt.Sprintf("%%%s%%", receiver),
-			"owner": owner,
-			"time":  since,
-		})
+	user, err := m.UserForIdentity(owner)
 	if err != nil {
 		return nil, err
 	}
+
+	var results []*Message
+
+	// Create the Query
+	_, err = m.dbmap.Select(&results, QueryOutgoingPublic,
+		map[string]interface{}{
+			"recv":  fmt.Sprintf("%%%s%%", receiver),
+			"owner": user.Id,
+			"time":  since,
+		})
 
 	return results, err
 }
@@ -103,9 +127,15 @@ const (
 
 // Save Outgoing Message
 func (m *Server) SaveMessage(name string, to []string, from string, message *message.EncryptedMessage, messageType int) error {
+	user, err := m.UserForIdentity(from)
+	if err != nil {
+		return err
+	}
+
 	out := &Message{
 		To:       strings.Join(to, ","),
 		Sender:   from,
+		Owner:    user.Id,
 		Name:     name,
 		Data:     message.Data,
 		Type:     messageType,
@@ -143,9 +173,6 @@ func (m *Server) GetIncomingMessagesSince(since uint64, owner string) ([]*Messag
 			"owner": owner,
 			"time":  since,
 		})
-	if err != nil {
-		return nil, err
-	}
 
 	return results, err
 }
@@ -153,15 +180,62 @@ func (m *Server) GetIncomingMessagesSince(since uint64, owner string) ([]*Messag
 type Storage struct {
 	Id    int
 	Key   string
-	Value string
+	Value []byte
 	Owner int
+}
+
+const QueryStorage = "select s.Key, s.Value from " + TableNameStorage + "s, " + TableNameUser + "u, " + TableNameIdentity + "i where" +
+	"s.Key = :key and u.Id = i.Owner and i.Signing = :signing and u.Id = s.Owner"
+
+func (m *Server) GetData(author string, key string) ([]byte, error) {
+	var result *Storage
+
+	// Create the Query
+	err := m.dbmap.SelectOne(&result, QueryStorage,
+		map[string]interface{}{
+			"key":     key,
+			"signing": author,
+		})
+	if err != nil {
+		return nil, err
+	}
+
+	return result.Value, err
+}
+
+func (m *Server) SetData(author string, key string, data []byte) error {
+	u, err := m.UserForIdentity(author)
+	if err != nil {
+		return err
+	}
+
+	insertion := &Storage{
+		Key:   key,
+		Value: data,
+		Owner: u.Id,
+	}
+	return m.dbmap.Insert(insertion)
 }
 
 type User struct {
 	Id           int
 	Name         string
 	Receiving    string
-	RegisteredOn time.Time
+	RegisteredOn int64
+}
+
+const QueryIdentity = "select u.Id, u.Name, u.Receiving, u.RegisteredOn from " +
+	TableNameUser + "u, " + TableNameIdentity + "i where" +
+	"u.Id = i.Owner and i.Signing = :key"
+
+func (m *Server) UserForIdentity(id string) (*User, error) {
+	var result *User
+	// Create the Query
+	err := m.dbmap.SelectOne(&result, QueryStorage,
+		map[string]interface{}{
+			"key": id,
+		})
+	return result, err
 }
 
 type Identity struct {
