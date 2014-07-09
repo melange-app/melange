@@ -34,10 +34,10 @@ message DownloadMessages {
 // the server must send an alert to the addresses in the `To`
 // field if the `alert` field is `true`.
 message PublishMessage {
-	required bytes data  = 1;
-	repeated string to   = 2;
-	optional bool alert  = 3;
-	optional string name = 4;
+	required bytes data        = 1;
+	repeated string to         = 2;
+	required string name       = 3;
+	optional bool alert        = 4;
 }
 
 // Update Message will update a message with name `name`, to
@@ -74,6 +74,7 @@ message Response {
 	required uint32 code    = 1;
 	optional string message = 2;
 	optional uint64 length  = 3;
+	optional bytes data     = 4;
 }
 
 // An encapsulated message that includes its context.

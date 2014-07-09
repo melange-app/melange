@@ -72,8 +72,8 @@ func (m *DownloadMessages) GetContext() bool {
 type PublishMessage struct {
 	Data             []byte   `protobuf:"bytes,1,req,name=data" json:"data,omitempty"`
 	To               []string `protobuf:"bytes,2,rep,name=to" json:"to,omitempty"`
-	Alert            *bool    `protobuf:"varint,3,opt,name=alert" json:"alert,omitempty"`
-	Name             *string  `protobuf:"bytes,4,opt,name=name" json:"name,omitempty"`
+	Name             *string  `protobuf:"bytes,3,req,name=name" json:"name,omitempty"`
+	Alert            *bool    `protobuf:"varint,4,opt,name=alert" json:"alert,omitempty"`
 	XXX_unrecognized []byte   `json:"-"`
 }
 
@@ -95,18 +95,18 @@ func (m *PublishMessage) GetTo() []string {
 	return nil
 }
 
-func (m *PublishMessage) GetAlert() bool {
-	if m != nil && m.Alert != nil {
-		return *m.Alert
-	}
-	return false
-}
-
 func (m *PublishMessage) GetName() string {
 	if m != nil && m.Name != nil {
 		return *m.Name
 	}
 	return ""
+}
+
+func (m *PublishMessage) GetAlert() bool {
+	if m != nil && m.Alert != nil {
+		return *m.Alert
+	}
+	return false
 }
 
 type UpdateMessage struct {
@@ -177,6 +177,7 @@ type Response struct {
 	Code             *uint32 `protobuf:"varint,1,req,name=code" json:"code,omitempty"`
 	Message          *string `protobuf:"bytes,2,opt,name=message" json:"message,omitempty"`
 	Length           *uint64 `protobuf:"varint,3,opt,name=length" json:"length,omitempty"`
+	Data             []byte  `protobuf:"bytes,4,opt,name=data" json:"data,omitempty"`
 	XXX_unrecognized []byte  `json:"-"`
 }
 
@@ -203,6 +204,13 @@ func (m *Response) GetLength() uint64 {
 		return *m.Length
 	}
 	return 0
+}
+
+func (m *Response) GetData() []byte {
+	if m != nil {
+		return m.Data
+	}
+	return nil
 }
 
 type ResponseMessage struct {
