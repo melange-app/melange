@@ -5,13 +5,13 @@ import (
 	"code.google.com/p/goprotobuf/proto"
 )
 
-type ClientMessage struct {
+type RawMessage struct {
 	proto.Message
 	Code string
 	Head message.Header
 }
 
-func (r *ClientMessage) ToBytes() []byte {
+func (r *RawMessage) ToBytes() []byte {
 	data, err := proto.Marshal(r)
 	if err != nil {
 		panic(err.Error())
@@ -20,5 +20,5 @@ func (r *ClientMessage) ToBytes() []byte {
 	return data
 }
 
-func (r *ClientMessage) Type() string           { return r.Code }
-func (r *ClientMessage) Header() message.Header { return r.Head }
+func (r *RawMessage) Type() string           { return r.Code }
+func (r *RawMessage) Header() message.Header { return r.Head }

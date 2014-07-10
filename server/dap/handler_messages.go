@@ -37,6 +37,22 @@ type Response struct {
 	h       message.Header
 }
 
+func CreateResponseFromBytes(data []byte, head message.Header) (*Response, error) {
+	unmarsh := &wire.Response{}
+	err := proto.Unmarshal(data, unmarsh)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Response{
+		Code:    unmarsh.GetCode(),
+		Message: unmarsh.GetMessage(),
+		Length:  unmarsh.GetLength(),
+		Data:    unmarsh.GetData(),
+		h:       head,
+	}, nil
+}
+
 func (r *Response) Header() message.Header {
 	return r.h
 }
@@ -60,19 +76,38 @@ func (r *Response) Type() string {
 }
 
 type ResponseMessage struct {
-	Message []byte
+	Message *message.EncryptedMessage
 	Context map[string][]byte
 	h       message.Header
 }
 
-func CreateResponseMessage(m *message.EncryptedMessage, from *identity.Address, to *identity.Address) *ResponseMessage {
-	data, err := m.ToBytes()
+func CreateResponseMessageFromBytes(data []byte, head message.Header) (*ResponseMessage, error) {
+	unmarsh := &wire.ResponseMessage{}
+	err := proto.Unmarshal(data, unmarsh)
 	if err != nil {
-		panic("Can't marshal EncryptedMessage " + err.Error())
+		return nil, err
+	}
+
+	enc, err := message.CreateEncryptedMessageFromBytes(unmarsh.GetData())
+	if err != nil {
+		return nil, err
+	}
+
+	context := make(map[string][]byte)
+	for _, v := range unmarsh.GetContext() {
+		context[v.GetKey()] = v.GetData()
 	}
 
 	return &ResponseMessage{
-		Message: data,
+		Message: enc,
+		Context: context,
+		h:       head,
+	}, nil
+}
+
+func CreateResponseMessage(m *message.EncryptedMessage, from *identity.Address, to *identity.Address) *ResponseMessage {
+	return &ResponseMessage{
+		Message: m,
 		Context: make(map[string][]byte),
 		h:       message.CreateHeader(from, to),
 	}
@@ -92,8 +127,13 @@ func (r *ResponseMessage) ToBytes() []byte {
 		})
 	}
 
+	msgData, err := r.Message.ToBytes()
+	if err != nil {
+		panic("Can't marshal EncryptedMessage " + err.Error())
+	}
+
 	wire := &wire.ResponseMessage{
-		Data:    r.Message,
+		Data:    msgData,
 		Context: context,
 	}
 	data, err := proto.Marshal(wire)
