@@ -330,16 +330,21 @@ func (t *TestingDelegate) Unregister(addr string, keys map[string][]byte) error 
 }
 
 // Mock GetMessages
-func (t *TestingDelegate) GetMessages(since uint64, owner string) ([]*ResponseMessage, error) {
+func (t *TestingDelegate) GetMessages(since uint64, owner string, context bool) ([]*ResponseMessage, error) {
 	if owner != t.Scenario.Sender.Address.String() {
 		t.Results <- &TestingResult{"GetMessages", "Checking address is correct."}
 		return nil, nil
 	}
 
-	if since != 1 {
-		t.Results <- &TestingResult{"GetMessages", "Checking that since value is correct."}
-		return nil, nil
-	}
+  if since != 1 {
+    t.Results <- &TestingResult{"GetMessages", "Checking that since value is correct."}
+    return nil, nil
+  }
+
+  if !context {
+    t.Results <- &TestingResult{"GetMessages", "Checking that context value is correct."}
+    return nil, nil
+  }
 
 	mail := message.CreateMail(t.Scenario.Receiver.Address, t.Scenario.Sender.Address, time.Now())
 	mail.Components.AddComponent(

@@ -16,7 +16,7 @@ type Delegate interface {
 	Register(addr string, keys map[string][]byte) error
 	Unregister(addr string, keys map[string][]byte) error
 	// Message
-	GetMessages(since uint64, owner string) ([]*ResponseMessage, error)
+	GetMessages(since uint64, owner string, context bool) ([]*ResponseMessage, error)
 	PublishMessage(name string, to []string, author string, message *message.EncryptedMessage, alerted bool) error
 	UpdateMessage(name string, author string, message *message.EncryptedMessage) error
 	// Data
@@ -126,7 +126,7 @@ func (h *Handler) Unregister(r *wire.Unregister, head message.Header) ([]message
 
 // Return all Messages received after `since` in sequence.
 func (h *Handler) DownloadMessages(r *wire.DownloadMessages, head message.Header) ([]message.Message, error) {
-	responses, err := h.Delegate.GetMessages(r.GetSince(), head.From.String())
+	responses, err := h.Delegate.GetMessages(r.GetSince(), head.From.String(), r.GetContext())
 	if err != nil {
 		return nil, err
 	}

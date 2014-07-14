@@ -2,11 +2,12 @@ package dispatcher
 
 import (
 	"airdispat.ch/message"
+	"melange/dap"
 	"time"
 )
 
 // New Name for DAP Handler
-func (m *Server) GetMessages(since uint64, owner string) ([]*message.EncryptedMessage, error) {
+func (m *Server) GetMessages(since uint64, owner string, context bool) ([]*dap.ResponseMessage, error) {
 	msg, err := m.GetIncomingMessagesSince(since, owner)
 	if err != nil {
 		return nil, err
