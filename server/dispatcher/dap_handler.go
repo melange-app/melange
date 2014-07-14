@@ -13,9 +13,11 @@ func (m *Server) GetMessages(since uint64, owner string, context bool) ([]*dap.R
 		return nil, err
 	}
 
-	out := make([]*message.EncryptedMessage, 0)
+	out := make([]*dap.ResponseMessage, 0)
 	for i, v := range msg {
-		out[i] = v.ToDispatch(owner)
+		out[i] = &dap.ResponseMessage {
+			Message: v.ToDispatch(owner),
+		}
 	}
 
 	return out, nil
