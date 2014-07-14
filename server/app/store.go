@@ -54,7 +54,7 @@ func (s *Store) GetConnection() error {
 }
 
 func (s *Store) CreateTables() error {
-	_, err := s.connection.Exec("CREATE TABLE IF NOT EXISTS " + s.TableName() + " (key TEXT, value TEXT)")
+	_, err := s.connection.Exec("CREATE TABLE IF NOT EXISTS " + s.TableName() + " (key TEXT, value BLOB)")
 	return err
 }
 
@@ -62,7 +62,7 @@ func (s *Store) dbLocation() string {
 	return filepath.Join(os.Getenv("MLGBASE"), "data", s.Filename)
 }
 
-func (s *Store) Set(key string, value string) error {
+func (s *Store) SetBytes(key string, value []byte) error {
 	r, err := s.connection.Exec("UPDATE "+s.TableName()+" SET value = ? WHERE key = ?", value, key)
 	if err != nil {
 		return err
@@ -80,6 +80,10 @@ func (s *Store) Set(key string, value string) error {
 	return nil
 }
 
+func (s *Store) Set(key string, value string) error {
+	return s.SetBytes(key, []byte(value))
+}
+
 func (s *Store) GetDefault(key string, alt string) (string, error) {
 	val, err := s.Get(key)
 	if val == "" && err.Error() == NoRecords {
@@ -88,7 +92,7 @@ func (s *Store) GetDefault(key string, alt string) (string, error) {
 	return val, err
 }
 
-func (s *Store) Get(key string) (string, error) {
+func (s *Store) GetBytes(key string) ([]byte, error) {
 	// Select Rows
 	rows, err := s.connection.Query("SELECT value FROM "+s.TableName()+" WHERE key=?", key)
 	if err != nil {
@@ -98,7 +102,7 @@ func (s *Store) Get(key string) (string, error) {
 
 	// Iterate Through Rows
 	for rows.Next() {
-		var value string
+		var value []byte
 		if err := rows.Scan(&value); err != nil {
 			return "", err
 		}
@@ -110,4 +114,9 @@ func (s *Store) Get(key string) (string, error) {
 		return "", err
 	}
 	return "", errors.New(NoRecords)
+}
+
+func (s *Store) Get(key string) (string, error) {
+	data, err := s.GetBytes(key)
+	return string(data), err
 }
