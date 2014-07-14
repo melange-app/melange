@@ -25,6 +25,8 @@ func (m *Melange) Run(port int) error {
 		Suffix:  ".127.0.0.1.xip.io:9001",
 		Common:  "http://common.melange",
 		Plugins: "http://*.plugins.melange",
+		API:     "http://api.melange",
+		App:     "http://app.melange",
 		// Other Servers
 		Dispatcher: m.Dispatcher,
 		Tracker:    m.Tracker,

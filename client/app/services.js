@@ -37,38 +37,20 @@ var melangeServices = angular.module('melangeServices', []);
   }
 
   // MLG-SETUO
-  melangeServices.factory('mlgUser', function() {
+  melangeServices.factory('mlgUser', ['$resource', function($resource) {
     return {
       profile: {},
       save: function() {
 
       },
       servers: function() {
-        return [{
-          id: "http://airdispatch.me",
-          name: 'AirDispatch.Me',
-          description: 'The first Melange provider.',
-          img: 'http://placehold.it/64x64',
-        }];
+        return $resource('http://' + melangeAPI + '/servers', {}, {query: {method:'GET', isArray:true}}).query();
       },
       trackers: function() {
-        return [{
-          id: "http://airdispatch.me",
-          name: 'AirDispatch.Me',
-          description: 'The first Melange provider.',
-          img: 'http://placehold.it/64x64',
-          suffix: 'airdispat.ch',
-        },
-        {
-          id: "http://virginia.edu",
-          name: 'Virginia.edu',
-          description: 'Register to be affiliated with UVa.',
-          img: 'http://placehold.it/64x64',
-          suffix: 'virginia.edu',
-        }];
+        return $resource('http://' + melangeAPI + '/trackers', {}, {query: {method:'GET', isArray:true}}).query();
       },
     };
-  });
+  }]);
 
 
   // MLG-API
@@ -82,7 +64,7 @@ var melangeServices = angular.module('melangeServices', []);
   // MLG-PLUGINS
   melangeServices.factory('mlgPlugins', ['$resource', function($resource) {
     // Plugins Resource
-    var plugins = $resource('/plugins.json', {}, {query: {method:'GET', isArray:true}});
+    var plugins = $resource('http://' + melangeAPI + '/plugins', {}, {query: {method:'GET', isArray:true}});
 
     var allPlugins = {};
     plugins.query(function(value) {

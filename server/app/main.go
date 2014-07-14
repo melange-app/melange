@@ -13,6 +13,8 @@ type Server struct {
 	Suffix  string
 	Common  string
 	Plugins string
+	App     string
+	API     string
 	// Other Servers
 	Dispatcher *dispatcher.Server
 	Tracker    *tracker.Tracker
@@ -26,6 +28,14 @@ func (p *Server) CommonURL() string {
 
 func (p *Server) PluginURL() string {
 	return p.Plugins + p.Suffix
+}
+
+func (p *Server) APIURL() string {
+	return p.API + p.Suffix
+}
+
+func (p *Server) AppURL() string {
+	return p.App + p.Suffix
 }
 
 func (p *Server) Run(port int) error {
@@ -56,6 +66,6 @@ func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	} else if mode == "app" {
 		r.p.HandleApp(res, req)
 	} else if mode == "api" {
-		// Load the API Views
+		r.p.HandleApi(res, req)
 	}
 }

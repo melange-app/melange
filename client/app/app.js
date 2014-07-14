@@ -2,7 +2,9 @@
 
 /* App Module */
 
-var melangePluginSuffix=".plugins.melange.127.0.0.1.xip.io:9001";
+var melangeSuffix = ".melange.127.0.0.1.xip.io:9001";
+var melangePluginSuffix=".plugins" + melangeSuffix;
+var melangeAPI ="api" + melangeSuffix;
 
 var melangeApp = angular.module('melangeApp', [
   'ngRoute',
