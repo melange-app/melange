@@ -96,7 +96,7 @@ func (s *Store) GetBytes(key string) ([]byte, error) {
 	// Select Rows
 	rows, err := s.connection.Query("SELECT value FROM "+s.TableName()+" WHERE key=?", key)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -104,19 +104,23 @@ func (s *Store) GetBytes(key string) ([]byte, error) {
 	for rows.Next() {
 		var value []byte
 		if err := rows.Scan(&value); err != nil {
-			return "", err
+			return nil, err
 		}
 		return value, nil
 	}
 
 	// Check for Errors
 	if err := rows.Err(); err != nil {
-		return "", err
+		return nil, err
 	}
-	return "", errors.New(NoRecords)
+	return nil, errors.New(NoRecords)
 }
 
 func (s *Store) Get(key string) (string, error) {
 	data, err := s.GetBytes(key)
-	return string(data), err
+	if err != nil {
+		return "", err
+	}
+	
+	return string(data), nil
 }
