@@ -2,12 +2,22 @@ package dap
 
 import (
 	"airdispat.ch/crypto"
+	adErrors "airdispat.ch/errors"
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
+	adWire "airdispat.ch/wire"
 	"encoding/hex"
 	"errors"
 	"melange/dap/wire"
 )
+
+func (c *Client) checkForError(d []byte, typ string, h message.Header) *adErrors.Error {
+	if typ != adWire.ErrorCode {
+		return nil
+	}
+
+	return adErrors.CreateErrorFromBytes(d, h)
+}
 
 type Client struct {
 	Key    *identity.Identity
@@ -26,8 +36,10 @@ func (c *Client) sendAndGetResponse(msg message.Message) (*Response, error) {
 	data, typ, head, err := message.SendMessageAndReceive(msg, c.Key, c.Server)
 	if err != nil {
 		return nil, err
+	} else if adErr := c.checkForError(data, typ, head); adErr != nil {
+		return nil, adErr
 	} else if typ != wire.ResponseCode {
-		return nil, errors.New("Unexpected response type.")
+		return nil, errors.New("Unexpected response type:" + typ)
 	}
 
 	return CreateResponseFromBytes(data, head)

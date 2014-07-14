@@ -16,7 +16,7 @@ type Delegate interface {
 	Register(addr string, keys map[string][]byte) error
 	Unregister(addr string, keys map[string][]byte) error
 	// Message
-	GetMessages(since uint64, owner string) ([]*message.EncryptedMessage, error)
+	GetMessages(since uint64, owner string) ([]*ResponseMessage, error)
 	PublishMessage(name string, to []string, author string, message *message.EncryptedMessage, alerted bool) error
 	UpdateMessage(name string, author string, message *message.EncryptedMessage) error
 	// Data
@@ -133,8 +133,9 @@ func (h *Handler) DownloadMessages(r *wire.DownloadMessages, head message.Header
 
 	out := make([]message.Message, len(responses))
 	for i, v := range responses {
-		out[i] = CreateResponseMessage(v, head.To, head.From)
+		out[i] = v
 	}
+
 	return CreateResponse(0, "OK", head.To, head.From, out...), nil
 }
 

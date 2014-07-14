@@ -12,7 +12,7 @@ type RawMessage struct {
 }
 
 func (r *RawMessage) ToBytes() []byte {
-	data, err := proto.Marshal(r)
+	data, err := proto.Marshal(r.Message)
 	if err != nil {
 		panic(err.Error())
 	}
