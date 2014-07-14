@@ -17,7 +17,7 @@ melangeControllers.controller('SidebarCtrl', ['$scope', '$location', '$route', '
       if (page.indexOf('/startup') === 0) {
         return ['container']
       } else {
-        if (page.indexOf('/plugin') !== 0) {
+        if (page.indexOf('/plugin') !== 0 && page.indexOf('/settings') !== 0) {
           return ['container-fluid', 'main']
         }
         return ['main']
