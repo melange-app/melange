@@ -10,9 +10,9 @@
     <div class="list-group">
       <a href=""
          class="list-group-item"
-         ng-class="{ selected: $index == $parent.selectedMail }"
+         ng-class="{ selected: $parent.profile.server == provider.id }"
          ng-repeat="provider in mailProviders"
-         ng-click="$parent.selectedMail = $index">
+         ng-click="$parent.profile.server = provider.id">
         <div class="row">
           <div class="col-sm-2">
             <img ng-src="{{ provider.img }}" class="img-responsive">
@@ -30,9 +30,9 @@
     <div class="list-group">
       <a href=""
          class="list-group-item"
-         ng-class="{ selected: $index == $parent.selectedAddress }"
+         ng-class="{ selected: $parent.profile.tracker == provider.id }"
          ng-repeat="provider in addressProviders"
-         ng-click="$parent.selectedAddress = $index">
+         ng-click="$parent.profile.tracker = provider.id; $parent.profile.selectedTracker = $index">
         <div class="row">
           <div class="col-sm-2">
             <img ng-src="{{ provider.img }}" class="img-responsive">
@@ -46,8 +46,8 @@
     </div>
     <h4>Address Registration</h4>
     <div class="input-group" style="width: 100%;">
-      <input type="text" class="form-control">
-      <span class="input-group-addon" ng-show="selectedAddress != -1">@{{ addressProviders[selectedAddress].suffix }}</span>
+      <input type="text" class="form-control" ng-model="profile.alias">
+      <span class="input-group-addon" ng-show="profile.tracker !== undefined">@{{ addressProviders[profile.selectedTracker].suffix }}</span>
     </div>
   </div>
 </div>

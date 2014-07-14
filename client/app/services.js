@@ -8,6 +8,7 @@ var melangeServices = angular.module('melangeServices', []);
       return str.indexOf(suffix, str.length - suffix.length) !== -1;
   }
 
+  // Resources to be Deleted
   var mlgMessage = {
     id: "000000",
     from: {
@@ -35,10 +36,50 @@ var melangeServices = angular.module('melangeServices', []);
     }
   }
 
-  melangeServices.factory('mlgApi', ['$resource', function($resource) {
+  // MLG-SETUO
+  melangeServices.factory('mlgUser', function() {
+    return {
+      profile: {},
+      save: function() {
 
+      },
+      servers: function() {
+        return [{
+          id: "http://airdispatch.me",
+          name: 'AirDispatch.Me',
+          description: 'The first Melange provider.',
+          img: 'http://placehold.it/64x64',
+        }];
+      },
+      trackers: function() {
+        return [{
+          id: "http://airdispatch.me",
+          name: 'AirDispatch.Me',
+          description: 'The first Melange provider.',
+          img: 'http://placehold.it/64x64',
+          suffix: 'airdispat.ch',
+        },
+        {
+          id: "http://virginia.edu",
+          name: 'Virginia.edu',
+          description: 'Register to be affiliated with UVa.',
+          img: 'http://placehold.it/64x64',
+          suffix: 'virginia.edu',
+        }];
+      },
+    };
+  });
+
+
+  // MLG-API
+  melangeServices.factory('mlgApi', ['$resource', function($resource) {
+    return {
+      // Identity Management
+      newIdentity: function(id) {},
+    }
   }]);
 
+  // MLG-PLUGINS
   melangeServices.factory('mlgPlugins', ['$resource', function($resource) {
     // Plugins Resource
     var plugins = $resource('/plugins.json', {}, {query: {method:'GET', isArray:true}});

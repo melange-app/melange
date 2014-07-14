@@ -80,29 +80,16 @@ melangeControllers.controller('PluginCtrl', ['$scope', '$routeParams',
     $scope.pluginUrl = "http://" + $routeParams.pluginid + melangePluginSuffix + "/" + $routeParams.action;
   }]);
 
-melangeControllers.controller('StartupCtrl', ['$scope',
-  function($scope) {
+melangeControllers.controller('StartupCtrl', ['mlgUser', '$scope', '$location',
+  function(mlgUser, $scope, $location) {
 
-    $scope.mailProviders = [{
-      name: 'AirDispatch.Me',
-      description: 'The first Melange provider.',
-      img: 'http://placehold.it/64x64',
-    }];
+    $scope.profile = mlgUser.profile;
 
-    $scope.addressProviders = [{
-      name: 'AirDispatch.Me',
-      description: 'The first Melange provider.',
-      img: 'http://placehold.it/64x64',
-      suffix: 'airdispat.ch',
-    },
-    {
-      name: 'Virginia.edu',
-      description: 'Register to be affiliated with UVa.',
-      img: 'http://placehold.it/64x64',
-      suffix: 'virginia.edu',
-    }];
+    $scope.mailProviders = mlgUser.servers();
+    $scope.addressProviders = mlgUser.trackers();
 
-    $scope.selectedAddress = -1;
-    $scope.selectedMail = -1;
-
+    $scope.finish = function() {
+      mlgUser.save();
+      $location.path("/dashboard");
+    }
   }]);
