@@ -56,6 +56,34 @@ var melangeServices = angular.module('melangeServices', []);
   // MLG-API
   melangeServices.factory('mlgApi', ['$resource', function($resource) {
     return {
+      // Contact Management
+      lists: function() {
+        return ["Friends", "Family"];
+      },
+      contacts: function() {
+        return [
+          {
+            name: "Hunter Leath",
+            favorite: false,
+            identities: [
+              {
+                address: "4073f3dff85852fc8c0c206599b7e221d8c7a77f085a9497",
+              },
+            ],
+            lists: ["Family"],
+          },
+          {
+            name: "Dalton Sherwood",
+            favorite: true,
+            identities: [
+              {
+                address: "4073f3dff85852fc8c0c206599b7e221d8c7a77f085a9497",
+              },
+            ],
+            lists: ["Friends"],
+          },
+        ];
+      },
       // Identity Management
       newIdentity: function(id) {},
       identities: function() {

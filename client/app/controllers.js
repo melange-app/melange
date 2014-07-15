@@ -38,9 +38,10 @@ melangeControllers.controller('SettingsCtrl', ['$scope', 'mlgApi',
     $scope.identities = mlgApi.identities()
   }]);
 
-melangeControllers.controller('ContactsCtrl', ['$scope',
-  function($scope) {
-
+melangeControllers.controller('ContactsCtrl', ['$scope', 'mlgApi',
+  function($scope, mlgApi) {
+    $scope.lists = mlgApi.lists()
+    $scope.contacts = mlgApi.contacts()
   }]);
 
 melangeControllers.controller('DashboardCtrl', ['$scope',
