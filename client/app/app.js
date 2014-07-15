@@ -47,6 +47,18 @@ melangeApp.config(['$routeProvider',
         templateUrl: 'partials/settings/index.html',
         controller: 'SettingsCtrl'
       }).
+      when('/settings/identity', {
+        templateUrl: 'partials/settings/identity.html',
+        controller: 'SettingsCtrl'
+      }).
+      when('/settings/plugins', {
+        templateUrl: 'partials/settings/plugins.html',
+        controller: 'SettingsCtrl'
+      }).
+      when('/settings/advanced', {
+        templateUrl: 'partials/settings/advanced.html',
+        controller: 'SettingsCtrl'
+      }).
       // Startup Routes
       when('/startup', {
         templateUrl: 'partials/startup/index.html',
