@@ -33,9 +33,9 @@ melangeControllers.controller('SidebarCtrl', ['$scope', '$location', '$route', '
 
   }]);
 
-melangeControllers.controller('SettingsCtrl', ['$scope',
-  function($scope) {
-
+melangeControllers.controller('SettingsCtrl', ['$scope', 'mlgApi',
+  function($scope, mlgApi) {
+    $scope.identities = mlgApi.identities()
   }]);
 
 melangeControllers.controller('ContactsCtrl', ['$scope',

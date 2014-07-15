@@ -4,9 +4,24 @@
   <h3><i class="fa fa-gears"></i> Settings <small>Plugins</small></h3>
   <hr/>
   <h4>Install Applications</h4>
-  <form class="form">
-    <input type="text" class="form-control" placeholder="Enter Application URL">
-  </form>
+  <div class="row">
+    <div class="col-xs-6">
+      <form class="form">
+        <div class="form-group">
+          <label for="application-search">Search for Applications</label>
+          <input id="application-search" name="application-search" type="text" class="form-control" placeholder="flappy bird application">
+        </div>
+      </form>
+    </div>
+    <div class="col-xs-6">
+      <form class="form">
+        <div class="form-group">
+          <label for="application-url">Install a Custom Application via URL</label>
+          <input id="application-url" name="application-url" type="text" class="form-control" placeholder="http://airdispat.ch/plugins/notes.zip">
+        </div>
+      </form>
+    </div>
+  </div>
   <hr/>
   <h4><i class="fa fa-star"></i> Featured Applications</h4>
   <div class="row">

@@ -3,4 +3,32 @@
 <div class="container-fluid settings">
   <h3><i class="fa fa-gears"></i> Settings <small>Identity</small></h3>
   <hr/>
+  <h4>Current Identities</h4>
+  <p><a href="#">Create a New Identity</a></p>
+  <div class="row">
+    <div class="col-sm-6 col-md-4">
+      <div class="list-group" ng-init="selectedId = identities[0]">
+        <a class="list-group-item"
+           ng-repeat="id in identities"
+           ng-click="$parent.selectedId = id"
+           ng-class="{active: $parent.selectedId.address == id.address}"
+           style="overflow: hidden;">
+          <h4 class="list-group-item-heading">{{ id.nick }}</h4>
+          <p class="list-group-item-text">{{ id.address }}</p>
+        </a>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-8">
+      <div class="well">
+        <h3 style="margin-top: 0;">{{ selectedId.nick }}</h3>
+        <p class="text-muted" style="word-break: break-all;">{{ selectedId.address }}</a></p>
+        <h4>Profile</h4>
+        <p>{{ selectedId.profile }}</p>
+        <h4>Aliases</h4>
+        <ul class="list-group">
+          <li class="list-group-item" ng-repeat="alias in selectedId.aliases">{{ alias }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
 </div>
