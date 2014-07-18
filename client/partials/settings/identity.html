@@ -25,6 +25,7 @@
         <h4>Profile</h4>
         <p>{{ selectedId.profile }}</p>
         <h4>Aliases</h4>
+        <p>Registered At: {{ selectedId.server }}</p>
         <ul class="list-group">
           <li class="list-group-item" ng-repeat="alias in selectedId.aliases">{{ alias }}</li>
         </ul>
