@@ -1,10 +1,12 @@
 package tracker
 
 import (
+	"airdispat.ch/crypto"
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
 	"airdispat.ch/tracker"
 	"encoding/gob"
+	"encoding/hex"
 	"fmt"
 	"os"
 )
@@ -44,6 +46,7 @@ func (t *Tracker) Run(port int) error {
 
 	}
 	fmt.Println("Loaded Address", loadedKey.Address.String())
+	fmt.Println("Loaded Encryption Key", hex.EncodeToString(crypto.RSAToBytes(loadedKey.Address.EncryptionKey)))
 
 	theTracker := &tracker.Tracker{
 		Key:      loadedKey,

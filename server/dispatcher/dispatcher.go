@@ -1,10 +1,12 @@
 package dispatcher
 
 import (
+	"airdispat.ch/crypto"
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
 	"airdispat.ch/server"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/coopernurse/gorp"
@@ -74,6 +76,7 @@ func (s *Server) Run(port int) error {
 		}
 	}
 	s.LogMessage("Loaded Address", loadedKey.Address.String())
+	s.LogMessage("Loaded Encryption Key", hex.EncodeToString(crypto.RSAToBytes(loadedKey.Address.EncryptionKey)))
 
 	handlers := []server.Handler{
 		&dap.Handler{

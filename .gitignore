@@ -25,3 +25,5 @@ app/controllers/.#dispatch.go
 go/
 
 data/*
+test/
+test/*
