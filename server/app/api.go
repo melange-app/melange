@@ -1,20 +1,43 @@
 package app
 
 import (
-	"encoding/json"
-	"melange/app/framework"
-	// "melange/dap"
 	"airdispat.ch/identity"
+	"encoding/json"
 	"fmt"
+	"io"
+	"melange/app/framework"
+	"melange/dap"
 	"net/http"
-  "os"
-  "path/filepath"
+	"os"
+	"path/filepath"
 )
 
 // Create a CORS View to be accessed by the Application URL
 type APIView struct {
-	AppURL string
+	Request *http.Request
+	AppURL  string
 	framework.View
+}
+
+func (a *APIView) Write(r io.Writer) {
+	if a.Request.Method == "OPTIONS" {
+		return
+	}
+	a.View.Write(r)
+}
+
+func (a *APIView) Code() int {
+	if a.Request.Method == "OPTIONS" {
+		return 200
+	}
+	return a.View.Code()
+}
+
+func (a *APIView) ContentLength() int {
+	if a.Request.Method == "OPTIONS" {
+		return 0
+	}
+	return a.View.ContentLength()
 }
 
 func (a *APIView) Headers() framework.Headers {
@@ -24,6 +47,7 @@ func (a *APIView) Headers() framework.Headers {
 	}
 
 	hdrs["Access-Control-Allow-Origin"] = a.AppURL
+	hdrs["Access-Control-Allow-Headers"] = "Content-Type"
 	return hdrs
 }
 
@@ -49,14 +73,16 @@ type Handler interface {
 	Handle(req *http.Request) framework.View
 }
 
+const MelangeSite = "http://localhost:3000"
+
 func (r *Server) HandleApi(res http.ResponseWriter, req *http.Request) {
 
 	// Create Simple Handler Map
 	handlers := map[string]Handler{
 		// GET  /servers
-		"/servers": &ServerLists{0},
+		"/servers": &ServerLists{"/api/servers"},
 		// GET  /trackers
-		"/trackers": &ServerLists{1},
+		"/trackers": &ServerLists{"/api/trackers"},
 
 		// GET  /plugins
 		"/plugins": &PluginServer{},
@@ -87,7 +113,7 @@ func (r *Server) HandleApi(res http.ResponseWriter, req *http.Request) {
 		if req.URL.Path == route {
 			view := handler.Handle(req)
 			framework.WriteView(
-				&APIView{r.AppURL(), view}, res,
+				&APIView{req, r.AppURL(), view}, res,
 			)
 			return
 		}
@@ -95,18 +121,18 @@ func (r *Server) HandleApi(res http.ResponseWriter, req *http.Request) {
 }
 
 type POSTHandler struct {
-  Handler
+	Handler
 }
 
 func (p *POSTHandler) Handle(req *http.Request) framework.View {
-    // If method is not POST, disallow request.
-    if req.Method != "POST" {
-    	return &framework.HTTPError{
-    		ErrorCode: 405,
-    		Message:   "Method not allowed.",
-    	}
-    }
-    return p.Handler.Handle(req)
+	// If method is not POST, disallow request.
+	if req.Method != "POST" {
+		return &framework.HTTPError{
+			ErrorCode: 405,
+			Message:   "Method not allowed.",
+		}
+	}
+	return p.Handler.Handle(req)
 }
 
 type PluginServer struct{}
@@ -116,20 +142,11 @@ func (s *PluginServer) Handle(req *http.Request) framework.View {
 }
 
 type ServerLists struct {
-	Type int
+	URL string
 }
 
 func (s *ServerLists) Handle(req *http.Request) framework.View {
-	var servers []*Provider
-	if s.Type == 0 {
-		servers = GetServers()
-	} else if s.Type == 1 {
-		servers = GetTrackers()
-	}
-
-	return &framework.JSONView{
-		Content: servers,
-	}
+	return framework.ProxyURL("http://www.getmelange.com" + s.URL)
 }
 
 type Register struct {
@@ -153,14 +170,14 @@ func (r *Register) Handle(req *http.Request) framework.View {
 
 type Profile struct {
 	// Profile Information
-	FirstName string
-	LastName  string
-	About     string
-	Password  string
+	FirstName string `json:"first"`
+	LastName  string `json:"last"`
+	About     string `json:"about"`
+	Password  string `json:"password"`
 	// AD Information
-	Server  string
-	Tracker string
-	Alias   string
+	Server  string `json:"server"`
+	Tracker string `json:"tracker"`
+	Alias   string `json:"alias"`
 }
 
 // identity
@@ -174,15 +191,36 @@ func (i *Identity) Handle(req *http.Request) framework.View {
 	profileRequest := &Profile{}
 	err := DecodeJSONBody(req, &profileRequest)
 	if err != nil {
+		fmt.Println("Error occured while decoding body:", err)
 		return framework.Error500
 	}
 
 	// Create Identity
-	_, err = identity.CreateIdentity()
+	id, err := identity.CreateIdentity()
 	if err != nil {
-		fmt.Println("Error occured creating an identity: ", err)
+		fmt.Println("Error occured creating an identity:", err)
 		return framework.Error500
 	}
 
-	return nil
+	// Extract Keys
+	serverKey := ServerKeyFromId(profileRequest.Server)
+
+	// Run Registration
+	client := &dap.Client{
+		Key:    id,
+		Server: serverKey,
+	}
+	err = client.Register(map[string][]byte{
+		"name": []byte(profileRequest.FirstName + " " + profileRequest.LastName),
+	})
+	if err != nil {
+		fmt.Println("Error occurred registering:", err)
+		return framework.Error500
+	}
+
+	return &framework.JSONView{
+		Content: map[string]interface{}{
+			"error": false,
+		},
+	}
 }
