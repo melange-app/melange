@@ -2,6 +2,7 @@ package framework
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -31,6 +32,44 @@ type View interface {
 	Code() int
 	Headers() Headers
 }
+
+func ProxyURL(url string) View {
+	resp, err := http.Get(url)
+	if err != nil {
+		// Don't know what to do.
+		fmt.Println("Got error", err)
+		return Error500
+	}
+
+	contentType := ""
+	if len(resp.Header["Content-Type"]) != 0 {
+		contentType = resp.Header["Content-Type"][0]
+	}
+
+	return &CopyView{
+		Status: resp.StatusCode,
+		Length: int(resp.ContentLength),
+		Type:   contentType,
+		Reader: resp.Body,
+	}
+}
+
+type CopyView struct {
+	Status int
+	Length int
+	Type   string
+	Reader io.ReadCloser
+}
+
+func (j *CopyView) Write(w io.Writer) {
+	io.Copy(w, j.Reader)
+	j.Reader.Close()
+}
+
+func (j *CopyView) Code() int           { return j.Status }
+func (j *CopyView) ContentLength() int  { return j.Length }
+func (j *CopyView) ContentType() string { return j.Type }
+func (j *CopyView) Headers() Headers    { return nil }
 
 type RawView struct {
 	Content []byte
