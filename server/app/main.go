@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"melange/app/framework"
+	"melange/app/models"
 	"melange/dispatcher"
 	"melange/tracker"
 	"net/http"
@@ -19,7 +20,7 @@ type Server struct {
 	Dispatcher *dispatcher.Server
 	Tracker    *tracker.Tracker
 	// Settings Module
-	Settings *Store
+	Settings *models.Store
 }
 
 func (p *Server) CommonURL() string {

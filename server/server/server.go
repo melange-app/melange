@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"melange/app"
+	"melange/app/models"
 	"melange/dispatcher"
 	"melange/tracker"
 )
@@ -16,7 +17,7 @@ type Melange struct {
 
 func (m *Melange) Run(port int) error {
 	// Create a New Store for Settings
-	settings, err := app.CreateStore("settings.db")
+	settings, err := models.CreateStore("settings.db")
 	if err != nil {
 		return err
 	}

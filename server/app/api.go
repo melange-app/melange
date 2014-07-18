@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"melange/app/framework"
+	"melange/app/models"
 	"melange/dap"
 	"net/http"
 	"os"
@@ -184,7 +185,7 @@ type Profile struct {
 // identity:_addr_:key
 // identity:_addr_:location
 type Identity struct {
-	Settings *Store
+	Settings *models.Store
 }
 
 func (i *Identity) Handle(req *http.Request) framework.View {

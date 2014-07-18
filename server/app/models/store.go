@@ -1,4 +1,4 @@
-package app
+package models
 
 import (
 	"database/sql"
@@ -121,6 +121,6 @@ func (s *Store) Get(key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	return string(data), nil
 }
