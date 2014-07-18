@@ -37,11 +37,21 @@ var melangeServices = angular.module('melangeServices', []);
   }
 
   // MLG-SETUO
-  melangeServices.factory('mlgUser', ['$resource', function($resource) {
+  melangeServices.factory('mlgIdentity', ['$resource', function($resource) {
     return {
       profile: {},
       save: function() {
-
+        return $resource('http://' + melangeAPI + '/identity/new', {}, {save: {method: 'POST'}}).save(this.profile,
+          // Success
+          function(value, responseHeaders) {
+            console.log("Success");
+          },
+          // Error
+          function(res) {
+            console.log("Error.");
+            console.dir(res);
+          }
+        );
       },
       servers: function() {
         return $resource('http://' + melangeAPI + '/servers', {}, {query: {method:'GET', isArray:true}}).query();
@@ -94,6 +104,7 @@ var melangeServices = angular.module('melangeServices', []);
             profile: {
               name: "Hunter Leath",
             },
+            server: "airdispatch.me",
             aliases: [
               "hleath@airdispat.ch",
             ]
@@ -104,6 +115,7 @@ var melangeServices = angular.module('melangeServices', []);
             profile: {
               name: "Hunter Leath",
             },
+            server: "airdispatch.me",
             aliases: [
               "jhl4qf@virginia.edu",
             ]

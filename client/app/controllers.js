@@ -82,16 +82,16 @@ melangeControllers.controller('PluginCtrl', ['$scope', '$routeParams',
     $scope.pluginUrl = "http://" + $routeParams.pluginid + melangePluginSuffix + "/" + $routeParams.action;
   }]);
 
-melangeControllers.controller('StartupCtrl', ['mlgUser', '$scope', '$location',
-  function(mlgUser, $scope, $location) {
+melangeControllers.controller('StartupCtrl', ['mlgIdentity', '$scope', '$location',
+  function(mlgIdentity, $scope, $location) {
 
-    $scope.profile = mlgUser.profile;
+    $scope.profile = mlgIdentity.profile;
 
-    $scope.mailProviders = mlgUser.servers();
-    $scope.addressProviders = mlgUser.trackers();
+    $scope.mailProviders = mlgIdentity.servers();
+    $scope.addressProviders = mlgIdentity.trackers();
 
     $scope.finish = function() {
-      mlgUser.save();
+      mlgIdentity.save();
       $location.path("/dashboard");
     }
   }]);
