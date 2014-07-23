@@ -1,11 +1,13 @@
 package models
 
 import (
+	"github.com/huntaub/go-db"
 	"time"
 )
 
 // A full AirDispatch Message
 type Message struct {
+	Id db.PrimaryKey
 	// Name registered on Server
 	Name string
 	// Cleared Addresses
@@ -15,7 +17,9 @@ type Message struct {
 	// Message Metadata
 	Alert    bool
 	Incoming bool
-	Date     *time.Time
+	Date     time.Time
+
+	Components *db.HasMany `table:"component" on:"message"`
 }
 
 // CreateMessage(name, to, from, alert, component...)
@@ -25,7 +29,8 @@ type Message struct {
 
 // An AirDispatch Component
 type Component struct {
-	MessageId int
-	Name      string
-	Data      []byte
+	Id      db.PrimaryKey
+	Message *db.HasOne `table:"message"`
+	Name    string
+	Data    []byte
 }

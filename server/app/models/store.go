@@ -1,24 +1,23 @@
 package models
 
 import (
-	"database/sql"
-	"errors"
+	"github.com/huntaub/go-db"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 	"os"
 	"path/filepath"
 )
 
-const NoRecords = "No records returned."
-
 type Record struct {
 	Key   string
-	Value string
+	Value []byte
 }
 
 type Store struct {
 	Filename   string
 	Prefix     string
-	connection *sql.DB
+	connection *sqlx.DB
+	table      db.Table
 }
 
 func (s *Store) TableName() string {
@@ -44,17 +43,20 @@ func CreateStore(filename string) (*Store, error) {
 
 // Load the Database Connection
 func (s *Store) GetConnection() error {
-	db, err := sql.Open("sqlite3", s.dbLocation())
+	conn, err := sqlx.Open("sqlite3", s.dbLocation())
 	if err != nil {
 		return err
 	}
 
-	s.connection = db
+	s.connection = conn
 	return nil
 }
 
 func (s *Store) CreateTables() error {
-	_, err := s.connection.Exec("CREATE TABLE IF NOT EXISTS " + s.TableName() + " (key TEXT, value BLOB)")
+	t, err := db.CreateTableFromStruct(s.TableName(), s.connection, false, &Record{})
+	if err != nil {
+		s.table = t
+	}
 	return err
 }
 
@@ -63,7 +65,10 @@ func (s *Store) dbLocation() string {
 }
 
 func (s *Store) SetBytes(key string, value []byte) error {
-	r, err := s.connection.Exec("UPDATE "+s.TableName()+" SET value = ? WHERE key = ?", value, key)
+	r, err := s.connection.NamedExec("UPDATE "+s.TableName()+" SET value = :value WHERE key = :key", map[string]interface{}{
+		"value": value,
+		"key":   key,
+	})
 	if err != nil {
 		return err
 	}
@@ -74,7 +79,10 @@ func (s *Store) SetBytes(key string, value []byte) error {
 	}
 
 	if count == 0 {
-		_, err := s.connection.Exec("INSERT INTO "+s.TableName()+" VALUES (?, ?)", key, value)
+		_, err := s.table.Insert(&Record{
+			Key:   key,
+			Value: value,
+		}).Exec(s.connection)
 		return err
 	}
 	return nil
@@ -86,34 +94,21 @@ func (s *Store) Set(key string, value string) error {
 
 func (s *Store) GetDefault(key string, alt string) (string, error) {
 	val, err := s.Get(key)
-	if val == "" && err.Error() == NoRecords {
-		return alt, nil
+	if val == "" && err != nil {
+		return alt, err
 	}
 	return val, err
 }
 
 func (s *Store) GetBytes(key string) ([]byte, error) {
 	// Select Rows
-	rows, err := s.connection.Query("SELECT value FROM "+s.TableName()+" WHERE key=?", key)
+	result := &Record{}
+	err := s.table.Get().Where("key", key).One(s.connection, result)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	// Iterate Through Rows
-	for rows.Next() {
-		var value []byte
-		if err := rows.Scan(&value); err != nil {
-			return nil, err
-		}
-		return value, nil
-	}
-
-	// Check for Errors
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return nil, errors.New(NoRecords)
+	return result.Value, nil
 }
 
 func (s *Store) Get(key string) (string, error) {

@@ -1,21 +1,30 @@
 package models
 
-import ()
+import (
+	"airdispat.ch/identity"
+	"github.com/huntaub/go-db"
+)
 
 // Identity represents a Keypair
 type Identity struct {
+	Id          db.PrimaryKey
 	Nickname    string
 	Fingerprint string
 	// Actual Data
-	Encryption []byte
-	Signing    []byte
+	Data []byte
 	// Password Protection
 	Protected bool
+	Aliases   *db.HasMany `table:"alias" on:"identity"`
+}
+
+func CreateIdentity(nick string, id *identity.Identity, password string) *Identity {
+	return nil
 }
 
 // Alias represent a registered Identity
 type Alias struct {
-	IdentityId int
-	Location   string
-	Username   string
+	Id       db.PrimaryKey
+	Identity *db.HasOne `table:"identity"`
+	Location string
+	Username string
 }

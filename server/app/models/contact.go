@@ -1,15 +1,21 @@
 package models
 
-import ()
+import (
+	"github.com/huntaub/go-db"
+)
 
 type Contact struct {
-	Name   string
-	Image  string
-	Notify bool
+	Id        db.PrimaryKey
+	Name      string
+	Image     string
+	Notify    bool
+	Addresses *db.HasMany `table:"address" on:"contact"`
 }
 
 type Address struct {
-	ContactId     int
+	Id            db.PrimaryKey
+	Contact       *db.HasOne `table:"contact"`
 	Fingerprint   string
 	EncryptionKey []byte
+	Location      string
 }

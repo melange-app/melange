@@ -219,6 +219,12 @@ func (i *Identity) Handle(req *http.Request) framework.View {
 		return framework.Error500
 	}
 
+	// Save to Database
+	// modelId := &models.Identity{
+	// 	Nickname:    "Primary",
+	// 	Fingerprint: id.Address.String(),
+	// }
+
 	return &framework.JSONView{
 		Content: map[string]interface{}{
 			"error": false,
