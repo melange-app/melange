@@ -10,6 +10,7 @@ type Identity struct {
 	Id          db.PrimaryKey
 	Nickname    string
 	Fingerprint string
+	Server      string
 	// Actual Data
 	Data []byte
 	// Password Protection

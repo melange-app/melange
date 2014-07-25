@@ -91,7 +91,10 @@ melangeControllers.controller('StartupCtrl', ['mlgIdentity', '$scope', '$locatio
     $scope.addressProviders = mlgIdentity.trackers();
 
     $scope.finish = function() {
-      mlgIdentity.save();
-      $location.path("/dashboard");
+      mlgIdentity.save(function() {
+        $location.path("/dashboard");
+      }, function() {
+        alert("Error creating Identity.");
+      });
     }
   }]);

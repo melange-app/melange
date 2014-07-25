@@ -14,10 +14,10 @@ type Record struct {
 }
 
 type Store struct {
-	Filename   string
-	Prefix     string
-	connection *sqlx.DB
-	table      db.Table
+	*sqlx.DB
+	Filename string
+	Prefix   string
+	table    db.Table
 }
 
 func (s *Store) TableName() string {
@@ -48,12 +48,12 @@ func (s *Store) GetConnection() error {
 		return err
 	}
 
-	s.connection = conn
+	s.DB = conn
 	return nil
 }
 
 func (s *Store) CreateTables() error {
-	t, err := db.CreateTableFromStruct(s.TableName(), s.connection, false, &Record{})
+	t, err := db.CreateTableFromStruct(s.TableName(), s, false, &Record{})
 	if err != nil {
 		s.table = t
 	}
@@ -65,7 +65,7 @@ func (s *Store) dbLocation() string {
 }
 
 func (s *Store) SetBytes(key string, value []byte) error {
-	r, err := s.connection.NamedExec("UPDATE "+s.TableName()+" SET value = :value WHERE key = :key", map[string]interface{}{
+	r, err := s.NamedExec("UPDATE "+s.TableName()+" SET value = :value WHERE key = :key", map[string]interface{}{
 		"value": value,
 		"key":   key,
 	})
@@ -82,7 +82,7 @@ func (s *Store) SetBytes(key string, value []byte) error {
 		_, err := s.table.Insert(&Record{
 			Key:   key,
 			Value: value,
-		}).Exec(s.connection)
+		}).Exec(s)
 		return err
 	}
 	return nil
@@ -103,7 +103,7 @@ func (s *Store) GetDefault(key string, alt string) (string, error) {
 func (s *Store) GetBytes(key string) ([]byte, error) {
 	// Select Rows
 	result := &Record{}
-	err := s.table.Get().Where("key", key).One(s.connection, result)
+	err := s.table.Get().Where("key", key).One(s, result)
 	if err != nil {
 		return nil, err
 	}

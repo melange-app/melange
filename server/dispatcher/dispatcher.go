@@ -60,6 +60,10 @@ func (s *Server) Run(port int) error {
 	}
 	// Create Tables for Messages
 	s.CreateTables()
+	err = s.dbmap.CreateTablesIfNotExists()
+	if err != nil {
+		return err
+	}
 
 	// Load the Server Keys
 	loadedKey, err := identity.LoadKeyFromFile(s.KeyFile)
@@ -68,7 +72,7 @@ func (s *Server) Run(port int) error {
 		if err != nil {
 			return err
 		}
-		if s.Key != "" {
+		if s.KeyFile != "" {
 			err = loadedKey.SaveKeyToFile(s.KeyFile)
 			if err != nil {
 				return err

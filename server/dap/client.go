@@ -32,6 +32,12 @@ func CreateClient(key *identity.Identity, server *identity.Address) *Client {
 	return &Client{key, server}
 }
 
+func (c *Client) createHeader(to *identity.Address) message.Header {
+	header := message.CreateHeader(c.Key.Address, to)
+	header.EncryptionKey = crypto.RSAToBytes(c.Key.Address.EncryptionKey)
+	return header
+}
+
 func (c *Client) sendAndGetResponse(msg message.Message) (*Response, error) {
 	data, typ, head, err := message.SendMessageAndReceive(msg, c.Key, c.Server)
 	if err != nil {
@@ -76,7 +82,7 @@ func (c *Client) Register(keys map[string][]byte) error {
 			Keys: outKeys,
 		},
 		Code: wire.RegisterCode,
-		Head: message.CreateHeader(c.Key.Address, c.Server),
+		Head: c.createHeader(c.Server),
 	}
 
 	return c.sendAndCheck(msg)
@@ -98,7 +104,7 @@ func (c *Client) Unregister(keys map[string][]byte) error {
 			Keys: outKeys,
 		},
 		Code: wire.UnregisterCode,
-		Head: message.CreateHeader(c.Key.Address, c.Server),
+		Head: c.createHeader(c.Server),
 	}
 
 	return c.sendAndCheck(msg)
@@ -133,7 +139,7 @@ func (c *Client) DownloadMessages(since uint64, context bool) ([]*ResponseMessag
 			Context: &context,
 		},
 		Code: wire.DownloadMessagesCode,
-		Head: message.CreateHeader(c.Key.Address, c.Server),
+		Head: c.createHeader(c.Server),
 	}
 
 	conn, err := message.ConnectToServer(c.Server.Location)
@@ -216,7 +222,7 @@ func (c *Client) PublishMessage(enc *message.EncryptedMessage, to []string, name
 			Data:  bytes,
 		},
 		Code: wire.PublishMessageCode,
-		Head: message.CreateHeader(c.Key.Address, c.Server),
+		Head: c.createHeader(c.Server),
 	}
 
 	return name, c.sendAndCheck(msg)
@@ -239,7 +245,7 @@ func (c *Client) UpdateMessage(enc *message.EncryptedMessage, name string) error
 			Data: bytes,
 		},
 		Code: wire.UpdateMessageCode,
-		Head: message.CreateHeader(c.Key.Address, c.Server),
+		Head: c.createHeader(c.Server),
 	}
 
 	return c.sendAndCheck(msg)
@@ -257,7 +263,7 @@ func (c *Client) SetData(key string, value []byte) error {
 			Data: value,
 		},
 		Code: wire.DataCode,
-		Head: message.CreateHeader(c.Key.Address, c.Server),
+		Head: c.createHeader(c.Server),
 	}
 
 	return c.sendAndCheck(msg)
@@ -269,7 +275,7 @@ func (c *Client) GetData(key string) ([]byte, error) {
 			Key: &key,
 		},
 		Code: wire.GetDataCode,
-		Head: message.CreateHeader(c.Key.Address, c.Server),
+		Head: c.createHeader(c.Server),
 	}
 
 	resp, err := c.sendAndGetResponse(msg)

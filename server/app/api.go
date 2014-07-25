@@ -2,12 +2,15 @@ package app
 
 import (
 	"airdispat.ch/identity"
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/huntaub/go-db"
 	"io"
 	"melange/app/framework"
 	"melange/app/models"
 	"melange/dap"
+	"melange/router"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -15,38 +18,48 @@ import (
 
 // Create a CORS View to be accessed by the Application URL
 type APIView struct {
-	Request *http.Request
-	AppURL  string
+	AppURL string
+	Handler
 	framework.View
 }
 
-func (a *APIView) Write(r io.Writer) {
-	if a.Request.Method == "OPTIONS" {
-		return
+func (a *APIView) Handle(req *http.Request) framework.View {
+	if req.Method != "OPTIONS" {
+		a.View = a.Handler.Handle(req)
 	}
-	a.View.Write(r)
+	return a
+}
+
+func (a *APIView) Write(r io.Writer) {
+	if a.View != nil {
+		a.View.Write(r)
+	}
+	return
 }
 
 func (a *APIView) Code() int {
-	if a.Request.Method == "OPTIONS" {
-		return 200
+	if a.View != nil {
+		return a.View.Code()
 	}
-	return a.View.Code()
+	return 200
 }
 
 func (a *APIView) ContentLength() int {
-	if a.Request.Method == "OPTIONS" {
-		return 0
+	if a.View != nil {
+		return a.View.ContentLength()
 	}
-	return a.View.ContentLength()
+	return 0
+}
+
+func (a *APIView) ContentType() string {
+	if a.View != nil {
+		return a.View.ContentType()
+	}
+	return "text/plain"
 }
 
 func (a *APIView) Headers() framework.Headers {
-	hdrs := a.View.Headers()
-	if hdrs == nil {
-		hdrs = make(framework.Headers)
-	}
-
+	hdrs := make(framework.Headers)
 	hdrs["Access-Control-Allow-Origin"] = a.AppURL
 	hdrs["Access-Control-Allow-Headers"] = "Content-Type"
 	return hdrs
@@ -77,13 +90,29 @@ type Handler interface {
 const MelangeSite = "http://localhost:3000"
 
 func (r *Server) HandleApi(res http.ResponseWriter, req *http.Request) {
+	packager := &Packager{
+		API: "http://www.getmelange.com/api",
+	}
+
+	tables, err := models.CreateTables(r.Settings)
+	if err != nil {
+		fmt.Println("Error creating tables", err)
+		framework.WriteView(framework.Error500, res)
+		return
+	}
 
 	// Create Simple Handler Map
 	handlers := map[string]Handler{
 		// GET  /servers
-		"/servers": &ServerLists{"/api/servers"},
+		"/servers": &ServerLists{
+			URL:      "/servers",
+			Packager: packager,
+		},
 		// GET  /trackers
-		"/trackers": &ServerLists{"/api/trackers"},
+		"/trackers": &ServerLists{
+			URL:      "/trackers",
+			Packager: packager,
+		},
 
 		// GET  /plugins
 		"/plugins": &PluginServer{},
@@ -100,8 +129,12 @@ func (r *Server) HandleApi(res http.ResponseWriter, req *http.Request) {
 		// POST /data/set
 		"/data/set": nil,
 
-		"/identity":     nil,
-		"/identity/new": &Identity{r.Settings},
+		"/identity": nil,
+		"/identity/new": &Identity{
+			Tables:   tables,
+			Packager: packager,
+			Store:    r.Settings,
+		},
 
 		// POST /register
 		"/identity/reigster": &Register{true},
@@ -112,9 +145,12 @@ func (r *Server) HandleApi(res http.ResponseWriter, req *http.Request) {
 	// Run through API Handlers
 	for route, handler := range handlers {
 		if req.URL.Path == route {
-			view := handler.Handle(req)
+			view := (&APIView{
+				AppURL:  r.AppURL(),
+				Handler: handler,
+			}).Handle(req)
 			framework.WriteView(
-				&APIView{req, r.AppURL(), view}, res,
+				view, res,
 			)
 			return
 		}
@@ -143,11 +179,19 @@ func (s *PluginServer) Handle(req *http.Request) framework.View {
 }
 
 type ServerLists struct {
-	URL string
+	URL      string
+	Packager *Packager
 }
 
 func (s *ServerLists) Handle(req *http.Request) framework.View {
-	return framework.ProxyURL("http://www.getmelange.com" + s.URL)
+	packages, err := s.Packager.decodeProviders(s.Packager.API + s.URL)
+	if err != nil {
+		fmt.Println(err)
+		return framework.Error500
+	}
+	return &framework.JSONView{
+		Content: packages,
+	}
 }
 
 type Register struct {
@@ -179,19 +223,25 @@ type Profile struct {
 	Server  string `json:"server"`
 	Tracker string `json:"tracker"`
 	Alias   string `json:"alias"`
+	// Profile Nickname
+	Nickname string `json:"nickname"`
 }
 
 // identity
 // identity:_addr_:key
 // identity:_addr_:location
 type Identity struct {
-	Settings *models.Store
+	Tables   map[string]db.Table
+	Store    *models.Store
+	Packager *Packager
 }
 
 func (i *Identity) Handle(req *http.Request) framework.View {
+	// Decode Body
 	profileRequest := &Profile{}
 	err := DecodeJSONBody(req, &profileRequest)
-	if err != nil {
+
+	if err != nil && err != io.EOF {
 		fmt.Println("Error occured while decoding body:", err)
 		return framework.Error500
 	}
@@ -203,27 +253,94 @@ func (i *Identity) Handle(req *http.Request) framework.View {
 		return framework.Error500
 	}
 
+	//
+	// Server Registration
+	//
+
 	// Extract Keys
-	serverKey := ServerKeyFromId(profileRequest.Server)
+	server, err := i.Packager.ServerFromId(profileRequest.Server)
+	if err != nil {
+		fmt.Println("Error occured getting server:", err)
+		return &framework.HTTPError{
+			ErrorCode: 500,
+			Message:   "Couldn't get server for id.",
+		}
+	}
 
 	// Run Registration
 	client := &dap.Client{
 		Key:    id,
-		Server: serverKey,
+		Server: server.Key,
 	}
 	err = client.Register(map[string][]byte{
 		"name": []byte(profileRequest.FirstName + " " + profileRequest.LastName),
 	})
 	if err != nil {
-		fmt.Println("Error occurred registering:", err)
+		fmt.Println("Error occurred registering on Server", err)
 		return framework.Error500
 	}
 
-	// Save to Database
-	// modelId := &models.Identity{
-	// 	Nickname:    "Primary",
-	// 	Fingerprint: id.Address.String(),
-	// }
+	//
+	// Tracker Registration
+	//
+
+	tracker, err := i.Packager.TrackerFromId(profileRequest.Tracker)
+	if err != nil {
+		fmt.Println("Error occured getting tracker:", err)
+		return &framework.HTTPError{
+			ErrorCode: 500,
+			Message:   "Couldn't get tracker for id.",
+		}
+	}
+
+	err = (&router.Router{
+		Origin: id,
+		TrackerList: []string{
+			tracker.URL,
+		},
+	}).Register(id, profileRequest.Alias)
+
+	if err != nil {
+		fmt.Println("Error occurred registering on Tracker", err)
+		return framework.Error500
+	}
+
+	//
+	// Database Registration
+	//
+
+	buffer := &bytes.Buffer{}
+	_, err = id.GobEncodeKey(buffer)
+	if err != nil {
+		fmt.Println("Error occurred encoding Id", err)
+		return framework.Error500
+	}
+
+	modelId := &models.Identity{
+		Nickname:    profileRequest.Nickname,
+		Fingerprint: id.Address.String(),
+		Data:        buffer.Bytes(),
+		Protected:   false,
+		Server:      server.URL,
+	}
+
+	_, err = i.Tables["identity"].Insert(modelId).Exec(i.Store)
+	if err != nil {
+		fmt.Println("Error saving Identity", err)
+		return framework.Error500
+	}
+
+	modelAlias := &models.Alias{
+		Identity: db.ForeignKey(modelId),
+		Location: tracker.URL,
+		Username: profileRequest.Alias,
+	}
+
+	_, err = i.Tables["alias"].Insert(modelAlias).Exec(i.Store)
+	if err != nil {
+		fmt.Println("Error saving Alias", err)
+		return framework.Error500
+	}
 
 	return &framework.JSONView{
 		Content: map[string]interface{}{

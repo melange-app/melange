@@ -1,16 +1,14 @@
-package dispatcher
+package router
 
 // This file describes two routes that are used throughout the Melange System.
 
 import (
 	"airdispat.ch/identity"
-	"airdispat.ch/routing"
 	"airdispat.ch/tracker"
 	"errors"
 	"fmt"
 	"github.com/huntaub/go-cache"
 	"strings"
-	"time"
 )
 
 var routeCache *cache.Cache
@@ -18,30 +16,6 @@ var routeCache *cache.Cache
 // var cLock sync.RWMutex
 
 var ServerKey *identity.Identity
-
-func InitRouter() {
-	if routeCache == nil {
-		routeCache = cache.NewCache(1 * time.Hour)
-	}
-	if ServerKey == nil {
-		ServerKey, _ = identity.CreateIdentity()
-	}
-	if RegistrationRouter == nil {
-		RegistrationRouter = &tracker.TrackerRouter{
-			tracker.GetTrackingServerLocationFromURL("airdispat.ch"),
-			ServerKey,
-		}
-	}
-	if LookupRouter == nil {
-		LookupRouter = &Router{
-			Origin:      ServerKey,
-			TrackerList: []string{"mailserver.airdispat.ch:5000"},
-		}
-	}
-}
-
-var RegistrationRouter routing.Router
-var LookupRouter routing.Router
 
 type Router struct {
 	Origin      *identity.Identity
@@ -93,5 +67,24 @@ func (a *Router) Lookup(from string) (*identity.Address, error) {
 }
 
 func (a *Router) Register(key *identity.Identity, alias string) error {
-	return errors.New("Can't use LookupRouter for registration.")
+	var err error
+	success := 0
+
+	for _, v := range a.TrackerList {
+		newErr := (&tracker.TrackerRouter{
+			Origin: a.Origin,
+			URL:    v,
+		}).Register(key, alias)
+		if newErr == nil {
+			success++
+		} else {
+			err = newErr
+		}
+	}
+
+	if success == 0 && err != nil {
+		return errors.New("All registration failed. Last Error: " + err.Error())
+	} else {
+		return nil
+	}
 }

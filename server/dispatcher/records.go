@@ -57,9 +57,9 @@ type Message struct {
 	allowed []string
 }
 
-const QueryOutgoingNamed = "select * from " + TableNameMessage + "o where o.Owner = :owner and o.Name = :name and o.To like :recv and o.Type = 1"
-const QueryAnyNamed = "select * from " + TableNameMessage + "o where o.Owner = :owner and o.Name = :name"
-const QueryOutgoingPublic = "select * from " + TableNameMessage + "o where o.Owner = :owner and (o.To like :recv or o.To = '') and o.Received > :time and o.Type = 0"
+const QueryOutgoingNamed = "select * from " + TableNameMessage + " o where o.Owner = :owner and o.Name = :name and o.To like :recv and o.Type = 1"
+const QueryAnyNamed = "select * from " + TableNameMessage + " o where o.Owner = :owner and o.Name = :name"
+const QueryOutgoingPublic = "select * from " + TableNameMessage + " o where o.Owner = :owner and (o.To like :recv or o.To = '') and o.Received > :time and o.Type = 0"
 
 func (m *Server) GetAnyMessageWithName(name string, owner string) (*Message, error) {
 	user, err := m.UserForIdentity(owner)
@@ -161,7 +161,7 @@ func (m *Server) SaveIncomingMessage(message *message.EncryptedMessage) error {
 	return m.SaveMessage("", []string{message.To.String()}, "", message, TypeIncoming)
 }
 
-const QueryIncoming = "select * from " + TableNameMessage + "o where o.To = :owner and o.Received > :time and o.Type = 2"
+const QueryIncoming = "select * from " + TableNameMessage + " o where o.To = :owner and o.Received > :time and o.Type = 2"
 
 // Return Incoming Messages Since
 func (m *Server) GetIncomingMessagesSince(since uint64, owner string) ([]*Message, error) {
@@ -184,7 +184,7 @@ type Storage struct {
 	Owner int
 }
 
-const QueryStorage = "select s.Key, s.Value from " + TableNameStorage + "s, " + TableNameUser + "u, " + TableNameIdentity + "i where" +
+const QueryStorage = "select s.Key, s.Value from " + TableNameStorage + " s, " + TableNameUser + " u, " + TableNameIdentity + " i where " +
 	"s.Key = :key and u.Id = i.Owner and i.Signing = :signing and u.Id = s.Owner"
 
 func (m *Server) GetData(author string, key string) ([]byte, error) {
@@ -225,13 +225,13 @@ type User struct {
 }
 
 const QueryIdentity = "select u.Id, u.Name, u.Receiving, u.RegisteredOn from " +
-	TableNameUser + "u, " + TableNameIdentity + "i where" +
+	TableNameUser + " u, " + TableNameIdentity + " i where " +
 	"u.Id = i.Owner and i.Signing = :key"
 
 func (m *Server) UserForIdentity(id string) (*User, error) {
 	var result *User
 	// Create the Query
-	err := m.dbmap.SelectOne(&result, QueryStorage,
+	err := m.dbmap.SelectOne(&result, QueryIdentity,
 		map[string]interface{}{
 			"key": id,
 		})

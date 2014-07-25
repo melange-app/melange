@@ -36,29 +36,26 @@ var melangeServices = angular.module('melangeServices', []);
     }
   }
 
-  // MLG-SETUO
+  // MLG-SETUP
   melangeServices.factory('mlgIdentity', ['$resource', function($resource) {
+    var saveIdentity = $resource('http://' + melangeAPI + '/identity/new', {}, {save: {method: 'POST'}});
     return {
       profile: {},
-      save: function() {
-        return $resource('http://' + melangeAPI + '/identity/new', {}, {save: {method: 'POST'}}).save(this.profile,
+      save: function(onsuccess, onerror) {
+        console.log("Saving Identity.");
+        return saveIdentity.save(this.profile,
           // Success
           function(value, responseHeaders) {
-            console.log("Success");
+            onsuccess();
           },
           // Error
           function(res) {
-            console.log("Error.");
-            console.dir(res);
+            onerror();
           }
         );
       },
-      servers: function() {
-        return $resource('http://' + melangeAPI + '/servers', {}, {query: {method:'GET', isArray:true}}).query();
-      },
-      trackers: function() {
-        return $resource('http://' + melangeAPI + '/trackers', {}, {query: {method:'GET', isArray:true}}).query();
-      },
+      servers: $resource('http://' + melangeAPI + '/servers', {}, {query: {method:'GET', isArray:true}}).query,
+      trackers: $resource('http://' + melangeAPI + '/trackers', {}, {query: {method:'GET', isArray:true}}).query,
     };
   }]);
 

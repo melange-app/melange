@@ -10,16 +10,16 @@
     <div class="list-group">
       <a href=""
          class="list-group-item"
-         ng-class="{ selected: $parent.profile.server == provider.Id }"
+         ng-class="{ selected: $parent.profile.server == provider.id }"
          ng-repeat="provider in mailProviders"
-         ng-click="$parent.profile.server = provider.Id">
+         ng-click="$parent.profile.server = provider.id">
         <div class="row">
           <div class="col-sm-2">
-            <img ng-src="{{ provider.Image }}" class="img-responsive">
+            <img ng-src="{{ provider.image }}" class="img-responsive">
           </div>
           <div class="col-sm-9">
-            <h4>{{ provider.Name }}</h4>
-            <p>{{ provider.Description }}</p>
+            <h4>{{ provider.name }}</h4>
+            <p>{{ provider.description }}</p>
           </div>
         </div>
       </a>
@@ -30,16 +30,16 @@
     <div class="list-group">
       <a href=""
          class="list-group-item"
-         ng-class="{ selected: $parent.profile.tracker == provider.Id }"
+         ng-class="{ selected: $parent.profile.tracker == provider.id }"
          ng-repeat="provider in addressProviders"
-         ng-click="$parent.profile.tracker = provider.Id; $parent.profile.selectedTracker = $index">
+         ng-click="$parent.profile.tracker = provider.id; $parent.profile.selectedTracker = $index">
         <div class="row">
           <div class="col-sm-2">
-            <img ng-src="{{ provider.Image }}" class="img-responsive">
+            <img ng-src="{{ provider.image }}" class="img-responsive">
           </div>
           <div class="col-sm-9">
-            <h4>{{ provider.Name }}</h4>
-            <p>{{ provider.Description }}</p>
+            <h4>{{ provider.name }}</h4>
+            <p>{{ provider.description }}</p>
           </div>
         </div>
       </a>
@@ -47,7 +47,7 @@
     <h4>Address Registration</h4>
     <div class="input-group" style="width: 100%;">
       <input type="text" class="form-control" ng-model="profile.alias">
-      <span class="input-group-addon" ng-show="profile.tracker !== undefined">@{{ addressProviders[profile.selectedTracker].Suffix }}</span>
+      <span class="input-group-addon" ng-show="profile.tracker !== undefined">@{{ addressProviders[profile.selectedTracker].url }}</span>
     </div>
   </div>
 </div>
