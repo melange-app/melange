@@ -54,7 +54,7 @@ func (s *Store) GetConnection() error {
 
 func (s *Store) CreateTables() error {
 	t, err := db.CreateTableFromStruct(s.TableName(), s, false, &Record{})
-	if err != nil {
+	if err == nil {
 		s.table = t
 	}
 	return err

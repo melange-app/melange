@@ -7,27 +7,27 @@
   <p><a href="#">Create a New Identity</a></p>
   <div class="row">
     <div class="col-sm-6 col-md-4">
-      <div class="list-group" ng-init="selectedId = identities[0]">
+      <div class="list-group" ng-init="selectedId = 0">
         <a class="list-group-item"
            ng-repeat="id in identities"
-           ng-click="$parent.selectedId = id"
-           ng-class="{active: $parent.selectedId.address == id.address}"
+           ng-click="$parent.selectedId = $index"
+           ng-class="{active: $parent.selectedId == $index }"
            style="overflow: hidden;">
-          <h4 class="list-group-item-heading">{{ id.nick }}</h4>
-          <p class="list-group-item-text">{{ id.address }}</p>
+          <h4 class="list-group-item-heading">{{ id.Nickname }}</h4>
+          <p class="list-group-item-text">{{ id.Fingerprint }}</p>
         </a>
       </div>
     </div>
     <div class="col-sm-6 col-md-8">
       <div class="well">
-        <h3 style="margin-top: 0;">{{ selectedId.nick }}</h3>
-        <p class="text-muted" style="word-break: break-all;">{{ selectedId.address }}</a></p>
+        <h3 style="margin-top: 0;">{{ identities[selectedId].Nickname }}</h3>
+        <p class="text-muted" style="word-break: break-all;">{{ identities[selectedId].Fingerprint }}</a></p>
         <h4>Profile</h4>
-        <p>{{ selectedId.profile }}</p>
+        <p>{{ identities[selectedId].profile }}</p>
         <h4>Aliases</h4>
-        <p>Registered At: {{ selectedId.server }}</p>
+        <p>Registered At: {{ identities[selectedId].Server }}</p>
         <ul class="list-group">
-          <li class="list-group-item" ng-repeat="alias in selectedId.aliases">{{ alias }}</li>
+          <li class="list-group-item" ng-repeat="alias in identities[selectedId].aliases">{{ alias }}</li>
         </ul>
       </div>
     </div>

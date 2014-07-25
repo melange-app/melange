@@ -12,10 +12,10 @@ type Identity struct {
 	Fingerprint string
 	Server      string
 	// Actual Data
-	Data []byte
+	Data []byte `json:"-"`
 	// Password Protection
 	Protected bool
-	Aliases   *db.HasMany `table:"alias" on:"identity"`
+	Aliases   *db.HasMany `table:"alias" on:"identity" json:"-"`
 }
 
 func CreateIdentity(nick string, id *identity.Identity, password string) *Identity {

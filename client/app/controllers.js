@@ -4,12 +4,15 @@
 
 var melangeControllers = angular.module('melangeControllers', []);
 
-melangeControllers.controller('SidebarCtrl', ['$scope', '$location', '$route', 'mlgPlugins',
-  function($scope, $location, $route, plugins) {
+melangeControllers.controller('ApplicationCtrl', ['$scope', '$location', '$route', 'mlgApi', 'mlgPlugins',
+  function($scope, $location, $route, api, plugins) {
 
     $scope.$watch(function() { return $location.path(); }, function(path) { $scope.page = path; });
     $scope.reload = $route.reload;
     $scope.allPlugins = plugins.query();
+
+    $scope.currentIdentity = api.current();
+    $scope.allIdentities = api.identities();
 
     $scope.containerClass = function(page) {
       if (page === undefined) { return }
@@ -91,6 +94,7 @@ melangeControllers.controller('StartupCtrl', ['mlgIdentity', '$scope', '$locatio
     $scope.addressProviders = mlgIdentity.trackers();
 
     $scope.finish = function() {
+      mlgIdentity.profile.nickname = "Primary";
       mlgIdentity.save(function() {
         $location.path("/dashboard");
       }, function() {

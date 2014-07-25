@@ -93,32 +93,9 @@ var melangeServices = angular.module('melangeServices', []);
       },
       // Identity Management
       newIdentity: function(id) {},
-      identities: function() {
-        return [
-          {
-            nick: "Primary",
-            address: "4073f3dff85852fc8c0c206599b7e221d8c7a77f085a9497",
-            profile: {
-              name: "Hunter Leath",
-            },
-            server: "airdispatch.me",
-            aliases: [
-              "hleath@airdispat.ch",
-            ]
-          },
-          {
-            nick: "UVa",
-            address: "8c0c7a84073f3c2069777f085a99b5f858df947e22152fcd",
-            profile: {
-              name: "Hunter Leath",
-            },
-            server: "airdispatch.me",
-            aliases: [
-              "jhl4qf@virginia.edu",
-            ]
-          }
-        ]
-      }
+      identities: $resource('http://' + melangeAPI + '/identity', {}, {query: {method:'GET', isArray:true}}).query,
+      setCurrent: $resource('http://' + melangeAPI + '/identity/current', {}, {save: {method:'POST'}}).$save,
+      current: $resource('http://' + melangeAPI + '/identity/current', {}, {query: {method:'GET'}}).query,
     }
   }]);
 
