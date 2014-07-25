@@ -58,6 +58,12 @@ func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		framework.WriteView(framework.Error403, res)
 		return
 	}
+
+	if req.URL.Path == "/favicon.ico" {
+		framework.WriteView(framework.Error404, res)
+		return
+	}
+
 	mode := url[0]
 
 	if strings.HasSuffix(mode, "plugins") {
