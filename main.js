@@ -21,12 +21,18 @@ var sys = require('sys')
 var spawn = require('child_process').spawn;
 function logSpawn(spawn, name) {
   spawn.stdout.on('data', function (data) {
+    data = data + ""
+    data = data.replace(/(\r\n|\n|\r)$/gm,"");
     console.log('[' + name + '] ' + data);
   });
   spawn.stderr.on('data', function (data) {
+    data = data + ""
+    data = data.replace(/(\r\n|\n|\r)$/gm,"");
     console.log('[' + name + '] ERROR: ' + data);
   });
   spawn.on('close', function (code) {
+    data = data + ""
+    data = data.replace(/(\r\n|\n|\r)$/gm,"");
     console.log('[' + name + '] Exited with Code ' + code);
   });
 }
