@@ -18,71 +18,75 @@ var melangeApp = angular.module('melangeApp', [
 melangeApp.config(['$routeProvider',
   function($routeProvider) {
     // Setup the Application Routes
-    $routeProvider.
+    $routeProvider
       // Application Routes
-      when('/dashboard', {
+      .when('/dashboard', {
         templateUrl: 'partials/dashboard.html',
         controller: 'DashboardCtrl'
-      }).
-      when('/profile', {
+      })
+      .when('/profile', {
         templateUrl: 'partials/profile.html',
         controller: 'ProfileCtrl'
-      }).
-      when('/all', {
+      })
+      .when('/all', {
         templateUrl: 'partials/all.html',
         controller: 'AllCtrl'
-      }).
+      })
       // Contact Routes
-      when('/contacts', {
+      .when('/contacts', {
         templateUrl: 'partials/contacts.html',
         controller: 'ContactsCtrl'
-      }).
+      })
       // Plugin Routes
-      when('/plugin/:pluginid/:action', {
+      .when('/plugin/:pluginid/:action', {
         templateUrl: 'partials/plugin/loader.html',
         controller: 'PluginCtrl'
-      }).
+      })
       // Settings Routes
-      when('/settings', {
+      .when('/settings', {
         templateUrl: 'partials/settings/index.html',
         controller: 'SettingsCtrl'
-      }).
-      when('/settings/identity', {
+      })
+      .when('/settings/identity', {
         templateUrl: 'partials/settings/identity.html',
         controller: 'SettingsCtrl'
-      }).
-      when('/settings/plugins', {
+      })
+      .when('/settings/plugins', {
         templateUrl: 'partials/settings/plugins.html',
         controller: 'SettingsCtrl'
-      }).
-      when('/settings/advanced', {
+      })
+      .when('/settings/advanced', {
         templateUrl: 'partials/settings/advanced.html',
         controller: 'SettingsCtrl'
-      }).
+      })
       // Startup Routes
-      when('/startup', {
-        templateUrl: 'partials/startup/index.html',
-        controller: 'StartupCtrl'
-      }).
+      .when('/setup', {
+        templateUrl: 'partials/setup/index.html',
+        controller: 'SetupCtrl'
+      })
       // Exisiting Account Routes
-      when('/startup/link', {
-        templateUrl: 'partials/startup/link.html',
-        controller: 'StartupCtrl'
-      }).
+      .when('/setup/link', {
+        templateUrl: 'partials/setup/link.html',
+        controller: 'SetupCtrl'
+      })
       // New Account Routes
-      when('/startup/new', {
-        templateUrl: 'partials/startup/new.html',
+      .when('/setup/new', {
+        templateUrl: 'partials/setup/new.html',
+        controller: 'SetupCtrl'
+      })
+      .when('/setup/server', {
+        templateUrl: 'partials/setup/server.html',
+        controller: 'SetupCtrl'
+      })
+      .when('/setup/confirm', {
+        templateUrl: 'partials/setup/confirm.html',
+        controller: 'SetupCtrl'
+      })
+      .when('/startup', {
+        templateUrl: 'partials/startup.html',
         controller: 'StartupCtrl'
-      }).
-      when('/startup/server', {
-        templateUrl: 'partials/startup/server.html',
-        controller: 'StartupCtrl'
-      }).
-      when('/startup/confirm', {
-        templateUrl: 'partials/startup/confirm.html',
-        controller: 'StartupCtrl'
-      }).
-      otherwise({
-        redirectTo: '/'
+      })
+      .otherwise({
+        redirectTo: '/dashboard'
       });
   }]);

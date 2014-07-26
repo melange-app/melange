@@ -21,8 +21,8 @@ melangeControllers.controller('ApplicationCtrl', ['$scope', '$location', '$route
         return ['main']
       }
 
-      if (page.indexOf('/startup') === 0) {
-        return ['container-fluid', 'startup-container']
+      if (page.indexOf('/setup') === 0 || page.indexOf('/startup') === 0) {
+        return ['container-fluid', 'setup-container']
       }
 
       return ['container-fluid', 'main']
@@ -46,6 +46,10 @@ melangeControllers.controller('ContactsCtrl', ['$scope', 'mlgApi',
   function($scope, mlgApi) {
     $scope.lists = mlgApi.lists()
     $scope.contacts = mlgApi.contacts()
+  }]);
+
+melangeControllers.controller('AllCtrl', ['$scope', 'mlgApi',
+  function($scope, mlgApi) {
   }]);
 
 melangeControllers.controller('DashboardCtrl', ['$scope',
@@ -85,9 +89,8 @@ melangeControllers.controller('PluginCtrl', ['$scope', '$routeParams',
     $scope.pluginUrl = "http://" + $routeParams.pluginid + melangePluginSuffix + "/" + $routeParams.action;
   }]);
 
-melangeControllers.controller('StartupCtrl', ['mlgIdentity', '$scope', '$location',
+melangeControllers.controller('SetupCtrl', ['mlgIdentity', '$scope', '$location',
   function(mlgIdentity, $scope, $location) {
-
     $scope.profile = mlgIdentity.profile;
 
     $scope.mailProviders = mlgIdentity.servers();
@@ -102,3 +105,25 @@ melangeControllers.controller('StartupCtrl', ['mlgIdentity', '$scope', '$locatio
       });
     }
   }]);
+
+  melangeControllers.controller('StartupCtrl', ['mlgApi', '$location',
+    function(mlgApi, $location) {
+
+      mlgApi.current().$promise.then(
+        function(data, status, headers, config) {
+          $location.path("/dashboard");
+        },
+        function(data, status, headers, config) {
+          if (status == 405) {
+            $location.path("/setup");
+          } else {
+            console.log("Error loading startup status.");
+            console.log(status);
+            $location.path("/error");
+          }
+        },
+        function(data) {
+          console.dir(data);
+        });
+
+    }]);
