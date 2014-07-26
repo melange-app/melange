@@ -1,10 +1,11 @@
 package dap
 
 import (
+	"melange/dap/wire"
+
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
 	"code.google.com/p/goprotobuf/proto"
-	"melange/dap/wire"
 )
 
 func CreateResponse(code int, msg string, from *identity.Address, to *identity.Address, data ...message.Message) []message.Message {
@@ -146,3 +147,21 @@ func (r *ResponseMessage) ToBytes() []byte {
 func (r *ResponseMessage) Type() string {
 	return wire.ResponseMessageCode
 }
+
+type RawMessage struct {
+	proto.Message
+	Code string
+	Head message.Header
+}
+
+func (r *RawMessage) ToBytes() []byte {
+	data, err := proto.Marshal(r.Message)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return data
+}
+
+func (r *RawMessage) Type() string           { return r.Code }
+func (r *RawMessage) Header() message.Header { return r.Head }
