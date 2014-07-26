@@ -29,11 +29,14 @@
   <body ng-controller="ApplicationCtrl">
 
     <!-- Navbar Container -->
-    <div ng-include="'partials/navbar.html'"></div>
+    <div
+      ng-show="page.indexOf('/startup') !== 0 && page.indexOf('/setup') !== 0"
+      ng-include="'partials/navbar.html'">
+    </div>
 
     <!-- Container for Sidebar -->
     <div
-      ng-show="page.indexOf('/startup') !== 0"
+      ng-show="page.indexOf('/startup') !== 0 && page.indexOf('/setup') !== 0"
       class="sidebar"
       ng-include="'partials/sidebar.html'">
     </div>
