@@ -1,14 +1,15 @@
 package dap
 
 import (
+	"encoding/hex"
+	"errors"
+	"melange/dap/wire"
+
 	"airdispat.ch/crypto"
 	adErrors "airdispat.ch/errors"
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
 	adWire "airdispat.ch/wire"
-	"encoding/hex"
-	"errors"
-	"melange/dap/wire"
 )
 
 func (c *Client) checkForError(d []byte, typ string, h message.Header) *adErrors.Error {

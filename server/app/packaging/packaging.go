@@ -15,16 +15,20 @@ import (
 // Provider is a JSON Object that represents either a Server or a Tracker.
 // It is used to pass information from getmelange.com to the Melange client.
 type Provider struct {
-	Id            string            `json:"id"`
-	Name          string            `json:"name"`
-	Description   string            `json:"description"`
-	Image         string            `json:"image"`
-	URL           string            `json:"url"`
-	Fingerprint   string            `json:"fingerprint"`
-	EncryptionKey string            `json:"encryption_key"`
-	Proof         string            `json:"proof"`
-	Users         int               `json:"users"`
-	Key           *identity.Address `json:"-"`
+	Id string `json:"id"`
+	// Metadata
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Image       string `json:"image"`
+	URL         string `json:"url"`
+	// Addressing Properties
+	Alias         string `json:"alias"`
+	Fingerprint   string `json:"fingerprint"`
+	EncryptionKey string `json:"encryption_key"`
+	// Random
+	Proof string            `json:"proof"`
+	Users int               `json:"users"`
+	Key   *identity.Address `json:"-"`
 }
 
 // LoadDefaults will do several things on a provider.

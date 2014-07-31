@@ -11,6 +11,7 @@ import (
 	"net/http"
 
 	"airdispat.ch/identity"
+	"airdispat.ch/routing"
 
 	gdb "github.com/huntaub/go-db"
 )
@@ -101,7 +102,13 @@ func (i *SaveIdentity) Handle(req *http.Request) framework.View {
 		TrackerList: []string{
 			tracker.URL,
 		},
-	}).Register(id, profileRequest.Alias)
+	}).Register(id, profileRequest.Alias, map[string]routing.Redirect{
+		string(routing.LookupTypeTX): routing.Redirect{
+			Alias:       server.Alias,
+			Fingerprint: server.Fingerprint,
+			Type:        routing.LookupTypeTX,
+		},
+	})
 
 	if err != nil {
 		fmt.Println("Error occurred registering on Tracker", err)
