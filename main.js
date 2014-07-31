@@ -31,8 +31,6 @@ function logSpawn(spawn, name) {
     console.log('[' + name + '] ERROR: ' + data);
   });
   spawn.on('close', function (code) {
-    data = data + ""
-    data = data.replace(/(\r\n|\n|\r)$/gm,"");
     console.log('[' + name + '] Exited with Code ' + code);
   });
 }
