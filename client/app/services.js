@@ -91,6 +91,8 @@ var melangeServices = angular.module('melangeServices', []);
           },
         ];
       },
+      // Message Management
+      getMessages: $resource('http://' + melangeAPI + '/messages', {}, {query: {method:'GET', isArray:true}}).query,
       // Identity Management
       newIdentity: function(id) {},
       identities: $resource('http://' + melangeAPI + '/identity', {}, {query: {method:'GET', isArray:true}}).query,

@@ -6,3 +6,10 @@
 </div>
 <hr/>
 <h4>Newsfeed <small><a href="">filter</a></small></h4>
+<div ng-hide="newsfeed" class="text-center text-muted">
+  <h2>Your newsfeed is completely empty!</h2>
+  <p><a href="#/contacts">Subscribe to some friends</a>, or receive some messages.</p>
+</div>
+<div ng-repeat="message in newsfeed">
+  <h1>I got a message, yo.</h1>
+</div>

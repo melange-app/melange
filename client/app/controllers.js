@@ -50,10 +50,11 @@ melangeControllers.controller('ContactsCtrl', ['$scope', 'mlgApi',
 
 melangeControllers.controller('AllCtrl', ['$scope', 'mlgApi',
   function($scope, mlgApi) {
+      $scope.messages = mlgApi.getMessages();
   }]);
 
-melangeControllers.controller('DashboardCtrl', ['$scope',
-  function($scope, $sce) {
+melangeControllers.controller('DashboardCtrl', ['$scope', 'mlgApi',
+  function($scope, mlgApi) {
     $scope.tiles = [
       {
         size: "12",
@@ -74,6 +75,8 @@ melangeControllers.controller('DashboardCtrl', ['$scope',
         name: "Family",
       }
     ];
+
+    $scope.newsfeed = mlgApi.getMessages();
   }]);
 
 melangeControllers.controller('ProfileCtrl', ['$scope',
