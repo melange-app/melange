@@ -31,7 +31,7 @@ type Handler interface {
 
 // HandleAPI will redirect a request through the API Layer.
 func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
-	fmt.Println("Entire the API", req.Method, req.URL.Path)
+	fmt.Println("API Request", req.Method, req.URL.Path)
 
 	packager := &packaging.Packager{
 		API: "http://www.getmelange.com/api",

@@ -39,17 +39,44 @@ type melangeMessage struct {
 	Date       time.Time
 	From       string
 	Public     bool
-	Components []melangeComponent
+	Components map[string]*melangeComponent
 	Context    map[string]string
 }
 
 type melangeComponent struct {
 	Name  string
-	Value []byte
+	Binary []byte
+	String string
 }
 
-func translateMessage(...*message.Mail) []*melangeMessage {
-	return nil
+func translateComponents(comp message.ComponentList) map[string]*melangeComponent {
+	out := make(map[string]*melangeComponent)
+
+	for key, v := range comp {
+		out[key] = &melangeComponent{
+			Name: v.Name,
+			String: string(v.Data),
+		}
+	}
+
+	return out
+}
+
+func translateMessage(public bool, msg ...*message.Mail) []*melangeMessage {
+	out := make([]*melangeMessage, len(msg))
+
+	for i, v := range msg {
+		out[i] = &melangeMessage {
+			Name: "",
+			Date: time.Unix(v.Header().Timestamp,0),
+			From: v.Header().From.String(),
+			Public: public,
+			Components: translateComponents(v.Components),
+			Context: nil,
+		}
+	}
+
+	return out
 }
 
 // Messages Controller will download messages from the server and subscribed
@@ -89,7 +116,7 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 
 	since := uint64(0)
 
-	var outputMessages messageList
+	outputMessages := make(messageList, 0)
 
 	// Download Alerts
 	messages, realErr := dap.DownloadMessages(since, true)
@@ -116,7 +143,7 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 			continue
 		}
 
-		outputMessages = append(outputMessages, translateMessage(mail)...)
+		outputMessages = append(outputMessages, translateMessage(false, mail)...)
 	}
 
 	// Download Public Messages
@@ -141,7 +168,7 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 			}
 			publicCache.Store(v.Fingerprint, msg)
 		}
-		outputMessages = append(outputMessages, translateMessage(msg...)...)
+		outputMessages = append(outputMessages, translateMessage(true, msg...)...)
 	}
 
 	sort.Sort(outputMessages)
