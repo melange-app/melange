@@ -9,7 +9,9 @@ import (
 	"sort"
 	"time"
 
+	"airdispat.ch/identity"
 	"airdispat.ch/message"
+	"airdispat.ch/routing"
 	"airdispat.ch/server"
 	"airdispat.ch/wire"
 
@@ -18,15 +20,6 @@ import (
 )
 
 var messageCache, publicCache *cache.Cache
-
-// {
-// 		name: "adfsasdf",
-// 		date: 1451435,
-// 		from: 14352435,
-// 		public: true,
-// 		components: {},
-// 		context: {},
-// }
 
 type messageList []*melangeMessage
 
@@ -38,15 +31,42 @@ type melangeMessage struct {
 	Name       string
 	Date       time.Time
 	From       string
+	To         []string
 	Public     bool
 	Components map[string]*melangeComponent
 	Context    map[string]string
 }
 
 type melangeComponent struct {
-	Name  string
+	Name   string
 	Binary []byte
 	String string
+}
+
+func (m *melangeMessage) ToDispatch(from *identity.Identity) (*message.Mail, []*identity.Address, error) {
+	r := router.Router{
+		Origin: from,
+	}
+
+	addrs := make([]*identity.Address, len(m.To))
+	for i, v := range m.To {
+		var err error
+		addrs[i], err = r.LookupAlias(v, routing.LookupTypeMAIL)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	mail := message.CreateMail(from.Address, addrs[0], m.Date)
+
+	for _, v := range m.Components {
+		mail.Components.AddComponent(message.Component{
+			Name: v.Name,
+			Data: []byte(v.String),
+		})
+	}
+
+	return mail, addrs, nil
 }
 
 func translateComponents(comp message.ComponentList) map[string]*melangeComponent {
@@ -54,7 +74,7 @@ func translateComponents(comp message.ComponentList) map[string]*melangeComponen
 
 	for key, v := range comp {
 		out[key] = &melangeComponent{
-			Name: v.Name,
+			Name:   v.Name,
 			String: string(v.Data),
 		}
 	}
@@ -66,13 +86,13 @@ func translateMessage(public bool, msg ...*message.Mail) []*melangeMessage {
 	out := make([]*melangeMessage, len(msg))
 
 	for i, v := range msg {
-		out[i] = &melangeMessage {
-			Name: "",
-			Date: time.Unix(v.Header().Timestamp,0),
-			From: v.Header().From.String(),
-			Public: public,
+		out[i] = &melangeMessage{
+			Name:       "",
+			Date:       time.Unix(v.Header().Timestamp, 0),
+			From:       v.Header().From.String(),
+			Public:     public,
 			Components: translateComponents(v.Components),
-			Context: nil,
+			Context:    nil,
 		}
 	}
 
@@ -202,6 +222,56 @@ type NewMessage struct {
 
 // Handle will publish the message on the server, then alert the other party.
 func (m *NewMessage) Handle(req *http.Request) framework.View {
+	msg := &melangeMessage{}
+	err := DecodeJSONBody(req, &msg)
+	if err != nil {
+		fmt.Println("Cannot decode message.", err)
+		return framework.Error500
+	}
+
+	// Get current DAP Client
+	dap, fErr := CurrentDAPClient(m.Store, m.Tables["identity"])
+	if fErr != nil {
+		return fErr
+	}
+
+	mail, to, err := msg.ToDispatch(dap.Key)
+	if err != nil {
+		fmt.Println("Couldn't convert JSON to Dispatcher", err)
+		return framework.Error500
+	}
+
+	// Publish Message
+	// *Mail, to []*identity.Address, name string, alert bool
+	name, err := dap.PublishMessage(mail, to, msg.Name, !msg.Public)
+
+	if !msg.Public {
+		// Send Alert
+		var errs []error
+
+		r := &router.Router{
+			Origin: dap.Key,
+		}
+
+		for _, v := range msg.To {
+			addr, err := r.LookupAlias(v, routing.LookupTypeALERT)
+			if err != nil {
+				errs = append(errs, err)
+				continue
+			}
+
+			desc := server.CreateMessageDescription(name, dap.Server.Location, dap.Key.Address, addr)
+			err = message.SignAndSend(desc, dap.Key, addr)
+			if err != nil {
+				errs = append(errs, err)
+			}
+		}
+
+		if len(errs) > 0 {
+			return framework.Error500
+		}
+	}
+
 	return &framework.HTTPError{
 		ErrorCode: 504,
 		Message:   "Not implemented.",

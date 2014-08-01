@@ -132,6 +132,20 @@ func (c *Client) decryptAndVerify(msg *message.EncryptedMessage, ts bool) ([]byt
 	}
 }
 
+func (c *Client) signAndEncrypt(msg *message.Mail, to []*identity.Address) ([]byte, error) {
+	signed, err := message.SignMessage(msg, c.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	enc, err := signed.EncryptWithKey(to[0])
+	if err != nil {
+		return nil, err
+	}
+
+	return enc.ToBytes()
+}
+
 // Download Messages from Server
 func (c *Client) DownloadMessages(since uint64, context bool) ([]*ResponseMessage, error) {
 	msg := &RawMessage{
@@ -203,8 +217,8 @@ func (c *Client) DownloadMessages(since uint64, context bool) ([]*ResponseMessag
 }
 
 // Publish Message on Server
-func (c *Client) PublishMessage(enc *message.EncryptedMessage, to []string, name string, alert bool) (string, error) {
-	bytes, err := enc.ToBytes()
+func (c *Client) PublishMessage(enc *message.Mail, to []*identity.Address, name string, alert bool) (string, error) {
+	bytes, err := c.signAndEncrypt(enc, to)
 	if err != nil {
 		return "", err
 	}
@@ -215,9 +229,14 @@ func (c *Client) PublishMessage(enc *message.EncryptedMessage, to []string, name
 		name = hex.EncodeToString(hash)
 	}
 
+	toAddrs := make([]string, len(to))
+	for i, v := range to {
+		toAddrs[i] = v.String()
+	}
+
 	msg := &RawMessage{
 		Message: &wire.PublishMessage{
-			To:    to,
+			To:    toAddrs,
 			Name:  &name,
 			Alert: &alert,
 			Data:  bytes,
@@ -230,14 +249,14 @@ func (c *Client) PublishMessage(enc *message.EncryptedMessage, to []string, name
 }
 
 // Update Message on Server
-func (c *Client) UpdateMessage(enc *message.EncryptedMessage, name string) error {
-	if name == "" {
-		return errors.New("A named message to update is required.")
-	}
-
-	bytes, err := enc.ToBytes()
+func (c *Client) UpdateMessage(enc *message.Mail, to []*identity.Address, name string) error {
+	bytes, err := c.signAndEncrypt(enc, to)
 	if err != nil {
 		return err
+	}
+
+	if name == "" {
+		return errors.New("A named message to update is required.")
 	}
 
 	msg := &RawMessage{
