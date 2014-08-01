@@ -110,15 +110,15 @@ melangeControllers.controller('SetupCtrl', ['mlgIdentity', '$scope', '$location'
     function(mlgApi, $location) {
 
       mlgApi.current().$promise.then(
-        function(data, status, headers, config) {
+        function(obj) {
           $location.path("/dashboard");
         },
-        function(data, status, headers, config) {
-          if (status == 405) {
+        function(obj) {
+          if (obj.status == 422) {
             $location.path("/setup");
           } else {
             console.log("Error loading startup status.");
-            console.log(status);
+            console.log(obj.status);
             $location.path("/error");
           }
         },

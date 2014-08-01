@@ -17,7 +17,7 @@ type ListIdentity struct {
 
 // Handle will get all identities then return a JSONView with them.
 func (i *ListIdentity) Handle(req *http.Request) framework.View {
-	var results []*models.Identity
+	results := make([]*models.Identity, 0)
 	err := i.Tables["identity"].Get().All(i.Store, &results)
 	if err != nil {
 		fmt.Println("Error getting Identities:", err)
