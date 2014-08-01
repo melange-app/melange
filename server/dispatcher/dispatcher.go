@@ -1,40 +1,56 @@
 package dispatcher
 
 import (
-	"airdispat.ch/crypto"
-	"airdispat.ch/identity"
-	"airdispat.ch/message"
-	"airdispat.ch/server"
 	"database/sql"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/coopernurse/gorp"
-	_ "github.com/lib/pq"
 	"melange/dap"
+
+	"airdispat.ch/crypto"
+	"airdispat.ch/identity"
+	"airdispat.ch/message"
+	"airdispat.ch/server"
+	"airdispat.ch/tracker"
+	"github.com/coopernurse/gorp"
+
+	// Imported for DB Initialization
+	_ "github.com/lib/pq"
 )
 
-func CreateError(location string, error error) *server.ServerError {
+func createError(location string, error error) *server.ServerError {
 	return &server.ServerError{
 		Location: location,
 		Error:    error,
 	}
 }
 
+// Server exposes a structure that holds all the properties of an AirDisaptch
+// dispatcher.
 type Server struct {
+	// Basic Properties
 	Me      string
 	KeyFile string
 	Key     string
-	DBConn  string
-	DBType  string
-	dbmap   *gorp.DbMap
+
+	// Tracker Properties
+	TrackerURL string
+	Alias      string
+
+	// Database
+	DBConn string
+	DBType string
+	dbmap  *gorp.DbMap
+
+	// Import Logging and Such
 	server.BasicServer
 }
 
-func (s *Server) Run(port int) error {
+// Run will start the server with the specified database model.
+func (m *Server) Run(port int) error {
 	// Initialize Type of Database
 	var dialect gorp.Dialect
-	switch s.DBType {
+	switch m.DBType {
 	case "postgres":
 		dialect = gorp.PostgresDialect{}
 	case "sqlite":
@@ -48,52 +64,60 @@ func (s *Server) Run(port int) error {
 	}
 
 	// Initialize Database Connection
-	db, err := sql.Open(s.DBType, s.DBConn)
+	db, err := sql.Open(m.DBType, m.DBConn)
 	if err != nil {
 		return err
 	}
 
 	// Initialize Gorp
-	s.dbmap = &gorp.DbMap{
+	m.dbmap = &gorp.DbMap{
 		Db:      db,
 		Dialect: dialect,
 	}
 	// Create Tables for Messages
-	s.CreateTables()
-	err = s.dbmap.CreateTablesIfNotExists()
+	m.CreateTables()
+	err = m.dbmap.CreateTablesIfNotExists()
 	if err != nil {
 		return err
 	}
 
 	// Load the Server Keys
-	loadedKey, err := identity.LoadKeyFromFile(s.KeyFile)
+	loadedKey, err := identity.LoadKeyFromFile(m.KeyFile)
 	if err != nil {
 		loadedKey, err = identity.CreateIdentity()
 		if err != nil {
 			return err
 		}
-		if s.KeyFile != "" {
-			err = loadedKey.SaveKeyToFile(s.KeyFile)
+		if m.KeyFile != "" {
+			err = loadedKey.SaveKeyToFile(m.KeyFile)
 			if err != nil {
 				return err
 			}
 		}
 	}
-	s.LogMessage("Loaded Address", loadedKey.Address.String())
-	s.LogMessage("Loaded Encryption Key", hex.EncodeToString(crypto.RSAToBytes(loadedKey.Address.EncryptionKey)))
+	m.LogMessage("Loaded Address", loadedKey.Address.String())
+	m.LogMessage("Loaded Encryption Key", hex.EncodeToString(crypto.RSAToBytes(loadedKey.Address.EncryptionKey)))
+
+	err = (&tracker.Router{
+		URL:    m.TrackerURL,
+		Origin: loadedKey,
+	}).Register(loadedKey, m.Alias, nil)
+	if err != nil {
+		return err
+	}
 
 	handlers := []server.Handler{
 		&dap.Handler{
 			Key:      loadedKey,
-			Delegate: s,
+			Delegate: m,
 		},
 	}
 
 	// Create the AirDispatch Server
 	adServer := server.Server{
-		LocationName: s.Me,
+		LocationName: m.Me,
 		Key:          loadedKey,
-		Delegate:     s,
+		Delegate:     m,
 		Handlers:     handlers,
 		// Router:       mailserver.LookupRouter,
 	}
@@ -101,31 +125,37 @@ func (s *Server) Run(port int) error {
 	return adServer.StartServer(fmt.Sprintf("%d", port))
 }
 
+// SaveMessageDescription will serialize a message description and add it to the
+// database.
 func (m *Server) SaveMessageDescription(alert *message.EncryptedMessage) {
 	err := m.SaveIncomingMessage(alert)
 	if err != nil {
-		m.HandleError(CreateError("Saving new alert to db.", err))
+		m.HandleError(createError("Saving new alert to db.", err))
 	}
 }
 
+// RetrieveMessageForUser will retrieve the message stored for the specified user
+// at the specified name.
 func (m *Server) RetrieveMessageForUser(name string, author *identity.Address, forAddr *identity.Address) *message.EncryptedMessage {
 	msg, err := m.GetOutgoingMessageWithName(name, author.String(), forAddr.String())
 	if err != nil {
-		m.HandleError(CreateError("Getting message from DB.", err))
+		m.HandleError(createError("Getting message from DB.", err))
 		return nil
 	}
 
 	return msg.ToDispatch(forAddr.String())
 }
 
+// RetrieveMessageListForUser will return all the public messages that a User
+// has access to sent after `since`.
 func (m *Server) RetrieveMessageListForUser(since uint64, author *identity.Address, forAddr *identity.Address) []*message.EncryptedMessage {
 	results, err := m.GetOutgoingPublicMessagesFor(since, author.String(), forAddr.String())
 	if err != nil {
-		m.HandleError(CreateError("Getting messages from DB.", err))
+		m.HandleError(createError("Getting messages from DB.", err))
 		return nil
 	}
 
-	out := make([]*message.EncryptedMessage, 0)
+	var out []*message.EncryptedMessage
 
 	for _, v := range results {
 		d := v.ToDispatch(forAddr.String())
