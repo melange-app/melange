@@ -82,6 +82,19 @@ func translateComponents(comp message.ComponentList) map[string]*melangeComponen
 	return out
 }
 
+func translateMessageWithContext(public bool, context map[string][]byte, msg *message.Mail) []*melangeMessage {
+	obj := translateMessage(public, msg)
+
+	out := make(map[string]string)
+	for key, v := range context {
+		out[key] = string(v)
+	}
+
+	obj[0].Context = out
+
+	return obj
+}
+
 func translateMessage(public bool, msg ...*message.Mail) []*melangeMessage {
 	out := make([]*melangeMessage, len(msg))
 
@@ -163,7 +176,7 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 			continue
 		}
 
-		outputMessages = append(outputMessages, translateMessage(false, mail)...)
+		outputMessages = append(outputMessages, translateMessageWithContext(false, v.Context, mail)...)
 	}
 
 	// Download Public Messages
