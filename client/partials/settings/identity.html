@@ -4,7 +4,9 @@
   <h3><i class="fa fa-gears"></i> Settings <small>Identity</small></h3>
   <hr/>
   <h4>Current Identities</h4>
-  <p><a href="#">Create a New Identity</a></p>
+
+  <p><a href="#/settings/identity/new">Create a New Identity</a></p>
+
   <div class="row">
     <div class="col-sm-6 col-md-4">
       <div class="list-group" ng-init="selectedId = 0">
@@ -26,6 +28,7 @@
         <p>{{ identities[selectedId].profile }}</p>
         <h4>Aliases</h4>
         <p>Registered At: {{ identities[selectedId].Server }}</p>
+        <p><a href="#">Add Alias</a></p>
         <ul class="list-group">
           <li class="list-group-item" ng-repeat="alias in identities[selectedId].aliases">{{ alias }}</li>
         </ul>

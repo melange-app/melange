@@ -47,9 +47,14 @@ melangeApp.config(['$routeProvider',
         templateUrl: 'partials/settings/index.html',
         controller: 'SettingsCtrl'
       })
+      // Identity Settings
       .when('/settings/identity', {
         templateUrl: 'partials/settings/identity.html',
         controller: 'SettingsCtrl'
+      })
+      .when('/settings/identity/new', {
+        templateUrl: 'partials/settings/newIdentity.html',
+        controller: 'NewIdentityCtrl'
       })
       .when('/settings/plugins', {
         templateUrl: 'partials/settings/plugins.html',

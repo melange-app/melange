@@ -1,0 +1,17 @@
+<!-- Modal -->
+<div class="modal fade" id="{{ name }}" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" ng-show="data.header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="modalLabel">{{ data.header }}</h4>
+      </div>
+      <div class="modal-body">
+        {{ data.body }}
+      </div>
+      <div class="modal-footer" ng-show="data.footer">
+        {{ data.footer }}
+      </div>
+    </div>
+  </div>
+</div>

@@ -6,7 +6,7 @@ var melangeDirectives = angular.module('melangeDirectives', []);
 
 melangeDirectives.directive("mlgTile", function() {
   return {
-    templateUrl: "partials/tile.html",
+    templateUrl: "partials/directives/tile.html",
     restrict: "E",
     scope: {
       height: "=height",
@@ -16,6 +16,17 @@ melangeDirectives.directive("mlgTile", function() {
     },
     link: function(element, attrs, scope) {
 
+    },
+  }
+});
+
+melangeDirectives.directive("modal", function() {
+  return {
+    templateUrl: "partials/directives/modal.html",
+    restrict: "E",
+    scope: {
+      data: "=data",
+      name: "=name",
     },
   }
 });
