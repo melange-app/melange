@@ -23,7 +23,7 @@ type Identity struct {
 	Data []byte `json:"-"`
 	// Password Protection
 	Protected bool
-	Aliases   *gdb.HasMany `table:"alias" on:"identity" json:"-"`
+	Aliases   *gdb.HasMany `table:"alias" on:"identity" json:"alias"`
 }
 
 // CreateIdentityFromDispatch will take an (*identity).Identity from the AirDispatch

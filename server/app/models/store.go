@@ -43,7 +43,7 @@ func CreateStore(filename string) (*Store, error) {
 
 // Load the Database Connection
 func (s *Store) GetConnection() error {
-	conn, err := sqlx.Open("sqlite3", s.dbLocation())
+	conn, err := sqlx.Open("sqlite3", "file:" + s.dbLocation() + "?cache=shared&mode=rwc")
 	if err != nil {
 		return err
 	}
