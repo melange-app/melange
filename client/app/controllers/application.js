@@ -2,15 +2,15 @@
 
 var melangeControllers = angular.module('melangeControllers', []);
 
-melangeControllers.controller('ApplicationCtrl', ['$scope', '$location', '$route', 'mlgApi', 'mlgPlugins',
-  function($scope, $location, $route, api, plugins) {
+melangeControllers.controller('ApplicationCtrl', ['$scope', '$location', '$route', 'mlgIdentity', 'mlgPlugins', 'mlgHelper',
+  function($scope, $location, $route, mlgIdentity, plugins, mlgHelper) {
 
     $scope.$watch(function() { return $location.path(); }, function(path) { $scope.page = path; });
     $scope.reload = $route.reload;
     $scope.allPlugins = plugins.query();
 
-    $scope.currentIdentity = api.current();
-    $scope.allIdentities = api.identities();
+    $scope.currentIdentity = mlgHelper.promise({}, mlgIdentity.current());
+    $scope.allIdentities = mlgHelper.promise([], mlgIdentity.list());
 
     $scope.containerClass = function(page) {
       if (page === undefined) { return }
@@ -35,10 +35,10 @@ melangeControllers.controller('ApplicationCtrl', ['$scope', '$location', '$route
 
   }]);
 
-melangeControllers.controller('StartupCtrl', ['mlgApi', '$location',
-  function(mlgApi, $location) {
+melangeControllers.controller('StartupCtrl', ['mlgIdentity', '$location',
+  function(mlgIdentity, $location) {
 
-    mlgApi.current().$promise.then(
+    mlgIdentity.current().then(
       function(obj) {
         $location.path("/dashboard");
       },
