@@ -18,10 +18,10 @@ notesControllers.controller('NewCtrl', ['$scope', '$location', function($scope, 
       name: "notes/my-note",
       date: (new Date()).toISOString(),
       public: true,
-      components: [
-        {name: "airdispat.ch/notes/title", string: $scope.title},
-        {name: "airdispat.ch/notes/body", string: $scope.body},
-      ],
+      components: {
+        "airdispat.ch/notes/title": {string: $scope.title},
+        "airdispat.ch/notes/body": {string: $scope.body},
+      },
     }, melange.angularCallback($scope, function(status) {
       $location.path("/");
     }));

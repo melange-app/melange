@@ -23,8 +23,8 @@ var melangeServices = angular.module('melangeServices', []);
     },
     time: new Date(0),
     data: {
-      "airdispat.ch/note/title": "Hello, Joe",
-      "airdispat.ch/note/body": "This pot roast smells delicious.",
+      "airdispat.ch/note/title": {string: "Hello, Joe"},
+      "airdispat.ch/note/body": {string: "This pot roast smells delicious."},
     }
   }
 
