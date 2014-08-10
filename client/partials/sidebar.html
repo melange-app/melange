@@ -1,10 +1,10 @@
 <div class="sidebar-top">
   <ul class="nav nav-pills nav-stacked">
     <li ng-class="{ active: page == '/dashboard' }"><a href="#/dashboard"><i class="fa fa-fw fa-home"></i> Dashboard</a></li>
-    <li ng-class="{ active: page == '/all' }"><a href="#/all"><i class="fa fa-fw fa-envelope"></i> All Mail</a></li>
+    <li ng-class="{ active: page == '/all' }"><a href="#/all"><i class="fa fa-fw fa-envelope"></i> All</a></li>
     <li ng-class="{ active: page == '/profile' }"><a href="#/profile"><i class="fa fa-fw fa-user"></i> My Profile</a></li>
     <li class="seperator"></li>
-    <li class="header">PLUGINS</li>
+    <li class="header">APPS</li>
     <li
       ng-repeat="plugin in allPlugins"
       ng-class="{ active: page.indexOf('/plugin/' + plugin.id) === 0 }"

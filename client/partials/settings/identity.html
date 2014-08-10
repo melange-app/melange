@@ -13,7 +13,7 @@
         <a class="list-group-item"
            ng-repeat="id in identities"
            ng-click="$parent.selectedId = $index"
-           ng-class="{active: $parent.selectedId == $index }"
+           ng-class="{ active: $parent.selectedId == $index, 'list-group-item-success': id.Current }"
            style="overflow: hidden;">
           <h4 class="list-group-item-heading">{{ id.Nickname }}</h4>
           <p class="list-group-item-text">{{ id.Fingerprint }}</p>
@@ -22,7 +22,7 @@
     </div>
     <div class="col-sm-6 col-md-8">
       <div class="well">
-        <h3 style="margin-top: 0;">{{ identities[selectedId].Nickname }}</h3>
+        <h3 style="margin-top: 0;">{{ identities[selectedId].Nickname }} <small ng-hide="identities[selectedId].Current"><a href="" ng-click="setCurrentIdentity(identities[selectedId])">set current</a></small></h3>
         <p class="text-muted" style="word-break: break-all;">{{ identities[selectedId].Fingerprint }}</a></p>
         <h4>Profile</h4>
         <p>{{ identities[selectedId].profile }}</p>
