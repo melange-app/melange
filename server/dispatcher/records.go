@@ -1,11 +1,12 @@
 package dispatcher
 
 import (
-	"airdispat.ch/identity"
-	"airdispat.ch/message"
 	"fmt"
 	"strings"
 	"time"
+
+	"airdispat.ch/identity"
+	"airdispat.ch/message"
 )
 
 // Table Names
@@ -54,7 +55,7 @@ type Message struct {
 	// Metadata
 	Received int64
 	// Transient
-	allowed []string
+	allowed []string `db:"-"`
 }
 
 const QueryOutgoingNamed = "select * from " + TableNameMessage + " o where o.Owner = :owner and o.Name = :name and o.To like :recv and o.Type = 1"
@@ -129,6 +130,7 @@ const (
 func (m *Server) SaveMessage(name string, to []string, from string, message *message.EncryptedMessage, messageType int) error {
 	user, err := m.UserForIdentity(from)
 	if err != nil {
+		fmt.Println("Got error getting user for identity.")
 		return err
 	}
 
@@ -229,9 +231,9 @@ const QueryIdentity = "select u.Id, u.Name, u.Receiving, u.RegisteredOn from " +
 	"u.Id = i.Owner and i.Signing = :key"
 
 func (m *Server) UserForIdentity(id string) (*User, error) {
-	var result *User
+	result := &User{}
 	// Create the Query
-	err := m.dbmap.SelectOne(&result, QueryIdentity,
+	err := m.dbmap.SelectOne(result, QueryIdentity,
 		map[string]interface{}{
 			"key": id,
 		})
