@@ -28,19 +28,19 @@ func (m messageList) Less(i int, j int) bool { return m[i].Date.After(m[j].Date)
 func (m messageList) Swap(i int, j int)      { m[i], m[j] = m[j], m[i] }
 
 type melangeMessage struct {
-	Name       string
-	Date       time.Time
-	From       string
-	To         []string
-	Public     bool
-	Components map[string]*melangeComponent
-	Context    map[string]string
+	Name       string              `json:"name"`
+	Date       time.Time           `json:"date"`
+	From       string              `json:"from"`
+	To         []string            `json:"to"`
+	Public     bool                `json:"public"`
+	Components []*melangeComponent `json:"components"`
+	Context    map[string]string   `json:"context"`
 }
 
 type melangeComponent struct {
-	Name   string
-	Binary []byte
-	String string
+	Name   string `json:"name"`
+	Binary []byte `json:"binary"`
+	String string `json:"string"`
 }
 
 func (m *melangeMessage) ToDispatch(from *identity.Identity) (*message.Mail, []*identity.Address, error) {
@@ -57,7 +57,12 @@ func (m *melangeMessage) ToDispatch(from *identity.Identity) (*message.Mail, []*
 		}
 	}
 
-	mail := message.CreateMail(from.Address, addrs[0], m.Date)
+	var theAddress *identity.Address
+	if len(addrs) > 0 {
+		theAddress = addrs[0]
+	}
+
+	mail := message.CreateMail(from.Address, theAddress, m.Date)
 
 	for _, v := range m.Components {
 		mail.Components.AddComponent(message.Component{
@@ -69,14 +74,16 @@ func (m *melangeMessage) ToDispatch(from *identity.Identity) (*message.Mail, []*
 	return mail, addrs, nil
 }
 
-func translateComponents(comp message.ComponentList) map[string]*melangeComponent {
-	out := make(map[string]*melangeComponent)
+func translateComponents(comp message.ComponentList) []*melangeComponent {
+	out := make([]*melangeComponent, len(comp))
 
-	for key, v := range comp {
-		out[key] = &melangeComponent{
+	i := 0
+	for _, v := range comp {
+		out[i] = &melangeComponent{
 			Name:   v.Name,
 			String: string(v.Data),
 		}
+		i++
 	}
 
 	return out

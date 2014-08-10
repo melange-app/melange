@@ -81,15 +81,20 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 		// POST /data/set
 		"/data/set": nil,
 
+		// Get All Identities
 		"/identity": &controllers.ListIdentity{
 			Tables: tables,
 			Store:  r.Settings,
 		},
+
+		// Create a new Identity
 		"/identity/new": &controllers.SaveIdentity{
 			Tables:   tables,
 			Packager: packager,
 			Store:    r.Settings,
 		},
+
+		// Current Identity Information
 		"/identity/current": &controllers.CurrentIdentity{
 			Tables: tables,
 			Store:  r.Settings,
