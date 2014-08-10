@@ -24,6 +24,18 @@ func (i *ListIdentity) Handle(req *http.Request) framework.View {
 		return framework.Error500
 	}
 
+	fingerprint, err := i.Store.Get("current_identity")
+	if err != nil {
+		fmt.Println("Error getting current identity.", err)
+		return framework.Error500
+	}
+
+	for _, v := range results {
+		if v.Fingerprint == fingerprint {
+			v.Current = true
+		}
+	}
+
 	return &framework.JSONView{
 		Content: results,
 	}
