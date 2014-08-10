@@ -138,11 +138,18 @@ func (c *Client) signAndEncrypt(msg *message.Mail, to []*identity.Address) ([]by
 		return nil, err
 	}
 
-	enc, err := signed.EncryptWithKey(to[0])
-	if err != nil {
-		return nil, err
+	var enc *message.EncryptedMessage
+	if len(to) == 0 {
+		enc, err = signed.UnencryptedMessage(nil)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		enc, err = signed.EncryptWithKey(to[0])
+		if err != nil {
+			return nil, err
+		}
 	}
-
 	return enc.ToBytes()
 }
 
