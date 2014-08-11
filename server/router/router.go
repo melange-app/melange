@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"airdispat.ch/identity"
 	"airdispat.ch/routing"
@@ -13,7 +14,8 @@ import (
 	cache "github.com/huntaub/go-cache"
 )
 
-var routeCache *cache.Cache
+var routeCache *cache.Cache = cache.NewCache(1 * time.Hour)
+var knownTrackers []string = []string{"localhost:2048"}
 
 // var cLock sync.RWMutex
 
@@ -41,20 +43,28 @@ func (r *Router) HandleRedirect(name routing.LookupType, redirect routing.Redire
 }
 
 func (a *Router) LookupAlias(from string, name routing.LookupType) (*identity.Address, error) {
-	test, stale := routeCache.Get(from)
+	key := fmt.Sprintf("%s:%s", from, name)
+	test, stale := routeCache.Get(key)
 	if !stale {
 		return test.(*identity.Address), nil
+	}
+
+	if from == "" {
+		return nil, errors.New("Can't lookup nothing.")
 	}
 
 	if from[0] == '/' {
 		return a.Lookup(from[1:], name)
 	}
+
 	comp := strings.Split(from, "@")
+
 	if len(comp) != 2 {
 		return nil, errors.New("Can't use lookup router without tracker address.")
 	}
 
 	url := tracker.GetTrackingServerLocationFromURL(comp[1])
+
 	t := &tracker.Router{
 		URL:        url,
 		Origin:     a.Origin,
@@ -63,15 +73,16 @@ func (a *Router) LookupAlias(from string, name routing.LookupType) (*identity.Ad
 
 	addr, err := t.LookupAlias(comp[0], name)
 	if err == nil {
-		routeCache.Store(from, addr)
-		routeCache.Store(addr.String(), addr)
+		routeCache.Store(key, addr)
+		routeCache.Store(fmt.Sprintf("%s:%s", addr, name), addr)
 		return addr, nil
 	}
 	return nil, err
 }
 
 func (a *Router) Lookup(from string, name routing.LookupType) (*identity.Address, error) {
-	test, stale := routeCache.Get(from)
+	key := fmt.Sprintf("%s:%s", from, name)
+	test, stale := routeCache.Get(key)
 	if !stale {
 		return test.(*identity.Address), nil
 	}
@@ -84,8 +95,8 @@ func (a *Router) Lookup(from string, name routing.LookupType) (*identity.Address
 			Redirector: a,
 		}).Lookup(from, name)
 		if err == nil {
-			routeCache.Store(from, a)
-			routeCache.Store(a.String(), a)
+			routeCache.Store(key, a)
+			routeCache.Store(fmt.Sprintf("%s:%s", a, name), a)
 			return a, nil
 		}
 	}
