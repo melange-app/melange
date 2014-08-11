@@ -1,9 +1,9 @@
 <h4>All Mail <small><a href="#">filter</a></small></h4>
 
-<div ng-hide="messages" class="text-center text-muted">
+<div ng-hide="messages.length > 0" class="text-center text-muted">
   <h2>You have no messages!</h2>
   <p><a href="#/contacts">Subscribe to some friends</a>, or receive some messages.</p>
 </div>
 <div ng-repeat="message in messages">
-  <h1>I got a message, yo.</h1>
+  <message data="message"></message>
 </div>
