@@ -38,18 +38,18 @@ melangeControllers.controller('ApplicationCtrl', ['$scope', '$location', '$route
 melangeControllers.controller('StartupCtrl', ['mlgIdentity', '$location',
   function(mlgIdentity, $location) {
 
-    mlgIdentity.current().then(
+    mlgIdentity.startup().then(
       function(obj) {
-        $location.path("/dashboard");
+        if(obj) {
+          $location.path("/dashboard");
+        } else {
+          $location.path("/setup");
+
+        }
       },
       function(obj) {
-        if (obj.status == 422) {
-          $location.path("/setup");
-        } else {
-          console.log("Error loading startup status.");
-          console.log(obj.status);
-          $location.path("/error");
-        }
+        console.log("Error loading startup status.");
+        $location.path("/error");
       },
       function(data) {
         console.dir(data);

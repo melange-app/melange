@@ -8,26 +8,6 @@ var melangeServices = angular.module('melangeServices', []);
       return str.indexOf(suffix, str.length - suffix.length) !== -1;
   }
 
-  // Resources to be Deleted
-  var mlgMessage = {
-    id: "000000",
-    from: {
-      name: "Hunter Leath",
-      address: "0x0F",
-      avatar: "http://placehold.it/400x400",
-    },
-    to: {
-      name: "Joseph Barrow",
-      address: "0x0F",
-      avatar: "http://placehold.it/400x400",
-    },
-    time: new Date(0),
-    data: {
-      "airdispat.ch/note/title": {string: "Hello, Joe"},
-      "airdispat.ch/note/body": {string: "This pot roast smells delicious."},
-    }
-  }
-
   var mlgStatus = {
     id: "00000",
     error: {
@@ -130,6 +110,23 @@ var melangeServices = angular.module('melangeServices', []);
     }
 
     return {
+      refresh: function() {
+        identities = [];
+        getIdentities(function(id) {});
+      },
+      startup: function() {
+        var defer = $q.defer();
+        resource.current().$promise.then(
+        function(s) { defer.resolve(true) },
+        function(obj) {
+          if(obj.status == 422) {
+            defer.resolve(false);
+          } else {
+            defer.reject();
+          }
+        });
+        return defer.promise
+      },
       current: function() {
         var defer = $q.defer();
         getIdentities(function(id) {
@@ -179,30 +176,7 @@ var melangeServices = angular.module('melangeServices', []);
       lists: function() {
         return ["Friends", "Family"];
       },
-      contacts: function() {
-        return [
-          {
-            name: "Hunter Leath",
-            favorite: false,
-            identities: [
-              {
-                address: "4073f3dff85852fc8c0c206599b7e221d8c7a77f085a9497",
-              },
-            ],
-            lists: ["Family"],
-          },
-          {
-            name: "Dalton Sherwood",
-            favorite: true,
-            identities: [
-              {
-                address: "4073f3dff85852fc8c0c206599b7e221d8c7a77f085a9497",
-              },
-            ],
-            lists: ["Friends"],
-          },
-        ];
-      },
+      contacts: $resource('http://' + melangeAPI + '/contacts', {}, {query: {method: 'GET', isArray: true}}).query,
       // Message Management
       publishMessage: $resource('http://' + melangeAPI + '/messages/new', {}, {create: {method:'POST'}}).create,
       getMessages: $resource('http://' + melangeAPI + '/messages', {}, {query: {method:'GET', isArray:true}}).query,
@@ -221,10 +195,15 @@ var melangeServices = angular.module('melangeServices', []);
       }
     });
 
+    var cleanup = function(msg) {
+        if(msg.$promise) { delete msg.$promise; }
+        if(msg.$resolved) { delete msg.$resolved; }
+    }
+
     // --- Plugin Communication
     var receivers = {
       createMessage: function(origin, data, callback) {
-        mlgApi.publishMessage(data).then(
+        mlgApi.publishMessage(data).$promise.then(
           function(data) {
             callback({
               type: "createdMessage",
@@ -232,6 +211,7 @@ var melangeServices = angular.module('melangeServices', []);
             })
           },
           function(err) {
+            console.log(err)
             callback({
               type: "createdMessage",
               context: {error: {code: 1, message: "Something happened. Too lazy to find out what."}},
@@ -240,12 +220,22 @@ var melangeServices = angular.module('melangeServices', []);
         );
       },
       findMessages: function(origin, data, callback) {
-        console.log(origin)
-        console.dir(allPlugins[origin]);
-        callback({
-          type: "foundMessages",
-          context: [mlgMessage],
-        })
+        mlgApi.getMessages().$promise.then(
+          function(msg) {
+            cleanup(msg)
+            callback({
+              type: "foundMessages",
+              context: msg,
+            });
+          },
+          function(err) {
+            console.log(err)
+            callback({
+              type: "foundMessages",
+              context: {error: {code: 1, message: "Something happened. Too lazy to find out what."}}
+            })
+          }
+        );
       },
       updateMessage: function(origin, data, callback) {
         callback({
@@ -254,16 +244,40 @@ var melangeServices = angular.module('melangeServices', []);
         })
       },
       downloadMessage: function(origin, data, callback) {
-        callback({
-          type: "downloadedMessage",
-          context: mlgMessage,
-        })
+        mlgApi.getMessages().$promise.then(
+          function(msg) {
+            cleanup(msg);
+            callback({
+              type: "downloadedMessage",
+              context: msg[0],
+            });
+          },
+          function(err) {
+            console.log(err)
+            callback({
+              type: "downloadedMessage",
+              context: {error: {code: 1, message: "Something happened. Too lazy to find out what."}}
+            })
+          }
+        );
       },
       downloadPublicMessages: function(origin, data, callback) {
-        callback({
-          type: "downloadedPublicMessages",
-          context: [mlgMessage],
-        })
+        mlgApi.getMessages().$promise.then(
+          function(msg) {
+            cleanup(msg);
+            callback({
+              type: "downloadedPublicMessages",
+              context: msg,
+            });
+          },
+          function(err) {
+            console.log(err)
+            callback({
+              type: "downloadedPublicMessages",
+              context: {error: {code: 1, message: "Something happened. Too lazy to find out what."}}
+            })
+          }
+        );
       },
     };
     function messenger(source, data, origin) {
