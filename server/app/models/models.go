@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/huntaub/go-db"
 	"fmt"
+
+	gdb "github.com/huntaub/go-db"
 )
 
 func mapErrors(err ...error) error {
@@ -14,36 +15,36 @@ func mapErrors(err ...error) error {
 	return nil
 }
 
-func CreateTables(conn db.Executor) (map[string]db.Table, error) {
-	tables := make(map[string]db.Table)
+func CreateTables(conn gdb.Database) (map[string]gdb.Table, error) {
+	tables := make(map[string]gdb.Table)
 	var err1, err2, err3, err4, err5, err6 error
 
 	// identity.go
-	tables["identity"], err1 = db.CreateTableFromStruct("identity", conn, false, &Identity{})
+	tables["identity"], err1 = gdb.CreateTableFromStruct("identity", conn, false, &Identity{})
 	if err1 != nil {
 		fmt.Println("err1", err1)
 	}
-	tables["alias"], err2 = db.CreateTableFromStruct("alias", conn, false, &Alias{})
+	tables["alias"], err2 = gdb.CreateTableFromStruct("alias", conn, false, &Alias{})
 	if err2 != nil {
 		fmt.Println("err2", err2)
 	}
 
 	// contact.go
-	tables["contact"], err3 = db.CreateTableFromStruct("contact", conn, false, &Contact{})
+	tables["contact"], err3 = gdb.CreateTableFromStruct("contact", conn, false, &Contact{})
 	if err3 != nil {
 		fmt.Println("err3", err3)
 	}
-	tables["address"], err4 = db.CreateTableFromStruct("address", conn, false, &Address{})
+	tables["address"], err4 = gdb.CreateTableFromStruct("address", conn, false, &Address{})
 	if err4 != nil {
 		fmt.Println("err4", err4)
 	}
 
 	// message.go
-	tables["message"], err5 = db.CreateTableFromStruct("message", conn, false, &Message{})
+	tables["message"], err5 = gdb.CreateTableFromStruct("message", conn, false, &Message{})
 	if err5 != nil {
 		fmt.Println("err5", err5)
 	}
-	tables["component"], err6 = db.CreateTableFromStruct("component", conn, false, &Component{})
+	tables["component"], err6 = gdb.CreateTableFromStruct("component", conn, false, &Component{})
 	if err6 != nil {
 		fmt.Println("err6", err6)
 	}

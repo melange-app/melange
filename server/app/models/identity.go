@@ -19,6 +19,7 @@ type Identity struct {
 	Server            string
 	ServerKey         string
 	ServerFingerprint string
+	ServerAlias       string
 	// Actual Data
 	Data []byte `json:"-"`
 	// Password Protection
@@ -84,6 +85,7 @@ func (id *Identity) CreateServerFromIdentity() (*identity.Address, error) {
 		Fingerprint:   fingerprint,
 		Location:      id.Server,
 		EncryptionKey: key,
+		Alias:         id.ServerAlias,
 	}, nil
 }
 
