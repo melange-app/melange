@@ -29,7 +29,7 @@
        </a>
     </div>
   </div>
-  <div class="col-sm-6 col-md-9">
+  <div class="col-sm-6 col-md-9" ng-show="contacts.length != 0">
     <h5>Detail</h5>
     <div class="well">
       <img src="http://placehold.it/64" class="pull-left img-circle" style="margin-right: 10px;">
@@ -45,5 +45,9 @@
       <h4>Identities</h4>
       <p class="text-muted" ng-repeat="identity in selectedContact.identities">{{ identity.address }} <small><a href="">copy</a></small></p>
     </div>
+  </div>
+  <div class="col-sm-6 col-md-9 text-center" ng-show="contacts.length == 0">
+    <h2 class="text-muted">No contacts here yet.</h2>
+    <h5 class="text-muted">Add one by clicking the button above.</h5>
   </div>
 </div>
