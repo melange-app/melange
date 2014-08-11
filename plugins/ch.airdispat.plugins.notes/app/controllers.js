@@ -1,5 +1,9 @@
 'use strict';
 
+var normalize = function(str) {
+  return str.toLowerCase().split(" ").join("-")
+}
+
 var notesControllers = angular.module('notesControllers', []);
 
 notesControllers.controller('ListCtrl', ['$scope', function($scope) {
@@ -11,13 +15,12 @@ notesControllers.controller('ListCtrl', ['$scope', function($scope) {
 }]);
 
 notesControllers.controller('NewCtrl', ['$scope', '$location', function($scope, $location){
-
   $scope.send = function() {
     melange.createMessage({
-      to: [],
-      name: "notes/my-note",
+      to: $scope.to,
+      name: "notes/" + normalize($scope.title),
       date: (new Date()).toISOString(),
-      public: true,
+      public: $scope.to.public,
       components: {
         "airdispat.ch/notes/title": {string: $scope.title},
         "airdispat.ch/notes/body": {string: $scope.body},
