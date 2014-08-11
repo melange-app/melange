@@ -71,6 +71,8 @@ func (i *SaveIdentity) Handle(req *http.Request) framework.View {
 		}
 	}
 
+	id.SetLocation(server.URL)
+
 	// Run Registration
 	client := &dap.Client{
 		Key:    id,
@@ -131,6 +133,7 @@ func (i *SaveIdentity) Handle(req *http.Request) framework.View {
 	modelID.Server = server.URL
 	modelID.ServerKey = server.EncryptionKey
 	modelID.ServerFingerprint = server.Fingerprint
+	modelID.ServerAlias = server.Alias
 
 	_, err = i.Tables["identity"].Insert(modelID).Exec(i.Store)
 	if err != nil {

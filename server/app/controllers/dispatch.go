@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"errors"
+	"melange/app/models"
 
+	adErrors "airdispat.ch/errors"
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
 	"airdispat.ch/routing"
@@ -10,13 +12,13 @@ import (
 	"airdispat.ch/wire"
 )
 
-func sendAlert(r routing.Router, msgName string, from *identity.Identity, to string, location string) error {
+func sendAlert(r routing.Router, msgName string, from *identity.Identity, to string, serverAlias string) error {
 	addr, err := r.LookupAlias(to, routing.LookupTypeALERT)
 	if err != nil {
 		return err
 	}
 
-	msgDescription := server.CreateMessageDescription(msgName, location, from.Address, addr)
+	msgDescription := server.CreateMessageDescription(msgName, serverAlias, from.Address, addr)
 	err = message.SignAndSend(msgDescription, from, addr)
 	if err != nil {
 		return err
@@ -28,43 +30,60 @@ func getProfile(r routing.Router, from *identity.Identity, to string) (*message.
 	return downloadMessage(r, "profile", from, to, "")
 }
 
-func downloadMessage(r routing.Router, msgName string, from *identity.Identity, to string, toServer string) (*message.Mail, error) {
-	addr, err := r.LookupAlias(to, routing.LookupTypeTX)
-	if err != nil {
-		return nil, err
-	}
-	if toServer != "" {
-		addr.Location = toServer
+func getAddresses(r routing.Router, to *models.Address) (server *identity.Address, author *identity.Address, err error) {
+	if to.Fingerprint == "" {
+		author, err = r.LookupAlias(to.Alias, routing.LookupTypeMAIL)
+		if err != nil {
+			return
+		}
+	} else {
+		author = identity.CreateAddressFromString(to.Fingerprint)
 	}
 
-	txMsg := server.CreateTransferMessage(msgName, from.Address, addr)
-	bytes, typ, h, err := message.SendMessageAndReceiveWithoutTimestamp(txMsg, from, addr)
+	server, err = r.LookupAlias(to.Alias, routing.LookupTypeTX)
+	return
+}
+
+func downloadMessage(r routing.Router, msgName string, from *identity.Identity, to string, serverAlias string) (*message.Mail, error) {
+	srv, err := r.LookupAlias(serverAlias, routing.LookupTypeTX)
 	if err != nil {
 		return nil, err
+	}
+
+	author := identity.CreateAddressFromString(to)
+
+	txMsg := server.CreateTransferMessage(msgName, from.Address, srv, author)
+	bytes, typ, h, err := message.SendMessageAndReceiveWithoutTimestamp(txMsg, from, srv)
+	if err != nil {
+		return nil, err
+	}
+
+	if typ == wire.ErrorCode {
+		return nil, adErrors.CreateErrorFromBytes(bytes, h)
 	}
 
 	if typ != wire.MailCode {
-		return nil, errors.New("Wrong message type.")
+		return nil, errors.New("Wrong message type, got " + typ)
 	}
 
 	return message.CreateMailFromBytes(bytes, h)
 }
 
-func downloadPublicMail(r routing.Router, since uint64, from *identity.Identity, to string) ([]*message.Mail, error) {
-	addr, err := r.LookupAlias(to, routing.LookupTypeTX)
+func downloadPublicMail(r routing.Router, since uint64, from *identity.Identity, to *models.Address) ([]*message.Mail, error) {
+	srv, author, err := getAddresses(r, to)
 	if err != nil {
 		return nil, err
 	}
 
-	txMsg := server.CreateTransferMessageList(since, from.Address, addr)
+	txMsg := server.CreateTransferMessageList(since, from.Address, srv, author)
 
-	conn, err := message.ConnectToServer(addr.Location)
+	conn, err := message.ConnectToServer(srv.Location)
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
 
-	err = message.SignAndSendToConnection(txMsg, from, addr, conn)
+	err = message.SignAndSendToConnection(txMsg, from, srv, conn)
 	if err != nil {
 		return nil, err
 	}
@@ -79,8 +98,12 @@ func downloadPublicMail(r routing.Router, since uint64, from *identity.Identity,
 		return nil, err
 	}
 
+	if typ == wire.ErrorCode {
+		return nil, adErrors.CreateErrorFromBytes(bytes, h)
+	}
+
 	if typ != wire.MessageListCode {
-		return nil, errors.New("Wrong message type.")
+		return nil, errors.New("(a) Wrong message type, got " + typ)
 	}
 
 	msgList, err := server.CreateMessageListFromBytes(bytes, h)
@@ -100,8 +123,12 @@ func downloadPublicMail(r routing.Router, since uint64, from *identity.Identity,
 			return output, err
 		}
 
+		if typ == wire.ErrorCode {
+			return nil, adErrors.CreateErrorFromBytes(bytes, h)
+		}
+
 		if typ != wire.MailCode {
-			return output, errors.New("Wrong message type.")
+			return output, errors.New("(b) Wrong message type, got " + typ)
 		}
 
 		mail, err := message.CreateMailFromBytes(bytes, h)

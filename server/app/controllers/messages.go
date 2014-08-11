@@ -19,7 +19,7 @@ import (
 	gdb "github.com/huntaub/go-db"
 )
 
-var messageCache, publicCache *cache.Cache
+var messageCache, publicCache *cache.Cache = cache.NewCache(1 * time.Hour), cache.NewCache(1 * time.Hour)
 
 type messageList []*melangeMessage
 
@@ -157,7 +157,7 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 	// Download Alerts
 	messages, realErr := dap.DownloadMessages(since, true)
 	if realErr != nil {
-		fmt.Println("Error downloading messages", err)
+		fmt.Println("Error downloading messages", realErr)
 		return framework.Error500
 	}
 
@@ -170,12 +170,15 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 
 		desc, realErr := server.CreateMessageDescriptionFromBytes(data, h)
 		if realErr != nil {
+			fmt.Println("Can't create message description", realErr)
 			continue
 		}
 
 		// TODO: h.From _MUST_ be the server key, not the client key.
+		fmt.Println(desc)
 		mail, realErr := downloadMessage(router, desc.Name, dap.Key, h.From.String(), desc.Location)
 		if realErr != nil {
+			fmt.Println("Got error downloading message", desc.Name, realErr)
 			continue
 		}
 
@@ -197,7 +200,7 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 			msg = list.([]*message.Mail)
 		} else {
 			var realErr error
-			msg, realErr = downloadPublicMail(router, since, dap.Key, v.Fingerprint)
+			msg, realErr = downloadPublicMail(router, since, dap.Key, v)
 			if realErr != nil {
 				fmt.Println("Error getting public mail", realErr)
 				return framework.Error500
@@ -262,6 +265,7 @@ func (m *NewMessage) Handle(req *http.Request) framework.View {
 	name, err := dap.PublishMessage(mail, to, msg.Name, !msg.Public)
 
 	if !msg.Public {
+		fmt.Println("Sending alerts...")
 		// Send Alert
 		var errs []error
 
@@ -270,15 +274,10 @@ func (m *NewMessage) Handle(req *http.Request) framework.View {
 		}
 
 		for _, v := range msg.To {
-			addr, err := r.LookupAlias(v, routing.LookupTypeALERT)
+			fmt.Println("Sending alert to", v)
+			err = sendAlert(r, name, dap.Key, v, dap.Server.Alias)
 			if err != nil {
-				errs = append(errs, err)
-				continue
-			}
-
-			desc := server.CreateMessageDescription(name, dap.Server.Location, dap.Key.Address, addr)
-			err = message.SignAndSend(desc, dap.Key, addr)
-			if err != nil {
+				fmt.Println("Got error sending alert", err)
 				errs = append(errs, err)
 			}
 		}
@@ -289,7 +288,7 @@ func (m *NewMessage) Handle(req *http.Request) framework.View {
 	}
 
 	return &framework.HTTPError{
-		ErrorCode: 504,
-		Message:   "Not implemented.",
+		ErrorCode: 200,
+		Message:   "Done!",
 	}
 }
