@@ -15,6 +15,7 @@ function(mlgIdentity, $scope, $location) {
     mlgIdentity.profile.nickname = "Primary";
     mlgIdentity.save(function() {
       mlgIdentity.profile = {};
+      mlgIdentity.refresh();
       $location.path("/dashboard");
     }, function() {
       alert("Error creating Identity.");

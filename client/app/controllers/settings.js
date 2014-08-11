@@ -21,6 +21,13 @@ melangeControllers.controller('SettingsCtrl', ['$scope', 'mlgIdentity', 'mlgHelp
       });
     };
 
+    $scope.copy = function(str) {
+      if(typeof window.require === "function") {
+        var clipboard = require('clipboard');
+        clipboard.writeText(str);
+      }
+    }
+
   }]);
 
 melangeControllers.controller('NewIdentityCtrl', ['$scope', '$location', 'mlgIdentity',
@@ -32,6 +39,7 @@ melangeControllers.controller('NewIdentityCtrl', ['$scope', '$location', 'mlgIde
 
     $scope.save = function() {
       mlgIdentity.save(function() {
+        mlgIdentity.refresh();
         $location.path("/settings/identity");
       }, function(err) {
         alert("Cannot save new identity.");

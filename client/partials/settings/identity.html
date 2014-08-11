@@ -23,11 +23,12 @@
     <div class="col-sm-6 col-md-8">
       <div class="well">
         <h3 style="margin-top: 0;">{{ identities[selectedId].Nickname }} <small ng-hide="identities[selectedId].Current"><a href="" ng-click="setCurrentIdentity(identities[selectedId])">set current</a></small></h3>
-        <p class="text-muted" style="word-break: break-all;">{{ identities[selectedId].Fingerprint }}</a></p>
+        <p class="text-muted" style="word-break: break-all;"><a href="" ng-click="copy(identities[selectedId].Fingerprint)">{{ identities[selectedId].Fingerprint }}</a></p>
         <h4>Profile</h4>
         <p>{{ identities[selectedId].profile }}</p>
         <h4>Aliases</h4>
         <p>Registered At: {{ identities[selectedId].Server }}</p>
+        <hr/>
         <p><a href="#">Add Alias</a></p>
         <ul class="list-group">
           <li class="list-group-item" ng-repeat="alias in identities[selectedId].aliases">{{ alias }}</li>
