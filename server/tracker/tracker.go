@@ -1,32 +1,36 @@
 package tracker
 
 import (
+	"bytes"
+	"encoding/hex"
+	"fmt"
+
+	gdb "github.com/huntaub/go-db"
+	"github.com/jmoiron/sqlx"
+
+	"encoding/gob"
+
 	"airdispat.ch/crypto"
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
 	"airdispat.ch/tracker"
-	"encoding/gob"
-	"encoding/hex"
-	"fmt"
-	"os"
+
+	// Imported for DB Initialization
+	_ "github.com/lib/pq"
 )
 
 type Tracker struct {
 	// FS Information
-	KeyFile  string
-	SaveFile string
-	// Storage
-	StoredAddresses  map[string]*message.SignedMessage
-	AliasedAddresses map[string]*message.SignedMessage
+	KeyFile string
+	// Database Info
+	DBString string
+	table    gdb.Table
+	ex       *sqlx.DB
 	// Composition
 	tracker.BasicTracker
 }
 
 func (t *Tracker) Run(port int) error {
-	// Initialize the Database of Addresses
-	t.StoredAddresses = make(map[string]*message.SignedMessage)
-	t.AliasedAddresses = make(map[string]*message.SignedMessage)
-
 	loadedKey, err := identity.LoadKeyFromFile(t.KeyFile)
 
 	if err != nil {
@@ -52,65 +56,79 @@ func (t *Tracker) Run(port int) error {
 		Key:      loadedKey,
 		Delegate: t,
 	}
-	t.LoadRecords()
+
+	t.ex, err = sqlx.Open("postgres", t.DBString)
+	if err != nil {
+		return err
+	}
+
+	t.table, err = CreateTables(t.ex)
+	if err != nil {
+		return err
+	}
+
 	theTracker.StartServer(fmt.Sprintf("%d", port))
 	return nil
 }
 
-func (t *Tracker) LoadRecords() {
-	if t.SaveFile != "" {
-		f, err := os.Open(t.SaveFile)
-		if err != nil {
-			t.LogMessage("Unable to open file:", err.Error())
-			return
-		}
-		enc := gob.NewDecoder(f)
-		var out []map[string]*message.SignedMessage
-		err = enc.Decode(&out)
-		if err != nil {
-			t.LogMessage("Unable to decode messages:", err.Error())
-			return
-		}
-
-		t.StoredAddresses = out[0]
-		t.AliasedAddresses = out[1]
-	}
-}
-
-func (t *Tracker) SaveRecords() {
-	if t.SaveFile != "" {
-		f, err := os.Create(t.SaveFile)
-		if err != nil {
-			t.LogMessage("Unable to create file:", err.Error())
-			return
-		}
-		enc := gob.NewEncoder(f)
-		err = enc.Encode([]map[string]*message.SignedMessage{t.StoredAddresses, t.AliasedAddresses})
-		if err != nil {
-			t.LogMessage("Unable to encode messages:", err.Error())
-			return
-		}
-	}
-}
-
 func (t *Tracker) SaveRecord(address *identity.Address, record *message.SignedMessage, alias string) {
-	// Store the RegisterdAddress in the Database
-	t.StoredAddresses[address.String()] = record
+	var data bytes.Buffer
+	enc := gob.NewEncoder(&data)
 
-	if alias != "" {
-		t.AliasedAddresses[alias] = record
+	err := enc.Encode(record)
+	if err != nil {
+		fmt.Println("Error encoding", err)
+		return
 	}
-	go t.SaveRecords()
+
+	finding := &Record{}
+	err = t.table.Get().Where("address", address.String()).One(t.ex, finding)
+	if err != nil || finding.Address == "" {
+		_, err = t.table.Insert(&Record{
+			Address: address.String(),
+			Alias:   alias,
+			Message: data.Bytes(),
+		}).Exec(t.ex)
+		if err != nil {
+			fmt.Println("Error inserting", err)
+		}
+	}
+
+	finding.Alias = alias
+	finding.Message = data.Bytes()
+
+	_, err = t.table.Update(finding).Exec(t.ex)
+	if err != nil {
+		fmt.Println("Error updating", err)
+	}
 }
 
 func (t *Tracker) GetRecordByAddress(address *identity.Address) *message.SignedMessage {
-	// Lookup the Address (by address) in the Database
-	info, _ := t.StoredAddresses[address.String()]
-	return info
+	return t.recordMessage("address", address.String())
 }
 
 func (t *Tracker) GetRecordByAlias(alias string) *message.SignedMessage {
-	// Lookup the Address (by address) in the Database
-	info, _ := t.AliasedAddresses[alias]
-	return info
+	return t.recordMessage("alias", alias)
+}
+
+func (t *Tracker) recordMessage(col string, obj interface{}) *message.SignedMessage {
+	record := &Record{}
+	fmt.Println("Getting", col, obj)
+	err := t.table.Get().Where(col, obj).One(t.ex, record)
+	if err != nil || record.Address == "" {
+		fmt.Println("Cannot get address", err)
+		return nil
+	}
+
+	data := bytes.NewReader(record.Message)
+	dec := gob.NewDecoder(data)
+
+	m := &message.SignedMessage{}
+	err = dec.Decode(&m)
+	if err != nil {
+		fmt.Println("Cannot decode SignedMessage", err)
+		return nil
+	}
+
+	return m
 }

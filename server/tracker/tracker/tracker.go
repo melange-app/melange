@@ -9,15 +9,15 @@ import (
 // Start the Tracker
 func main() {
 	var (
-		keyFile  = flag.String("keyfile", "", "Location of file to get keys from.")
-		saveFile = flag.String("savefile", "", "Location of file to save requests to.")
-		port     = flag.Int("port", 1024, "Port to run server on.")
+		keyFile = flag.String("keyfile", "", "Location of file to get keys from.")
+		dbConn  = flag.String("dbConn", "", "DB Connection String")
+		port    = flag.Int("port", 1024, "Port to run server on.")
 	)
 	flag.Parse()
 
 	mel := &tracker.Tracker{
 		KeyFile:  *keyFile,
-		SaveFile: *saveFile,
+		DBString: *dbConn,
 	}
 	err := mel.Run(*port)
 	if err != nil {
