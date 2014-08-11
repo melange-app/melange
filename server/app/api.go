@@ -46,6 +46,10 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 
 	// Create Simple Handler Map
 	handlers := map[string]Handler{
+		//
+		// PROVIDERS
+		//
+
 		// GET  /servers
 		"/servers": &ServerLists{
 			URL:      "/servers",
@@ -57,8 +61,16 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 			Packager: packager,
 		},
 
+		//
+		// PLUGINS
+		//
+
 		// GET  /plugins
 		"/plugins": &PluginServer{},
+
+		//
+		// MESSAGES
+		//
 
 		// POST /messages
 		"/messages": &controllers.Messages{
@@ -76,24 +88,45 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 			Tables: tables,
 		},
 
+		//
+		// DATA
+		//
+
 		// POST /data
 		"/data": nil,
 		// POST /data/set
 		"/data/set": nil,
+
+		//
+		// CONTACTS
+		//
+
+		// GET  /contacts
+		"/contacts": &controllers.ListContacts{
+			Table: tables["contact"],
+			Store: r.Settings,
+		},
+		// POST /contacts/new
+		"/contacts/new": &controllers.NewContact{
+			Tables: tables,
+			Store:  r.Settings,
+		},
+
+		//
+		// IDENTITY
+		//
 
 		// Get All Identities
 		"/identity": &controllers.ListIdentity{
 			Tables: tables,
 			Store:  r.Settings,
 		},
-
 		// Create a new Identity
 		"/identity/new": &controllers.SaveIdentity{
 			Tables:   tables,
 			Packager: packager,
 			Store:    r.Settings,
 		},
-
 		// Current Identity Information
 		"/identity/current": &controllers.CurrentIdentity{
 			Tables: tables,
