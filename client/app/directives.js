@@ -30,3 +30,13 @@ melangeDirectives.directive("modal", function() {
     },
   }
 });
+
+melangeDirectives.directive("message", function() {
+  return {
+    templateUrl: "partials/directives/messageViewer.html",
+    restrict: "E",
+    scope: {
+      data: "=data",
+    },
+  }
+});

@@ -1,0 +1,17 @@
+<div class="panel panel-default">
+  <div class="panel-body">
+    <div class="row">
+      <div class="col-sm-3 col-md-2 col-lg-1">
+        <img src="http://placehold.it/423" class="img-responsive img-circle"/>
+      </div>
+      <div class="col-sm-9 col-md-10 col-lg-11">
+        <p class="text-muted" style="font-size: 50%;">{{ data.date }}</p>
+        <h5 class="text-muted">{{ data.from }}</h5>
+        <div ng-repeat="(key, component) in data.components">
+          <p><strong>{{ key }}</strong></p>
+          <p>{{ component.string }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
