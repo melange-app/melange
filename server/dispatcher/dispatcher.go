@@ -98,6 +98,7 @@ func (m *Server) Run(port int) error {
 	m.LogMessage("Loaded Address", loadedKey.Address.String())
 	m.LogMessage("Loaded Encryption Key", hex.EncodeToString(crypto.RSAToBytes(loadedKey.Address.EncryptionKey)))
 
+	loadedKey.SetLocation(m.Me)
 	err = (&tracker.Router{
 		URL:    m.TrackerURL,
 		Origin: loadedKey,

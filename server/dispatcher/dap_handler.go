@@ -1,9 +1,11 @@
 package dispatcher
 
 import (
-	"airdispat.ch/message"
 	"melange/dap"
 	"time"
+
+	"airdispat.ch/identity"
+	"airdispat.ch/message"
 )
 
 // New Name for DAP Handler
@@ -13,11 +15,9 @@ func (m *Server) GetMessages(since uint64, owner string, context bool) ([]*dap.R
 		return nil, err
 	}
 
-	out := make([]*dap.ResponseMessage, 0)
+	out := make([]*dap.ResponseMessage, len(msg))
 	for i, v := range msg {
-		out[i] = &dap.ResponseMessage {
-			Message: v.ToDispatch(owner),
-		}
+		out[i] = dap.CreateResponseMessage(v.ToDispatch(owner), identity.CreateAddressFromString(owner), identity.CreateAddressFromString(v.To))
 	}
 
 	return out, nil
@@ -49,7 +49,7 @@ func (m *Server) Register(user string, keys map[string][]byte) error {
 func (m *Server) PublishMessage(name string, to []string, author string, message *message.EncryptedMessage, alerted bool) error {
 	messageType := TypeOutgoingPublic
 	if alerted {
-		messageType = TypeOutgoingPublic
+		messageType = TypeOutgoingPrivate
 	}
 	return m.SaveMessage(name, to, author, message, messageType)
 }
