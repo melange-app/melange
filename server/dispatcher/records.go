@@ -68,10 +68,10 @@ func (m *Server) GetAnyMessageWithName(name string, owner string) (*Message, err
 		return nil, err
 	}
 
-	var result *Message
+	result := &Message{}
 
 	// Create the Query
-	err = m.dbmap.SelectOne(&result, QueryAnyNamed,
+	err = m.dbmap.SelectOne(result, QueryAnyNamed,
 		map[string]interface{}{
 			"name":  name,
 			"owner": user.Id,
@@ -87,10 +87,10 @@ func (m *Server) GetOutgoingMessageWithName(name string, owner string, receiver 
 		return nil, err
 	}
 
-	var result *Message
+	result := &Message{}
 
 	// Create the Query
-	err = m.dbmap.SelectOne(&result, QueryOutgoingNamed,
+	err = m.dbmap.SelectOne(result, QueryOutgoingNamed,
 		map[string]interface{}{
 			"name":  name,
 			"recv":  fmt.Sprintf("%%%s%%", receiver),
@@ -128,16 +128,20 @@ const (
 
 // Save Outgoing Message
 func (m *Server) SaveMessage(name string, to []string, from string, message *message.EncryptedMessage, messageType int) error {
-	user, err := m.UserForIdentity(from)
-	if err != nil {
-		fmt.Println("Got error getting user for identity.")
-		return err
+	ownerId := -1
+	if from != "" {
+		user, err := m.UserForIdentity(from)
+		if err != nil {
+			fmt.Println("Got error getting user for identity.")
+			return err
+		}
+		ownerId = user.Id
 	}
 
 	out := &Message{
 		To:       strings.Join(to, ","),
 		Sender:   from,
-		Owner:    user.Id,
+		Owner:    ownerId,
 		Name:     name,
 		Data:     message.Data,
 		Type:     messageType,
