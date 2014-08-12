@@ -8,6 +8,12 @@ var melangeServices = angular.module('melangeServices', []);
       return str.indexOf(suffix, str.length - suffix.length) !== -1;
   }
 
+  var cleanup = function(msg) {
+      if(msg.$promise) { delete msg.$promise; }
+      if(msg.$resolved) { delete msg.$resolved; }
+      return msg;
+  }
+
   var mlgStatus = {
     id: "00000",
     error: {
@@ -184,24 +190,38 @@ var melangeServices = angular.module('melangeServices', []);
   }]);
 
   // MLG-PLUGINS
-  melangeServices.factory('mlgPlugins', ['$resource', 'mlgApi', function($resource, mlgApi) {
+  melangeServices.factory('mlgPlugins', ['$resource', '$q', 'mlgApi', function($resource, $q, mlgApi) {
     // Plugins Resource
     var plugins = $resource('http://' + melangeAPI + '/plugins', {}, {query: {method:'GET', isArray:true}});
 
     var allPlugins = {};
-    plugins.query(function(value) {
-      for (var index in value) {
-        allPlugins[value[index].id] = value[index]
+    var havePlugins = false;
+    var getAllPlugins = function(callback) {
+      if(!havePlugins) {
+        plugins.query(function(value) {
+          for (var index in cleanup(value)) {
+            allPlugins[value[index].id] = value[index]
+          }
+          callback(allPlugins);
+        });
+      } else {
+        callback(allPlugins);
       }
-    });
-
-    var cleanup = function(msg) {
-        if(msg.$promise) { delete msg.$promise; }
-        if(msg.$resolved) { delete msg.$resolved; }
     }
 
     // --- Plugin Communication
     var receivers = {
+      viewerUpdate: function(origin, data, callback, obj) {
+        if(obj !== undefined) {
+          obj.element.style.height = data["height"] + "px";
+        }
+        if(data.sendMsg === true) {
+          callback({
+            type: "viewerMessage",
+            context: obj.context,
+          })
+        }
+      },
       createMessage: function(origin, data, callback) {
         mlgApi.publishMessage(data).$promise.then(
           function(data) {
@@ -292,14 +312,76 @@ var melangeServices = angular.module('melangeServices', []);
         console.log("Couldn't understand message type " + e.data.type)
         return
       }
+      var frame = undefined;
+      for(var p in registeredPlugins) {
+        for (var i in registeredPlugins[p]) {
+          if(registeredPlugins[p][i].element.contentWindow == e.source) {
+            frame = registeredPlugins[p][i];
+          }
+        }
+      }
       var origin = e.origin.substr(7, (e.origin.length - 7 - melangePluginSuffix.length));
       receivers[e.data.type](origin, e.data.context, function(output) {
         messenger(e.source, output, e.origin)
-      });
+      }, frame);
     }
     window.addEventListener("message", receiveMessage, false);
     // --- Plugin Communication
 
-    return plugins
+    var registeredPlugins = {};
+
+    return {
+      registerPlugin: function(plugin, elem, type, context) {
+        if(registeredPlugins[plugin.id] === undefined) { registeredPlugins[plugin.id] = []; }
+        registeredPlugins[plugin.id].push({
+          element: elem,
+          type: type,
+          context: context,
+        })
+      },
+      unregisterPlugin: function(plugin, elem) {
+        // Something, something
+      },
+      all: function() {
+        var defer = $q.defer();
+        getAllPlugins(function(all) {
+          defer.resolve(all);
+        });
+        return defer.promise;
+      },
+      viewer: function(msg) {
+        var defer = $q.defer();
+        getAllPlugins(function(all) {
+          // Loop over plugins
+          for(var name in all) {
+            // Loop over Viewer
+            for(var v in all[name].viewers) {
+              var works = true;
+              var viewer = all[name].viewers[v]
+              // Check that Components are correct
+              for(var i in viewer["type"]) {
+                if(msg.components[viewer["type"][i]] === undefined) {
+                  works = false;
+                  break;
+                }
+              }
+              // Return the viewer
+              if(works) {
+                // Remove uneeded components
+                for(var i in msg.components) {
+                  if(viewer["type"].indexOf(i) == -1) {
+                    delete msg.components[i];
+                  }
+                }
+
+                defer.resolve([all[name], v]);
+              }
+            }
+          }
+          defer.reject();
+        });
+        return defer.promise;
+      },
+    }
   }]);
 })()

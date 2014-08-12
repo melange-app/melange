@@ -3,11 +3,11 @@
 var melangeControllers = angular.module('melangeControllers', []);
 
 melangeControllers.controller('ApplicationCtrl', ['$scope', '$location', '$route', 'mlgIdentity', 'mlgPlugins', 'mlgHelper',
-  function($scope, $location, $route, mlgIdentity, plugins, mlgHelper) {
+  function($scope, $location, $route, mlgIdentity, mlgPlugins, mlgHelper) {
 
     $scope.$watch(function() { return $location.path(); }, function(path) { $scope.page = path; });
     $scope.reload = $route.reload;
-    $scope.allPlugins = plugins.query();
+    $scope.allPlugins = mlgHelper.promise([], mlgPlugins.all());
 
     $scope.currentIdentity = mlgHelper.promise({}, mlgIdentity.current());
     $scope.allIdentities = mlgHelper.promise([], mlgIdentity.list());
