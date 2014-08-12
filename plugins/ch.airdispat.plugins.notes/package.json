@@ -7,6 +7,12 @@
     "read-message": ["airdispat.ch/notes/title", "airdispat.ch/notes/body", "airdispat.ch/notes/date"],
     "send-message": ["airdispat.ch/notes/title", "airdispat.ch/notes/body", "airdispat.ch/notes/date"]
   },
+  "viewers": {
+    "default": {
+      "view": "viewer.html",
+      "type": ["airdispat.ch/notes/title", "airdispat.ch/notes/body"]
+    }
+  },
   "author": {
     "name": "Hunter Leath",
     "email": "h@hunterleath.com"
