@@ -175,7 +175,6 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 		}
 
 		// TODO: h.From _MUST_ be the server key, not the client key.
-		fmt.Println(desc)
 		mail, realErr := downloadMessage(router, desc.Name, dap.Key, h.From.String(), desc.Location)
 		if realErr != nil {
 			fmt.Println("Got error downloading message", desc.Name, realErr)
@@ -226,9 +225,34 @@ type UpdateMessage struct {
 
 // Handle will decode the JSON request and alert the server.
 func (m *UpdateMessage) Handle(req *http.Request) framework.View {
+	msg := &melangeMessage{}
+	err := DecodeJSONBody(req, &msg)
+	if err != nil {
+		fmt.Println("Cannot decode message.", err)
+		return framework.Error500
+	}
+
+	// Get current DAP Client
+	dap, fErr := CurrentDAPClient(m.Store, m.Tables["identity"])
+	if fErr != nil {
+		return fErr
+	}
+
+	mail, to, err := msg.ToDispatch(dap.Key)
+	if err != nil {
+		fmt.Println("Couldn't convert JSON to Dispatcher", err)
+		return framework.Error500
+	}
+
+	err = dap.UpdateMessage(mail, to, msg.Name)
+	if err != nil {
+		fmt.Println("Can't update message.", err)
+		return framework.Error500
+	}
+
 	return &framework.HTTPError{
-		ErrorCode: 504,
-		Message:   "Not implemented.",
+		ErrorCode: 200,
+		Message:   "OK",
 	}
 }
 
