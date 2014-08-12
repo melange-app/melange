@@ -17,7 +17,13 @@ type Plugin struct {
 	Author      Author              `json:"author"`
 	Homepage    string              `json:"homepage"`
 	HideSidebar bool                `json:"hideSidebar"`
-	Tiles       []Tile              `json:"tiles"`
+	Tiles       map[string]Tile     `json:"tiles"`
+	Viewers     map[string]Viewer   `json:"viewers"`
+}
+
+type Viewer struct {
+	Type []string `json:"type"`
+	View string   `json:"view"`
 }
 
 type Tile struct {
