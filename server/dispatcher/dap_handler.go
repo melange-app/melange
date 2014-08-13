@@ -23,7 +23,7 @@ func (m *Server) GetMessages(since uint64, owner string, context bool) ([]*dap.R
 			continue
 		}
 
-		out[i] = dap.CreateResponseMessage(data, identity.CreateAddressFromString(owner), identity.CreateAddressFromString(v.To))
+		out[i] = dap.CreateResponseMessage(data, m.Key.Address, identity.CreateAddressFromString(v.To))
 	}
 
 	return out, nil

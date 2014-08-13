@@ -31,7 +31,7 @@ type Server struct {
 	// Basic Properties
 	Me      string
 	KeyFile string
-	Key     string
+	Key     *identity.Identity
 
 	// Tracker Properties
 	TrackerURL string
@@ -106,6 +106,8 @@ func (m *Server) Run(port int) error {
 	if err != nil {
 		return err
 	}
+
+	m.Key = loadedKey
 
 	handlers := []server.Handler{
 		&dap.Handler{
