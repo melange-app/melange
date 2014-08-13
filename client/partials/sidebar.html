@@ -2,7 +2,7 @@
   <ul class="nav nav-pills nav-stacked">
     <li ng-class="{ active: page == '/dashboard' }"><a href="#/dashboard"><i class="fa fa-fw fa-home"></i> Dashboard</a></li>
     <li ng-class="{ active: page == '/all' }"><a href="#/all"><i class="fa fa-fw fa-envelope"></i> All</a></li>
-    <li ng-class="{ active: page == '/profile' }"><a href="#/profile"><i class="fa fa-fw fa-user"></i> My Profile</a></li>
+    <li ng-class="{ active: page.indexOf('/profile') === 0 }"><a href="#/profile"><i class="fa fa-fw fa-user"></i> My Profile</a></li>
     <li class="seperator"></li>
     <li class="header">APPS</li>
     <li
@@ -13,7 +13,11 @@
     </li>
     <li class="seperator"></li>
     <li class="header">FAVORITES</li>
-    <li><a href="">Dalton Sherwood</a></li>
+    <li
+      ng-repeat="contact in contacts | filter: {'favorite': true}"
+      ng-class="{ active: page.indexOf('/contact/' + contact.id) === 0 }">
+        <a ng-href="#/contact/{{ contact.id }}">{{ contact.name }}</a>
+    </li>
   </ul>
 </div>
 <div class="sidebar-bottom">
