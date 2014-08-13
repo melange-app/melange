@@ -26,8 +26,8 @@ func sendAlert(r routing.Router, msgName string, from *identity.Identity, to str
 	return nil
 }
 
-func getProfile(r routing.Router, from *identity.Identity, to string) (*message.Mail, error) {
-	return downloadMessage(r, "profile", from, to, "")
+func getProfile(r routing.Router, from *identity.Identity, to string, alias string) (*message.Mail, error) {
+	return downloadMessage(r, "profile", from, to, alias)
 }
 
 func getAddresses(r routing.Router, to *models.Address) (server *identity.Address, author *identity.Address, err error) {

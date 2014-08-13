@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"melange/app/framework"
 	"melange/app/models"
@@ -19,7 +20,16 @@ import (
 	gdb "github.com/huntaub/go-db"
 )
 
-var messageCache, publicCache *cache.Cache = cache.NewCache(1 * time.Hour), cache.NewCache(1 * time.Hour)
+var (
+	cacheDuration             = 2 * time.Minute
+	messageCache, publicCache = cache.NewCache(cacheDuration), cache.NewCache(cacheDuration)
+	profileCache              = cache.NewCache(cacheDuration)
+)
+
+func invalidateCaches() {
+	messageCache, publicCache = cache.NewCache(cacheDuration), cache.NewCache(cacheDuration)
+	profileCache = cache.NewCache(cacheDuration)
+}
 
 type messageList []*melangeMessage
 
@@ -30,7 +40,7 @@ func (m messageList) Swap(i int, j int)      { m[i], m[j] = m[j], m[i] }
 type melangeMessage struct {
 	Name       string                       `json:"name"`
 	Date       time.Time                    `json:"date"`
-	From       string                       `json:"from"`
+	From       melangeProfile               `json:"from"`
 	To         []string                     `json:"to"`
 	Public     bool                         `json:"public"`
 	Components map[string]*melangeComponent `json:"components"`
@@ -40,6 +50,20 @@ type melangeMessage struct {
 type melangeComponent struct {
 	Binary []byte `json:"binary"`
 	String string `json:"string"`
+}
+
+type melangeProfile struct {
+	Name        string `json:"name"`
+	Avatar      string `json:"avatar"`
+	Alias       string `json:"alias"`
+	Fingerprint string `json:"fingerprint"`
+}
+
+func (m melangeProfile) UnmarshalJSON(data []byte) error {
+	// Data should be a string straight up.
+	fingerprint := string(data)
+	m.Fingerprint = fingerprint
+	return nil
 }
 
 func (m *melangeMessage) ToDispatch(from *identity.Identity) (*message.Mail, []*identity.Address, error) {
@@ -85,8 +109,8 @@ func translateComponents(comp message.ComponentList) map[string]*melangeComponen
 	return out
 }
 
-func translateMessageWithContext(public bool, context map[string][]byte, msg *message.Mail) []*melangeMessage {
-	obj := translateMessage(public, msg)
+func translateMessageWithContext(r routing.Router, from *identity.Identity, public bool, context map[string][]byte, msg *message.Mail) []*melangeMessage {
+	obj := translateMessage(r, from, public, msg)
 
 	out := make(map[string]string)
 	for key, v := range context {
@@ -98,14 +122,41 @@ func translateMessageWithContext(public bool, context map[string][]byte, msg *me
 	return obj
 }
 
-func translateMessage(public bool, msg ...*message.Mail) []*melangeMessage {
+func translateMessage(r routing.Router, from *identity.Identity, public bool, msg ...*message.Mail) []*melangeMessage {
 	out := make([]*melangeMessage, len(msg))
 
 	for i, v := range msg {
+		var profile melangeProfile
+		obj, stale := profileCache.Get(v.Header().Alias)
+		if !stale {
+			profile = obj.(melangeProfile)
+		} else {
+			var err error
+
+			profile, err = translateProfile(r, from, v.Header().From.String(), v.Header().Alias)
+			if err != nil {
+				fmt.Println("Couldn't get profile", err)
+
+				name := v.Header().From.String()
+				if v.Header().Alias != "" {
+					name = v.Header().Alias
+				}
+
+				profile = melangeProfile{
+					Name:        name,
+					Fingerprint: v.Header().From.String(),
+					Avatar:      "http://placehold.it/404", // haha
+					Alias:       v.Header().Alias,
+				}
+			} else {
+				profileCache.Store(v.Header().Alias, profile)
+			}
+		}
+
 		out[i] = &melangeMessage{
 			Name:       "",
 			Date:       time.Unix(v.Header().Timestamp, 0),
-			From:       v.Header().From.String(),
+			From:       profile,
 			Public:     public,
 			Components: translateComponents(v.Components),
 			Context:    nil,
@@ -113,6 +164,34 @@ func translateMessage(public bool, msg ...*message.Mail) []*melangeMessage {
 	}
 
 	return out
+}
+
+func translateProfile(r routing.Router, from *identity.Identity, fp string, alias string) (melangeProfile, error) {
+	if alias == "" {
+		return melangeProfile{}, errors.New("Can't get profile without alias support.")
+	}
+
+	profile, err := getProfile(r, from, fp, alias)
+	if err != nil {
+		return melangeProfile{}, err
+	}
+
+	name := profile.Components.GetStringComponent("airdispat.ch/profile/name")
+	if name == "" {
+		name = alias
+	}
+
+	avatar := profile.Components.GetStringComponent("airdispat.ch/profile/avatar")
+	if avatar == "" {
+		avatar = "http://placehold.it/404"
+	}
+
+	return melangeProfile{
+		Name:        name,
+		Avatar:      avatar,
+		Alias:       alias,
+		Fingerprint: fp,
+	}, nil
 }
 
 // Messages Controller will download messages from the server and subscribed
@@ -181,7 +260,7 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 			continue
 		}
 
-		outputMessages = append(outputMessages, translateMessageWithContext(false, v.Context, mail)...)
+		outputMessages = append(outputMessages, translateMessageWithContext(router, dap.Key, false, v.Context, mail)...)
 	}
 
 	// Download Public Messages
@@ -206,7 +285,7 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 			}
 			publicCache.Store(v.Fingerprint, msg)
 		}
-		outputMessages = append(outputMessages, translateMessage(true, msg...)...)
+		outputMessages = append(outputMessages, translateMessage(router, dap.Key, true, msg...)...)
 	}
 
 	sort.Sort(outputMessages)

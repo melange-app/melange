@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"io"
 	"melange/app/framework"
 	"melange/app/models"
 	"melange/app/packaging"
@@ -18,7 +17,7 @@ import (
 
 // Profile is a JSONObject specifying a request to create a new identity
 // (or profile, I suppose).
-type Profile struct {
+type identityRequest struct {
 	// Profile Information
 	FirstName string `json:"first"`
 	LastName  string `json:"last"`
@@ -28,7 +27,7 @@ type Profile struct {
 	Server  string `json:"server"`
 	Tracker string `json:"tracker"`
 	Alias   string `json:"alias"`
-	// Profile Nickname
+	// Identity Nickname
 	Nickname string `json:"nickname"`
 }
 
@@ -42,10 +41,10 @@ type SaveIdentity struct {
 // Handle performs the specified functions.
 func (i *SaveIdentity) Handle(req *http.Request) framework.View {
 	// Decode Body
-	profileRequest := &Profile{}
+	profileRequest := &identityRequest{}
 	err := DecodeJSONBody(req, &profileRequest)
 
-	if err != nil && err != io.EOF {
+	if err != nil {
 		fmt.Println("Error occured while decoding body:", err)
 		return framework.Error500
 	}

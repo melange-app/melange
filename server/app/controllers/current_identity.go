@@ -42,6 +42,8 @@ func (i *CurrentIdentity) Handle(req *http.Request) framework.View {
 			return framework.Error500
 		}
 
+		invalidateCaches()
+
 		return &framework.JSONView{
 			Content: map[string]interface{}{
 				"error": false,
