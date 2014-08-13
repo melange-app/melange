@@ -58,7 +58,7 @@ type Message struct {
 	allowed []string `db:"-"`
 }
 
-const QueryOutgoingNamed = "select * from " + TableNameMessage + " o where o.Owner = :owner and o.Name = :name and o.To like :recv and o.Type = 1"
+const QueryOutgoingNamed = "select * from " + TableNameMessage + " o where o.Owner = :owner and o.Name = :name and ((o.To like :recv and o.Type = 1) or (o.To = '' and o.Type = 0))"
 const QueryAnyNamed = "select * from " + TableNameMessage + " o where o.Owner = :owner and o.Name = :name"
 const QueryOutgoingPublic = "select * from " + TableNameMessage + " o where o.Owner = :owner and (o.To like :recv or o.To = '') and o.Received > :time and o.Type = 0"
 
