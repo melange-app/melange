@@ -24,13 +24,18 @@ melangeApp.config(['$routeProvider',
         templateUrl: 'partials/dashboard.html',
         controller: 'DashboardCtrl'
       })
-      .when('/profile', {
-        templateUrl: 'partials/profile.html',
-        controller: 'ProfileCtrl'
-      })
       .when('/all', {
         templateUrl: 'partials/all.html',
         controller: 'AllCtrl'
+      })
+      // Profile Routes
+      .when('/profile', {
+        templateUrl: 'partials/profile/profile.html',
+        controller: 'ProfileCtrl'
+      })
+      .when('/profile/new', {
+        templateUrl: 'partials/profile/new.html',
+        controller: 'NewProfileCtrl'
       })
       // Contact Routes
       .when('/contacts', {

@@ -1,0 +1,25 @@
+<h1>Create a New Profile</h1>
+<p>Looks like you are new around here, let's get you a profile.</p>
+
+<form role="form" ng-submit="save()">
+  <div class="form-group">
+    <label for="full-name">Full Name</label>
+    <input type="text" id="full-name" name="full-name" ng-model="profile.name" class="form-control">
+  </div>
+  <div class="row">
+    <div class="col-xs-10 col-md-11">
+      <div class="form-group">
+        <label for="image">Profile Picture</label>
+        <input type="text" id="image" name="image" ng-model="profile.image" class="form-control">
+      </div>
+    </div>
+    <div class="col-xs-2 col-md-1 text-center">
+      <img ng-if="profile.image" ng-src="{{ profile.image }}" class="img-circle img-responsive">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="description">About You</label>
+    <textarea id="description" name="description" ng-model="profile.description" class="form-control"></textarea>
+  </div>
+  <button type="submit" class="btn btn-primary">Save</button>
+</form>
