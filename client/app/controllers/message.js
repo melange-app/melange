@@ -1,42 +1,67 @@
 'use strict';
 
-var melangeControllers = angular.module('melangeControllers');
+(function() {
+  var melangeControllers = angular.module('melangeControllers');
 
-
-melangeControllers.controller('AllCtrl', ['$scope', 'mlgApi',
-function($scope, mlgApi) {
-    $scope.messages = mlgApi.getMessages();
-}]);
-
-melangeControllers.controller('DashboardCtrl', ['$scope', 'mlgApi',
-function($scope, mlgApi) {
-  $scope.tiles = [
-    {
-      size: "12",
-      height: "100",
-      url: "http://" + "ch.airdispat.plugins.status" + melangePluginSuffix + "/tile.html",
-      click: true,
-    },
-    {
-      size: "6",
-      height: "150",
-      url: "http://" + "ch.airdispat.plugins.news" + melangePluginSuffix + "/tile.html",
-      name: "News",
-    },
-    {
-      size: "6",
-      height: "150",
-      url: "http://" + "ch.airdispat.plugins.news" + melangePluginSuffix + "/tile.html",
-      name: "Family",
+  melangeControllers.controller('AllCtrl', ['$scope', 'mlgApi',
+  function($scope, mlgApi) {
+    // Sync up
+    $scope.$on("mlgSyncApp", sync)
+    var sync = function() {
+      $scope.messages = mlgApi.getMessages();
     }
-  ];
+    sync();
+    
+  }]);
 
-  $scope.newsfeed = mlgApi.getMessages();
-}]);
+  melangeControllers.controller('DashboardCtrl', ['$scope', 'mlgHelper', 'mlgTiles', 'mlgApi',
+  function($scope, mlgHelper, mlgTiles, mlgApi) {
+    $scope.editDash = false;
+    $scope.tiles = mlgHelper.promise([], mlgTiles.all());
 
-melangeControllers.controller('ProfileCtrl', ['$scope',
-function($scope) {
-  $scope.name = "Hunter Leath";
-  $scope.img = "http://i.imgur.com/mQtMWjg.jpg";
-  $scope.description = "Ipsum anim mollit sunt elit ex reprehenderit consectetur consequat anim irure. Veniam excepteur anim nostrud elit elit exercitation laboris. Cillum sint mollit minim laborum qui ex ipsum exercitation exercitation ex duis. Ex incididunt sunt et aliqua veniam incididunt minim irure proident ad nostrud voluptate exercitation aliqua.";
-}]);
+    // Sync up if needed.
+    $scope.$on("mlgSyncApp", sync)
+    var sync = function() {
+      $scope.newsfeed = mlgApi.getMessages();
+    }
+    sync();
+
+  }]);
+
+  melangeControllers.controller('ProfileCtrl', ['$scope', 'mlgApi',
+  function($scope, mlgApi) {
+    $scope.newProfile = false;
+
+    mlgApi.currentProfile().then(function(data) {
+      console.log(data);
+      $scope.profile = data;
+    },
+    function(err) {
+      if(err === true) {
+        $scope.newProfile = true;
+      } else {
+        console.log("Couldn't get profile. Something went wrong.")
+        console.log(err)
+      }
+    });
+
+  }]);
+
+  melangeControllers.controller('NewProfileCtrl', ['$scope', '$location', 'mlgApi',
+  function($scope, $location, mlgApi) {
+    $scope.profile = {};
+    $scope.save = function() {
+      // Save the profile
+      mlgApi.updateProfile($scope.profile).then(
+        function() {
+          $location.path("/profile");
+        },
+        function(err) {
+          console.log("Error updating profile.")
+          console.log(err)
+        }
+      )
+    }
+  }]);
+
+})();
