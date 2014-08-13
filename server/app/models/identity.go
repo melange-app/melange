@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"errors"
+	"fmt"
 
 	"airdispat.ch/crypto"
 	"airdispat.ch/identity"
@@ -12,7 +13,7 @@ import (
 
 // Identity represents a Keypair
 type Identity struct {
-	Id          gdb.PrimaryKey
+	Id          gdb.PrimaryKey `json:"-"`
 	Nickname    string
 	Fingerprint string
 	// Server Information and Tacking
@@ -25,6 +26,8 @@ type Identity struct {
 	// Password Protection
 	Protected bool
 	Aliases   *gdb.HasMany `table:"alias" on:"identity"`
+	// Profile
+	Profile *gdb.HasOne `table:"profile"`
 	// Transcendence
 	Current bool `db:"-"`
 }
@@ -48,7 +51,7 @@ func CreateIdentityFromDispatch(id *identity.Identity, key string) (*Identity, e
 
 // ToDispatch will take a key (to decode the identity) and return an (*identity).Identity
 // suitable for using in AirDispatch-related objects.
-func (i *Identity) ToDispatch(key string) (*identity.Identity, error) {
+func (i *Identity) ToDispatch(s gdb.Executor, key string) (*identity.Identity, error) {
 	data := i.Data
 	if key != "" {
 		return nil, errors.New("We don't support encryption yet.")
@@ -62,6 +65,17 @@ func (i *Identity) ToDispatch(key string) (*identity.Identity, error) {
 	}
 
 	id.SetLocation(i.Server)
+
+	// We sort of just pick one randomly here.
+
+	alias := &Alias{}
+	err = i.Aliases.One(s, alias)
+	if err != nil {
+		return nil, err
+	}
+
+	id.Address.Alias = alias.String()
+
 	return id, nil
 }
 
@@ -95,4 +109,18 @@ type Alias struct {
 	Identity *gdb.HasOne `table:"identity"`
 	Location string
 	Username string
+}
+
+func (a *Alias) String() string {
+	if a.Location != "_namecoin" {
+		return fmt.Sprintf("%s@%s", a.Username, a.Location)
+	}
+	return fmt.Sprintf("/%s", a.Username)
+}
+
+type Profile struct {
+	Id          gdb.PrimaryKey `json:"-"`
+	Name        string         `json:"name"`
+	Image       string         `json:"image"`
+	Description string         `json:"description"`
 }
