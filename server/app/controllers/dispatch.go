@@ -53,7 +53,7 @@ func downloadMessage(r routing.Router, msgName string, from *identity.Identity, 
 	author := identity.CreateAddressFromString(to)
 
 	txMsg := server.CreateTransferMessage(msgName, from.Address, srv, author)
-	bytes, typ, h, err := message.SendMessageAndReceiveWithoutTimestamp(txMsg, from, srv)
+	bytes, typ, h, err := message.SendMessageAndReceive(txMsg, from, srv)
 	if err != nil {
 		return nil, err
 	}

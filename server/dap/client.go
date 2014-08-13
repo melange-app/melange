@@ -40,7 +40,7 @@ func (c *Client) createHeader(to *identity.Address) message.Header {
 }
 
 func (c *Client) sendAndGetResponse(msg message.Message) (*Response, error) {
-	data, typ, head, err := message.SendMessageAndReceive(msg, c.Key, c.Server)
+	data, typ, head, err := message.SendMessageAndReceiveWithTimestamp(msg, c.Key, c.Server)
 	if err != nil {
 		return nil, err
 	} else if adErr := c.checkForError(data, typ, head); adErr != nil {
@@ -126,9 +126,9 @@ func (c *Client) decryptAndVerify(msg *message.EncryptedMessage, ts bool) ([]byt
 	}
 
 	if ts {
-		return receivedSign.ReconstructMessage()
+		return receivedSign.ReconstructMessageWithTimestamp()
 	} else {
-		return receivedSign.ReconstructMessageWithoutTimestamp()
+		return receivedSign.ReconstructMessage()
 	}
 }
 

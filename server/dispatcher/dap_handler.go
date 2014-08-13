@@ -17,7 +17,13 @@ func (m *Server) GetMessages(since uint64, owner string, context bool) ([]*dap.R
 
 	out := make([]*dap.ResponseMessage, len(msg))
 	for i, v := range msg {
-		out[i] = dap.CreateResponseMessage(v.ToDispatch(owner), identity.CreateAddressFromString(owner), identity.CreateAddressFromString(v.To))
+		data, err := v.ToDispatch(owner)
+		if err != nil {
+			m.HandleError(createError("(GetMessages:DAP) Marshalling message", err))
+			continue
+		}
+
+		out[i] = dap.CreateResponseMessage(data, identity.CreateAddressFromString(owner), identity.CreateAddressFromString(v.To))
 	}
 
 	return out, nil
@@ -61,9 +67,12 @@ func (m *Server) UpdateMessage(name string, author string, message *message.Encr
 	}
 
 	// Load New Information
-	msg.Data = message.Data
-	msg.EncKey = message.EncryptionKey
-	msg.EncType = message.EncryptionType
+	bytes, err := message.ToBytes()
+	if err != nil {
+		return err
+	}
+
+	msg.Data = bytes
 
 	_, err = m.dbmap.Update(msg)
 	return err

@@ -139,7 +139,7 @@ func TestGetMessages(t *testing.T) {
 		return
 	}
 
-	data, typ, h, err := receivedSign.ReconstructMessage()
+	data, typ, h, err := receivedSign.ReconstructMessageWithTimestamp()
 	if err != nil {
 		t.Error("Reconstructing Message: " + err.Error())
 		return
@@ -408,7 +408,7 @@ func (t *TestingDelegate) PublishMessage(name string, to []string, author string
 		return nil
 	}
 
-	data, typ, h, err := receivedSign.ReconstructMessage()
+	data, typ, h, err := receivedSign.ReconstructMessageWithTimestamp()
 	if err != nil {
 		t.Results <- &TestingResult{"Publish Message, Reconstruction", err.Error()}
 		return nil
@@ -464,7 +464,7 @@ func (t *TestingDelegate) UpdateMessage(name string, author string, msg *message
 		return nil
 	}
 
-	data, typ, h, err := receivedSign.ReconstructMessage()
+	data, typ, h, err := receivedSign.ReconstructMessageWithTimestamp()
 	if err != nil {
 		t.Results <- &TestingResult{"Update Message, Reconstruction", err.Error()}
 		return nil

@@ -144,7 +144,13 @@ func (m *Server) RetrieveMessageForUser(name string, author *identity.Address, f
 		return nil
 	}
 
-	return msg.ToDispatch(forAddr.String())
+	data, err := msg.ToDispatch(forAddr.String())
+	if err != nil {
+		m.HandleError(createError("(RetrieveMessage) Marshalling message", err))
+		return nil
+	}
+
+	return data
 }
 
 // RetrieveMessageListForUser will return all the public messages that a User
@@ -159,7 +165,11 @@ func (m *Server) RetrieveMessageListForUser(since uint64, author *identity.Addre
 	var out []*message.EncryptedMessage
 
 	for _, v := range results {
-		d := v.ToDispatch(forAddr.String())
+		d, err := v.ToDispatch(forAddr.String())
+		if err != nil {
+			m.HandleError(createError("(RetrieveMessageList) Marshalling message", err))
+			continue
+		}
 		out = append(out, d)
 	}
 

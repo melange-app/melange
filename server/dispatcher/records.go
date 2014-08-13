@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"airdispat.ch/identity"
 	"airdispat.ch/message"
 )
 
@@ -49,9 +48,6 @@ type Message struct {
 	Name string
 	Data []byte
 	Type int
-	// Encryption Information
-	EncKey  []byte
-	EncType []byte
 	// Metadata
 	Received int64
 	// Transient
@@ -138,36 +134,41 @@ func (m *Server) SaveMessage(name string, to []string, from string, message *mes
 		ownerId = user.Id
 	}
 
+	data, err := message.ToBytes()
+	if err != nil {
+		return err
+	}
+
 	out := &Message{
 		To:       strings.Join(to, ","),
 		Sender:   from,
 		Owner:    ownerId,
 		Name:     name,
-		Data:     message.Data,
+		Data:     data,
 		Type:     messageType,
-		EncKey:   message.EncryptionKey,
-		EncType:  message.EncryptionType,
 		Received: time.Now().Unix(),
 	}
 	return m.dbmap.Insert(out)
 }
 
 // Change Outgoing Message into Encrypted Message
-func (o *Message) ToDispatch(retriever string) *message.EncryptedMessage {
-	return &message.EncryptedMessage{
-		Data:           o.Data,
-		EncryptionKey:  o.EncKey,
-		EncryptionType: o.EncType,
-		To:             identity.CreateAddressFromString(retriever),
-	}
+func (o *Message) ToDispatch(retriever string) (*message.EncryptedMessage, error) {
+	return message.CreateEncryptedMessageFromBytes(o.Data)
 }
 
 // Save Outgoing Message
 func (m *Server) SaveIncomingMessage(message *message.EncryptedMessage) error {
-	return m.SaveMessage("", []string{message.To.String()}, "", message, TypeIncoming)
+	keys := make([]string, len(message.Header))
+	i := 0
+	for key, _ := range message.Header {
+		keys[i] = key
+		i++
+	}
+
+	return m.SaveMessage("", keys, "", message, TypeIncoming)
 }
 
-const QueryIncoming = "select * from " + TableNameMessage + " o where o.To = :owner and o.Received > :time and o.Type = 2"
+const QueryIncoming = "select * from " + TableNameMessage + " o where o.To like :owner and o.Received > :time and o.Type = 2"
 
 // Return Incoming Messages Since
 func (m *Server) GetIncomingMessagesSince(since uint64, owner string) ([]*Message, error) {
@@ -176,7 +177,7 @@ func (m *Server) GetIncomingMessagesSince(since uint64, owner string) ([]*Messag
 	// Create the Query
 	_, err := m.dbmap.Select(&results, QueryIncoming,
 		map[string]interface{}{
-			"owner": owner,
+			"owner": fmt.Sprintf("%%%s%%", owner),
 			"time":  since,
 		})
 
