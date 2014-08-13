@@ -2,8 +2,18 @@
   <head>
     <link href="http://common.melange.127.0.0.1.xip.io:9001/main/theme" rel="stylesheet" type="text/css">
     <link href="http://common.melange.127.0.0.1.xip.io:9001/css/font-awesome/4.1.0" rel="stylesheet" type="text/css">
+    <script src="http://common.melange.127.0.0.1.xip.io:9001/js/melange/0.0.1"></script>
+    <script src="tile.js"></script>
   </head>
   <body>
+    <style>
+      form {
+        margin-bottom: 0 !important;
+      }
+      .form-group {
+        margin-bottom: 0 !important;
+      }
+    </style>
     <form class="form">
       <div class="form-group">
         <textarea class="form-control" placeholder="What's up?" style="max-width: 100%;"></textarea>
@@ -11,7 +21,7 @@
           <span class="input-group-addon"><i class="fa fa-group"></i></span>
           <input class="form-control" type="text" placeholder="Public">
           <span class="input-group-btn">
-            <button class="btn btn-primary" type="button">Send</button>
+            <button class="btn btn-primary" id="sender" type="button">Send</button>
           </span>
         </div>
       </div>

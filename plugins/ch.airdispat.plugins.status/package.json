@@ -7,6 +7,15 @@
     "read-message": ["airdispat.ch/status/body"],
     "send-message": ["airdispat.ch/status/body"]
   },
+  "tiles": {
+    "status-updater": {
+      "name": "Quick Status Updater",
+      "description": "Quickly publish status updates at the top of your dashboard.",
+      "view": "tile.html",
+      "click": true,
+      "size": "100%x100"
+    }
+  },
   "hideSidebar": true,
   "author": {
     "name": "Hunter Leath",
