@@ -1,6 +1,7 @@
 .live-tile {
   width: 100%;
   position: relative;
+  margin-bottom: 10px;
   // max-height: 150px;
 
   .click-interceptor {
@@ -19,8 +20,35 @@
     margin: 0;
     border-style: none;
   }
+
+  .close-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #333;
+    border-radius: 50%;
+    border: 2px white solid;
+    color: white;
+    width: 26px;
+    height: 26px;
+    text-align: center;
+    z-index: 501;
+  }
 }
 
 .live-tile-name h6 {
   margin-top: 0;
+}
+
+.live-tile-seperator {
+  margin-top: 5px;
+}
+
+.add-tile {
+  a:hover {
+    text-decoration: none;
+    .panel {
+      background-color: #eee;
+    }
+  }
 }

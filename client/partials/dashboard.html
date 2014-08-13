@@ -1,10 +1,11 @@
-<h4>Dashboard <small><a href="#">edit</a></small></h4>
+<h4>Dashboard <small><a href="" ng-class="{'text-danger': editDash}" ng-click="editDash = !editDash">{{ editDash && 'stop editing' || 'edit' }}</a></small></h4>
 <div class="row">
   <div class="col-xs-{{ tile.size }}" ng-repeat="tile in tiles">
-    <mlg-tile src="tile.url" height="tile.height" name="tile.name" clickthrough="tile.click"></mlg-tile>
+    <mlg-tile src="tile.url" edit="editDash" height="tile.height" name="tile.name" clickthrough="tile.click"></mlg-tile>
   </div>
+  <mlg-add-tile ng-show="editDash"></mlg-add-tile>
 </div>
-<hr/>
+<hr class="live-tile-seperator"/>
 <h4>Newsfeed <small><a href="">filter</a></small></h4>
 <div ng-show="newsfeed.length == 0" class="text-center text-muted">
   <h2>Your newsfeed is completely empty!</h2>

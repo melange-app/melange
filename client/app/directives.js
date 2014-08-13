@@ -13,7 +13,18 @@ melangeDirectives.directive("mlgTile", function() {
       url: "=src",
       name: "=name",
       click: "=clickthrough",
+      edit: "=edit",
     },
+    link: function(element, attrs, scope) {
+
+    },
+  }
+});
+
+melangeDirectives.directive("mlgAddTile", function() {
+  return {
+    templateUrl: "partials/directives/addTile.html",
+    restrict: "E",
     link: function(element, attrs, scope) {
 
     },
@@ -60,6 +71,7 @@ melangeDirectives.directive("message", ['mlgPlugins', function(mlgPlugins) {
         console.log(d);
         mlgPlugins.viewer(d).then(function(v) {
           thePlugin = v[0];
+          scope.plugin = thePlugin;
           scope.templateType = "remote";
           scope.url = "http://" + v[0].id + melangePluginSuffix + "/" + v[0].viewers[v[1]].view;
         }, function() { scope.templateType = "default"; });
