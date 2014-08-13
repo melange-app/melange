@@ -1,17 +1,8 @@
 <script type="text/ng-template" id="default">
-  <div class="row">
-    <div class="col-sm-3 col-md-2 col-lg-1">
-      <img src="http://placehold.it/423" class="img-responsive img-circle"/>
-    </div>
-    <div class="col-sm-9 col-md-10 col-lg-11">
-      <p class="text-muted" style="font-size: 50%;">{{ data.date }}</p>
-      <h5 class="text-muted">{{ data.from }}</h5>
       <div ng-repeat="(key, component) in data.components">
         <p><strong>{{ key }}</strong></p>
-        <p>{{ component.string }}</p>
+        <p style='word-wrap: break-word;'>{{ component.string }}</p>
       </div>
-    </div>
-  </div>
 </script>
 
 <script type="text/ng-template" id="remote">
@@ -20,6 +11,16 @@
 
 <div class="panel panel-default">
   <div class="panel-body">
-    <ng-include src="templateType" onload="register()"></ng-include>
+    <div class="row">
+      <div class="col-sm-2 col-md-2 col-lg-1">
+        <img ng-src="{{ data.from.avatar }}" class="img-responsive img-circle"/>
+      </div>
+      <div class="col-sm-10 col-md-10 col-lg-11">
+        <p class="text-muted" style="font-size: 50%;"><i class="fa fa-fw fa-rss" ng-show="data.public"></i> {{ data.date | date : 'short' }}</p>
+        <h5 class="text-muted">{{ data.from.name }}</h5>
+        <ng-include src="templateType" onload="register()"></ng-include>
+        <p ng-if="templateType == 'remote'" class="text-muted" style="margin: 0;"><small>viewed by <abbr title="{{ plugin.id }}">{{ plugin.name }}</abbr></small></p>
+      </div>
+    </div>
   </div>
 </div>
