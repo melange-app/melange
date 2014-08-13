@@ -52,6 +52,7 @@ type Router struct {
 }
 
 func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	fmt.Println("Got request for", req.URL.Path)
 	// Ensure that the Host matches what we expect
 	url := strings.Split(req.Host, ".melange")
 	if len(url) != 2 || !(strings.HasPrefix(url[1], ":") || url[1] == r.p.Suffix) {

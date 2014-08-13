@@ -52,16 +52,24 @@ func CurrentDAPClient(store *models.Store, table gdb.Table) (*dap.Client, *frame
 		return nil, err
 	}
 
-	adID, regErr := id.ToDispatch("")
+	cli, regErr := DAPClientFromID(id, store)
 	if regErr != nil {
-		fmt.Println("Error serializing identity.", regErr)
+		fmt.Println("Error getting DAPClientFromID", err)
 		return nil, framework.Error500
+	}
+
+	return cli, nil
+}
+
+func DAPClientFromID(id *models.Identity, store *models.Store) (*dap.Client, error) {
+	adID, regErr := id.ToDispatch(store, "")
+	if regErr != nil {
+		return nil, regErr
 	}
 
 	server, regErr := id.CreateServerFromIdentity()
 	if regErr != nil {
-		fmt.Println("Error getting current server.", regErr)
-		return nil, framework.Error500
+		return nil, regErr
 	}
 
 	return &dap.Client{

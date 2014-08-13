@@ -31,6 +31,7 @@ type Tile struct {
 	Description string `json:"description"`
 	View        string `json:"view"`
 	Size        string `json:"size"`
+	Click       bool   `json:"click"`
 }
 
 type Author struct {
@@ -39,10 +40,10 @@ type Author struct {
 	Homepage string `json:"homepage"`
 }
 
-func LoadPlugins(pluginPath string) View {
+func AllPlugins(pluginPath string) ([]Plugin, error) {
 	files, err := ioutil.ReadDir(pluginPath)
 	if err != nil {
-		return Error500
+		return nil, err
 	}
 
 	output := []Plugin{}
@@ -71,6 +72,17 @@ func LoadPlugins(pluginPath string) View {
 			packageJSON.Close()
 		}
 	}
+
+	return output, nil
+}
+
+func LoadPlugins(pluginPath string) View {
+	output, err := AllPlugins(pluginPath)
+	if err != nil {
+		fmt.Println("Error getting all plugins", err)
+		return Error500
+	}
+
 	bytes, err := json.Marshal(output)
 	if err != nil {
 		return Error500

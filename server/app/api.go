@@ -44,6 +44,8 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	pluginPath := filepath.Join(os.Getenv("MLGBASE"), "plugins")
+
 	// Create Simple Handler Map
 	handlers := map[string]Handler{
 		//
@@ -66,7 +68,31 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 		//
 
 		// GET  /plugins
-		"/plugins": &PluginServer{},
+		"/plugins": &PluginServer{
+			Path: pluginPath,
+		},
+
+		//
+		// TILES
+		//
+
+		"/tiles/current": &controllers.CurrentTiles{},
+		"/tiles": &controllers.AllTiles{
+			Path: pluginPath,
+		},
+
+		//
+		// PROFILES
+		//
+
+		"/profile/current": &controllers.CurrentProfile{
+			Store:  r.Settings,
+			Tables: tables,
+		},
+		"/profile/update": &controllers.UpdateProfile{
+			Store:  r.Settings,
+			Tables: tables,
+		},
 
 		//
 		// MESSAGES
@@ -147,6 +173,13 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
+	// Give them the 404, boss.
+	framework.WriteView(
+		&framework.HTTPError{
+			ErrorCode: 404,
+			Message:   "Couldn't get that page for you. Sorry.",
+		}, res,
+	)
 }
 
 // APIView will wrap a Handler and return CORS-compliant
@@ -229,11 +262,13 @@ func (p *POSTHandler) Handle(req *http.Request) framework.View {
 }
 
 // PluginServer returns the list of plugins from the MLGBASE/plugins directory.
-type PluginServer struct{}
+type PluginServer struct {
+	Path string
+}
 
 // Handle the PluginServer.
 func (s *PluginServer) Handle(req *http.Request) framework.View {
-	return framework.LoadPlugins(filepath.Join(os.Getenv("MLGBASE"), "plugins"))
+	return framework.LoadPlugins(s.Path)
 }
 
 // ServerLists will return the list of Trackers or Servers from
