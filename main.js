@@ -39,27 +39,7 @@ function logSpawn(spawn, name) {
 var debug = true;
 var go = {};
 
-app.on('will-finish-launching', function() {
-  // Launch Go Server
-  if(debug) {
-    go = spawn("go", ["run", __dirname + "/go/src/melange/server/server.go"], {
-      env: {
-        "GOPATH": __dirname + '/go',
-        "GOROOT": process.env["GOROOT"],
-        "PATH": process.env["PATH"],
-        "CWD": process.cwd,
-        "MLGBASE": __dirname,
-      },
-    });
-    logSpawn(go, "PLUGIN");
-  } else {
-      go = spawn("server/bin/melange");
-      logSpawn(go, "PLUGIN");
-  }
-});
-
 global["__dirname"] = __dirname
-
 // This method will be called when atom-shell has done everything
 // initialization and ready for creating browser windows.
 app.on('ready', function() {
@@ -72,10 +52,12 @@ app.on('ready', function() {
     "min-width": 769,
     "min-height": 600,
   });
-
   // and load the index.html of the app.
-  // mainWindow.loadUrl('http://app.melange:7776/Index.html#startup');
-  mainWindow.loadUrl("file://" + __dirname + "/loading.html");
+  if (!readyToLaunch) {
+    mainWindow.loadUrl("file://" + __dirname + "/loading.html");
+  } else {
+    continueLaunching();
+  }
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function() {
@@ -86,6 +68,63 @@ app.on('ready', function() {
   });
 
   mainWindow.focus();
+});
+
+var launched = false;
+var readyToLaunch = false;
+var continueLaunching = function() {
+  mainWindow.loadUrl('http://app.melange.127.0.0.1.xip.io:7776/Index.html#startup');
+  launched = true;
+}
+
+var checkedLaunched = function() {
+  if(!launched)
+    continueLaunching;
+}
+
+app.on('will-finish-launching', function() {
+  var http = require("http");
+
+  function onRequest(request, response) {
+    if(request.url === "/startup") {
+      console.log("Starting up.");
+      response.writeHead(200, {"Content-Type": "text/plain"});
+      response.write("Starting up...");
+      response.end();
+      if(mainWindow === null) {
+        readyToLaunch = true;
+        // Hacky...
+        setTimeout(checkLaunched, 1000);
+      } else {
+        continueLaunching();
+      }
+    } else {
+      response.writeHead(404, {"Content-Type": "text/plain"});
+      response.write("That request is not allowed.");
+      response.end();
+    }
+  }
+  var server = http.createServer(onRequest).listen(0, function() {
+    // Listening
+    console.log("opened application server on %j", server.address())
+    // Launch Go Server
+    if(debug) {
+      go = spawn("go", ["run", __dirname + "/go/src/melange/server/server.go"], {
+        env: {
+          "GOPATH": __dirname + '/go',
+          "GOROOT": process.env["GOROOT"],
+          "PATH": process.env["PATH"],
+          "CWD": process.cwd,
+          "MLGBASE": __dirname,
+          "MLGPORT": server.address().port,
+        },
+      });
+      logSpawn(go, "PLUGIN");
+    } else {
+        go = spawn("server/bin/melange");
+        logSpawn(go, "PLUGIN");
+    }
+  });
 });
 
 app.on('will-quit', function() {

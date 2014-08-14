@@ -6,6 +6,8 @@ import (
 	"melange/app/models"
 	"melange/dispatcher"
 	"melange/tracker"
+	"net/http"
+	"os"
 )
 
 // Main Server
@@ -34,6 +36,17 @@ func (m *Melange) Run(port int) error {
 		// Settings
 		Settings: settings,
 	}
+
+	go func() {
+		port := os.Getenv("MLGPORT")
+		if port != "" {
+			resp, err := http.Get(fmt.Sprintf("http://localhost:%s/startup", port))
+			if err != nil || resp.StatusCode != 200 {
+				fmt.Println("Got error getting startup...", err, resp.StatusCode)
+			}
+		}
+	}()
+
 	return m.App.Run(port)
 }
 
