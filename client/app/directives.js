@@ -68,7 +68,6 @@ melangeDirectives.directive("message", ['mlgPlugins', function(mlgPlugins) {
       scope.$watch("data", function(d) {
         if(typeof d === "string")
           return
-        console.log(d);
         mlgPlugins.viewer(d).then(function(v) {
           thePlugin = v[0];
           scope.plugin = thePlugin;

@@ -1,11 +1,11 @@
 <p>
   <a href="" class="btn btn-danger btn-sm"><i class="fa fa-plus"></i> Add List</a>
-  <a href="" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Add Contact</a>
+  <a href="" class="btn btn-primary btn-sm" ng-click="newContact()"><i class="fa fa-plus"></i> Add Contact</a>
   <!-- <a href="" class="btn btn-default btn-sm"><i class="fa fa-file"></i> Import / Export</a> -->
 </p>
 
 <div class="row">
-  <div class="col-sm-6 col-md-3">
+  <div class="col-sm-5 col-md-3">
     <h5>Contacts</h5>
     <form role="form">
       <div class="form-group">
@@ -18,32 +18,51 @@
         <input type="text" placeholder="Search..." class="form-control" ng-model="search">
       </div>
     </form>
-    <div class="list-group" ng-init="selectedContact = contacts[0]">
+    <div class="list-group">
       <a href=""
          class="list-group-item"
          ng-repeat="contact in contacts | filter: {$: search, lists: selectedList}"
-         ng-class="{active: $parent.selectedContact.name == contact.name}"
-         ng-click="$parent.selectedContact = contact">
+         ng-class="{active: $parent.selectedContact.id == contact.id}"
+         ng-click="selectContact(contact)">
          <i class="fa fa-fw" ng-class="{ 'fa-star': contact.favorite }"></i>
          {{ contact.name }}
        </a>
     </div>
   </div>
-  <div class="col-sm-6 col-md-9" ng-show="contacts.length != 0">
+  <div class="col-sm-7 col-md-9" ng-show="contacts.length != 0">
     <h5>Detail</h5>
     <div class="well">
-      <img src="http://placehold.it/64" class="pull-left img-circle" style="margin-right: 10px;">
+      <img ng-show='!edit' src="http://placehold.it/64" class="pull-left img-circle" style="margin-right: 10px;">
       <p class="pull-right">
-        <a href="" class="btn btn-xs btn-primary"><i class="fa fa-star"></i></a>
-        <a href="" class="btn btn-xs btn-success">Subscribe</a>
-        <a href="" class="btn btn-xs btn-default">Edit</a>
+        <a href="" ng-click="favorite(selectedContact)" class="btn btn-xs btn-primary"><i class="fa" ng-class="{ 'fa-star': selectedContact.favorite, 'fa-star-o': !selectedContact.favorite }"></i></a>
+        <a href="" ng-click="subscribe(selectedContact)" class="btn btn-xs btn-success">{{ selectedContact.subscribed ? 'Unsubscribe' : 'Subscribe' }}</a>
+        <a href="" ng-click="saveContacts()" class="btn btn-xs btn-default">{{ edit ? 'Save' : 'Edit' }}</a>
       </p>
-      <h3 style="margin: 0 0 5px 0;">{{ selectedContact.name }}</h3>
-      <p class="text-muted">Family</p>
-      <div class="clear"></div>
-      <hr/>
-      <h4>Identities</h4>
-      <p class="text-muted" ng-repeat="identity in selectedContact.identities">{{ identity.address }} <small><a href="">copy</a></small></p>
+      <div ng-switch="edit">
+        <div ng-switch-when="true">
+          <!-- Edit Controls -->
+          <div class="form-group">
+            <input ng-model="selectedContact.name" class="form-control" placeholder="Full Name">
+          </div>
+          <p><a href="">Add to Group <i class="fa fa-caret-down"></i></a></p>
+          <div class="clear"></div>
+          <hr/>
+          <h4>Identities <small><a href="">add</a></small></h4>
+          <div class="form-group" ng-repeat="identity in selectedContact.addresses">
+            <input ng-model="identity.alias" class="form-control" placeholder="john@example.com">
+          </div>
+          <p class="text-muted">Changes will not be saved until you click save.</p>
+        </div>
+        <div ng-switch-when="false">
+          <!-- Display Controls -->
+          <h3 style="margin: 0 0 5px 0;">{{ selectedContact.name }}</h3>
+          <p class="text-muted">Family</p>
+          <div class="clear"></div>
+          <hr/>
+          <h4>Identities</h4>
+          <p class="text-muted" ng-repeat="identity in selectedContact.addresses">{{ identity.alias }} <small><a href="">copy</a></small></p>
+        </div>
+      </div>
     </div>
   </div>
   <div class="col-sm-6 col-md-9 text-center" ng-show="contacts.length == 0">

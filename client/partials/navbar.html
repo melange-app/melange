@@ -25,7 +25,7 @@
         <li class="dropdown">
           <a class="icon" style="padding-left: 10px;" href="" class="dropdown-toggle" data-toggle="dropdown">{{ currentIdentity.Nickname }} <b class="caret"></b></a>
           <ul class="dropdown-menu">
-            <li ng-repeat="id in allIdentities"><a href="" ng-click="idSwitch(id);">Switch to {{ id.Nickname }}</a></li>
+            <li ng-repeat="id in allIdentities"><a href="" ng-click="switchId(id);">Switch to {{ id.Nickname }}</a></li>
             <li class="divider"></li>
             <li><a href="#"><i class="fa fa-fw fa-eye"></i> Private Mode</a></li>
             <li><a href="#/settings/identity/new"><i class="fa fa-fw fa-plus"></i> Add a New Identity</a></li>

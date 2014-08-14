@@ -6,31 +6,33 @@
   melangeControllers.controller('ApplicationCtrl', ['$scope', '$location', '$route', '$interval', 'mlgIdentity', 'mlgPlugins', 'mlgHelper', 'mlgApi',
     function($scope, $location, $route, $interval, mlgIdentity, mlgPlugins, mlgHelper, mlgApi) {
 
-      var loadApp = function() {
-        $scope.allPlugins = mlgHelper.promise([], mlgPlugins.all());
+      mlgPlugins.all().then(function(plugins) {
+        $scope.allPlugins = plugins;
+      })
 
-        $scope.contacts = mlgApi.contacts();
-
-        $scope.currentIdentity = mlgHelper.promise({}, mlgIdentity.current());
-        $scope.allIdentities = mlgHelper.promise([], mlgIdentity.list());
-      }
-
-      $scope.$on("mlgRefreshApp", function(e, args) {
-        console.log("Refreshing...");
-        loadApp()
+      mlgApi.contacts().then(function(data) {
+        $scope.contacts = data;
       });
-      loadApp();
+
+      mlgIdentity.current().then(function(id) {
+        $scope.currentIdentity = id;
+      });
+
+      mlgIdentity.list().then(function(ids) {
+        $scope.allIdentities = ids;
+      })
 
       $scope.syncInProgress = false;
       var sync = function() {
+        console.log("Syncing.");
         $scope.syncInProgress = true;
-        loadApp();
+        // loadApp();
         $scope.$broadcast("mlgSyncApp");
         $scope.syncInProgress = false;
       }
       $scope.sync = sync;
 
-      var autoSync = $interval(sync, 30000);
+      var autoSync = $interval(sync, 300000);
       $scope.$on("$destroy", function() {
         if(autoSync !== undefined) {
           autoSync.cancel();
@@ -40,6 +42,12 @@
 
       $scope.$watch(function() { return $location.path(); }, function(path) { $scope.page = path; });
       $scope.reload = $route.reload;
+
+      $scope.switchId = function(id) {
+        mlgIdentity.setCurrent(id).$promise.then(function() {
+          sync();
+        })
+      }
 
       $scope.containerClass = function(page) {
         if (page === undefined) { return }

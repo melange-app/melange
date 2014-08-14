@@ -75,7 +75,18 @@ var mlgCleanup = function(msg) {
       }
     });
 
+    var current = {};
     var identities = [];
+    var currentIdentity = function(defer) {
+      getIdentities(function(id) {
+        for(var i in id) {
+          if(id[i].Current) {
+            angular.copy(id[i], current);
+            defer.resolve(current);
+          }
+        }
+      });
+    };
     var getIdentities = function(callback) {
       if(identities.length == 0) {
         var ids = resource.list({}, function(data) {
@@ -91,8 +102,9 @@ var mlgCleanup = function(msg) {
 
     return {
       refresh: function() {
-        identities = [];
-        getIdentities(function(id) {});
+        anguluar.copy([], identities);
+        angular.copy({}, current);
+        currentIdentity(function(id) {});
       },
       startup: function() {
         var defer = $q.defer();
@@ -109,18 +121,22 @@ var mlgCleanup = function(msg) {
       },
       current: function() {
         var defer = $q.defer();
-        getIdentities(function(id) {
-          for(var i in id) {
-            if(id[i].Current) {
-              defer.resolve(id[i]);
-            }
-          }
-          defer.reject("Cannot get current identity.");
-        });
+        currentIdentity(defer);
         return defer.promise;
       },
       setCurrent: function(id) {
-        return resource.setCurrent(id);
+        // Reload the view
+        if(id.Current) { return }
+
+        for(var i in identities) {
+          identities[i].Current = false;
+        }
+        id.Current = true;
+        angular.copy(id, current);
+
+        return resource.setCurrent({
+          fingerprint: id.Fingerprint,
+        });
       },
       list: function() {
         var defer = $q.defer();
@@ -151,12 +167,62 @@ var mlgCleanup = function(msg) {
 
   // MLG-API
   melangeServices.factory('mlgApi', ['$resource', '$q', function($resource, $q) {
+    var apiResource = $resource('http://' + melangeAPI + '/:action', {}, {
+      contacts: {
+        method: 'GET',
+        isArray: true,
+        params: {
+          action: "contacts",
+        }
+      },
+      updateContact: {
+        method: 'POST',
+        params: {
+          action: "contacts/update",
+        }
+      },
+    })
+
+    var contacts = [];
+    var getContacts = function(defer) {
+      if(contacts.length == 0) {
+        console.log("Getting contacts.");
+        apiResource.contacts().$promise.then(
+          function(data) {
+            console.log(data);
+            for(var i in data) {
+              data[i].subscribed = false;
+              if(data[i].addresses !== undefined && data[i].addresses.length !== 0) {
+                data[i].subscribed = data[i].addresses[0].subscribed
+              }
+            }
+            contacts = data;
+            defer.resolve(contacts);
+          },
+          function(err) {
+            console.log("Error getting contacts.")
+            console.log(err);
+          }
+        );
+      } else {
+        defer.resolve(contacts);
+      }
+    };
+
     return {
       // Contact Management
       lists: function() {
         return ["Friends", "Family"];
       },
-      contacts: $resource('http://' + melangeAPI + '/contacts', {}, {query: {method: 'GET', isArray: true}}).query,
+      contacts: function() {
+        var defer = $q.defer();
+        console.log("Called contacts.");
+        getContacts(defer);
+        return defer.promise;
+      },
+      updateContact: function(contact) {
+        return apiResource.updateContact(contact).$promise;
+      },
       // Message Management
       publishMessage: $resource('http://' + melangeAPI + '/messages/new', {}, {create: {method:'POST'}}).create,
       getMessages: $resource('http://' + melangeAPI + '/messages', {}, {query: {method:'GET', isArray:true}}).query,

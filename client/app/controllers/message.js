@@ -6,25 +6,28 @@
   melangeControllers.controller('AllCtrl', ['$scope', 'mlgApi',
   function($scope, mlgApi) {
     // Sync up
-    $scope.$on("mlgSyncApp", sync)
     var sync = function() {
       $scope.messages = mlgApi.getMessages();
     }
     sync();
-    
+    $scope.$on("mlgSyncApp", sync)
+
   }]);
 
   melangeControllers.controller('DashboardCtrl', ['$scope', 'mlgHelper', 'mlgTiles', 'mlgApi',
   function($scope, mlgHelper, mlgTiles, mlgApi) {
     $scope.editDash = false;
-    $scope.tiles = mlgHelper.promise([], mlgTiles.all());
+    mlgTiles.all().then(function(tiles) {
+      $scope.tiles = tiles;
+    })
 
     // Sync up if needed.
-    $scope.$on("mlgSyncApp", sync)
     var sync = function() {
+      console.log("Syncing")
       $scope.newsfeed = mlgApi.getMessages();
     }
     sync();
+    $scope.$on("mlgSyncApp", sync)
 
   }]);
 

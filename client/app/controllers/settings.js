@@ -7,20 +7,13 @@
 
   melangeControllers.controller('SettingsCtrl', ['$scope', 'mlgIdentity', 'mlgHelper', '$rootScope',
     function($scope, mlgIdentity, mlgHelper, $rootScope) {
-      $scope.identities = mlgHelper.promise([], mlgIdentity.list());
+      mlgIdentity.list().then(function(data) {
+        $scope.identities = data;
+      })
 
       $scope.setCurrentIdentity = function(id) {
-          // Reload the view
-          for(var i in $scope.identities) {
-            $scope.identities[i].Current = false;
-          }
-          id.Current = true;
-
           // Set it in the API
-          mlgIdentity.setCurrent({
-            fingerprint: id.Fingerprint,
-          });
-          $scope.$emit("mlgRefreshApp");
+          mlgIdentity.setCurrent(id);
       };
 
       $scope.copy = function(str) {
