@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"melange/app/framework"
 	"net/http"
 	"path/filepath"
@@ -9,7 +8,7 @@ import (
 )
 
 func (r *Server) HandleCommon(res http.ResponseWriter, req *http.Request) {
-	fmt.Println("Get Common", req.URL.Path)
+	// fmt.Println("Get Common", req.URL.Path)
 	// Serve Library Files
 	if req.URL.Path == "/main/theme" {
 		// Load the Main Theme Files
@@ -22,7 +21,7 @@ func (r *Server) HandleCommon(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 		typ, lib, version := dirs[1], dirs[2], dirs[3]
-		fmt.Println("About to serve file", typ, lib, version)
+		// fmt.Println("About to serve file", typ, lib, version)
 		view := framework.ServeFile("lib", filepath.Join(filepath.FromSlash(lib), version+"."+filepath.FromSlash(typ)))
 		framework.WriteView(view, res)
 	}
