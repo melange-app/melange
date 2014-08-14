@@ -19,6 +19,7 @@ app.on('window-all-closed', function() {
 // Functions for Spawning our Cousin Processes
 var sys = require('sys')
 var spawn = require('child_process').spawn;
+
 function logSpawn(spawn, name) {
   spawn.stdout.on('data', function (data) {
     data = data + ""
@@ -35,9 +36,31 @@ function logSpawn(spawn, name) {
   });
 }
 
+var dataDirectory = function() {
+  if(process.platform === 'darwin') {
+    return process.env.HOME + "/Library/Application Support/Melange";
+  } else if (process.platform === 'win32') {
+    return process.env.APPDATA + "/Melange"
+  } else {
+    return process.env.HOME + "/.melange";
+  }
+}
+
+var path = require('path');
+var applicationDirectory = function() {
+  if(process.platform === 'darwin') {
+    return path.join(process.execPath, "..", "..", "..");
+  } else {
+    return path.join(process.execPath, "..", "..");
+  }
+}
+
 
 var debug = true;
 var go = {};
+
+console.log(applicationDirectory());
+console.log(process.execPath);
 
 global["__dirname"] = __dirname
 // This method will be called when atom-shell has done everything
@@ -116,6 +139,7 @@ app.on('will-finish-launching', function() {
           "PATH": process.env["PATH"],
           "CWD": process.cwd,
           "MLGBASE": __dirname,
+          "MLGDATA": dataDirectory(),
           "MLGPORT": server.address().port,
         },
       });
