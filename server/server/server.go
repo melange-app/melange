@@ -8,6 +8,7 @@ import (
 	"melange/tracker"
 	"net/http"
 	"os"
+	"path/filepath"
 )
 
 // Main Server
@@ -19,7 +20,13 @@ type Melange struct {
 
 func (m *Melange) Run(port int) error {
 	// Create a New Store for Settings
-	settings, err := models.CreateStore("settings.db")
+	dataDir := os.Getenv("MLGDATA")
+	err := os.MkdirAll(dataDir, os.ModeDir|os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	settings, err := models.CreateStore(filepath.Join(dataDir, "settings.db"))
 	if err != nil {
 		return err
 	}
@@ -37,6 +44,7 @@ func (m *Melange) Run(port int) error {
 		Settings: settings,
 	}
 
+	fmt.Println("Starting up.")
 	go func() {
 		port := os.Getenv("MLGPORT")
 		if port != "" {

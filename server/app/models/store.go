@@ -4,8 +4,6 @@ import (
 	"github.com/huntaub/go-db"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
-	"os"
-	"path/filepath"
 )
 
 type Record struct {
@@ -43,7 +41,7 @@ func CreateStore(filename string) (*Store, error) {
 
 // Load the Database Connection
 func (s *Store) GetConnection() error {
-	conn, err := sqlx.Open("sqlite3", "file:" + s.dbLocation() + "?cache=shared&mode=rwc")
+	conn, err := sqlx.Open("sqlite3", "file:"+s.Filename+"?cache=shared&mode=rwc")
 	if err != nil {
 		return err
 	}
@@ -58,10 +56,6 @@ func (s *Store) CreateTables() error {
 		s.table = t
 	}
 	return err
-}
-
-func (s *Store) dbLocation() string {
-	return filepath.Join(os.Getenv("MLGBASE"), "data", s.Filename)
 }
 
 func (s *Store) SetBytes(key string, value []byte) error {
