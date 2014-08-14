@@ -1,12 +1,13 @@
 package dap
 
 import (
-	"airdispat.ch/identity"
-	"airdispat.ch/message"
-	"code.google.com/p/goprotobuf/proto"
 	"errors"
 	"melange/dap/wire"
 	"strings"
+
+	"airdispat.ch/identity"
+	"airdispat.ch/message"
+	"code.google.com/p/goprotobuf/proto"
 )
 
 const codePrefix = "DAP-"
@@ -108,7 +109,7 @@ func (h *Handler) Register(r *wire.Register, head message.Header) ([]message.Mes
 	if err != nil {
 		return nil, err
 	}
-	return CreateResponse(0, "OK", head.To, head.From), nil
+	return CreateResponse(0, "OK", h.Key.Address, head.From), nil
 }
 
 // Unregister a User on the Delegate
@@ -121,7 +122,7 @@ func (h *Handler) Unregister(r *wire.Unregister, head message.Header) ([]message
 	if err != nil {
 		return nil, err
 	}
-	return CreateResponse(0, "OK", head.To, head.From), nil
+	return CreateResponse(0, "OK", h.Key.Address, head.From), nil
 }
 
 // Return all Messages received after `since` in sequence.
@@ -136,7 +137,7 @@ func (h *Handler) DownloadMessages(r *wire.DownloadMessages, head message.Header
 		out[i] = v
 	}
 
-	return CreateResponse(0, "OK", head.To, head.From, out...), nil
+	return CreateResponse(0, "OK", h.Key.Address, head.From, out...), nil
 }
 
 // Publish a message on Delegate.
@@ -152,7 +153,7 @@ func (h *Handler) PublishMessage(r *wire.PublishMessage, head message.Header) ([
 		return nil, err
 	}
 
-	return CreateResponse(0, "OK", head.To, head.From), nil
+	return CreateResponse(0, "OK", h.Key.Address, head.From), nil
 }
 
 // Update a message on Delegate.
@@ -168,7 +169,7 @@ func (h *Handler) UpdateMessage(r *wire.UpdateMessage, head message.Header) ([]m
 		return nil, err
 	}
 
-	return CreateResponse(0, "OK", head.To, head.From), nil
+	return CreateResponse(0, "OK", h.Key.Address, head.From), nil
 }
 
 // Set Data
@@ -178,7 +179,7 @@ func (h *Handler) Data(r *wire.Data, head message.Header) ([]message.Message, er
 		return nil, err
 	}
 
-	return CreateResponse(0, "OK", head.To, head.From), nil
+	return CreateResponse(0, "OK", h.Key.Address, head.From), nil
 }
 
 // Get Data
@@ -188,5 +189,5 @@ func (h *Handler) GetData(r *wire.GetData, head message.Header) ([]message.Messa
 		return nil, err
 	}
 
-	return CreateDataResponse(0, "OK", head.To, head.From, data), nil
+	return CreateDataResponse(0, "OK", h.Key.Address, head.From, data), nil
 }

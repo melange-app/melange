@@ -80,12 +80,7 @@ func (m *melangeMessage) ToDispatch(from *identity.Identity) (*message.Mail, []*
 		}
 	}
 
-	var theAddress *identity.Address
-	if len(addrs) > 0 {
-		theAddress = addrs[0]
-	}
-
-	mail := message.CreateMail(from.Address, theAddress, m.Date)
+	mail := message.CreateMail(from.Address, m.Date, addrs...)
 
 	for key, v := range m.Components {
 		mail.Components.AddComponent(message.Component{
