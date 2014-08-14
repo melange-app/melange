@@ -36,8 +36,6 @@ function logSpawn(spawn, name) {
 }
 
 
-// app.commandLine.appendSwitch("host-rules", "MAP * 127.0.0.1");
-
 var debug = true;
 var go = {};
 
@@ -76,7 +74,7 @@ app.on('ready', function() {
   });
 
   // and load the index.html of the app.
-  // mainWindow.loadUrl('http://app.melange.127.0.0.1.xip.io:9001/Index.html#startup');
+  // mainWindow.loadUrl('http://app.melange:7776/Index.html#startup');
   mainWindow.loadUrl("file://" + __dirname + "/loading.html");
 
   // Emitted when the window is closed.

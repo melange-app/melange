@@ -23,7 +23,7 @@ func (m *Melange) Run(port int) error {
 	}
 
 	m.App = &app.Server{
-		Suffix:  ".127.0.0.1.xip.io:9001",
+		Suffix:  ".127.0.0.1.xip.io:7776",
 		Common:  "http://common.melange",
 		Plugins: "http://*.plugins.melange",
 		API:     "http://api.melange",
@@ -39,7 +39,7 @@ func (m *Melange) Run(port int) error {
 
 func main() {
 	mel := &Melange{}
-	err := mel.Run(9001)
+	err := mel.Run(7776)
 	if err != nil {
 		fmt.Println("Error Starting Server", err)
 	}

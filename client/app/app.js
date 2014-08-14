@@ -2,7 +2,7 @@
 
 /* App Module */
 
-var melangeSuffix = ".melange.127.0.0.1.xip.io:9001";
+var melangeSuffix = ".melange.127.0.0.1.xip.io:7776";
 var melangePluginSuffix=".plugins" + melangeSuffix;
 var melangeAPI ="api" + melangeSuffix;
 
