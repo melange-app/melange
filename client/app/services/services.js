@@ -104,7 +104,9 @@ var mlgCleanup = function(msg) {
       refresh: function() {
         angular.copy([], identities);
         angular.copy({}, current);
-        currentIdentity(function(id) {});
+        var defer = $q.defer();
+        currentIdentity(defer);
+        return defer.promise;
       },
       startup: function() {
         var defer = $q.defer();
@@ -215,7 +217,6 @@ var mlgCleanup = function(msg) {
         console.log("Getting contacts.");
         apiResource.contacts().$promise.then(
           function(data) {
-            console.log(data);
             for(var i in data) {
               data[i].subscribed = false;
               if(data[i].addresses !== undefined && data[i].addresses.length !== 0) {
