@@ -153,10 +153,23 @@ app.on('will-finish-launching', function() {
           "MLGVERSION": "0.0.1",
         },
       });
-      logSpawn(go, "PLUGIN");
+      logSpawn(go, "SERVER");
     } else {
-        go = spawn("server/bin/melange");
-        logSpawn(go, "PLUGIN");
+      go = spawn(__dirname + "/bin/server", [], {
+        env: {
+          "GOPATH": __dirname + '/go',
+          "GOROOT": process.env["GOROOT"],
+          "PATH": process.env["PATH"],
+          "CWD": process.cwd,
+          "MLGBASE": __dirname,
+          "MLGDATA": dataDirectory(),
+          "MLGPORT": server.address().port,
+          "MLGAPP": applicationDirectory(),
+          "MLGPLATFORM": platform(),
+          "MLGVERSION": "0.0.1",
+        },
+      });
+        logSpawn(go, "SERVER");
     }
   });
 });
