@@ -5,8 +5,8 @@
   var melangeControllers = angular.module('melangeControllers');
 
 
-  melangeControllers.controller('SettingsCtrl', ['$scope', 'mlgIdentity', 'mlgHelper', '$rootScope',
-    function($scope, mlgIdentity, mlgHelper, $rootScope) {
+  melangeControllers.controller('SettingsCtrl', ['$scope', '$interval', 'mlgApi', 'mlgIdentity', 'mlgHelper', '$rootScope',
+    function($scope, $interval, mlgApi, mlgIdentity, mlgHelper, $rootScope) {
       mlgIdentity.list().then(function(data) {
         $scope.identities = data;
       })
@@ -21,6 +21,66 @@
           var clipboard = require('clipboard');
           clipboard.writeText(str);
         }
+      }
+
+      $scope.working = false;
+      $scope.updateStatus = "Check for Updates"
+      $scope.btnType = "btn-primary"
+      $scope.canUpdate = window.require;
+      var dir = undefined;
+
+      var installUpdate = function() {
+        // Install will shutdown the server, I have to shutdown node
+        mlgApi.update.install({
+          dir: dir,
+        });
+        var remote = require("remote");
+        var app = remote.require("app");
+        app.quit();
+      }
+
+      var downloadUpdate = function() {
+        $scope.working = true;
+        $scope.updateStatus = "Downloading...";
+        mlgApi.update.download($scope.update).$promise.then(function(obj) {
+          $scope.downloadProgress = 0;
+          $interval(function() {
+              mlgApi.update.progress().$promise.then(function(obj) {
+                if(obj["dir"] !== undefined) {
+                  $scope.working = false;
+                  $scope.btnType = "btn-danger";
+                  $scope.updateStatus = "Install and Restart";
+                  $scope.checkForUpdates = installUpdate;
+                  dir = obj["dir"];
+                } else if (obj["progress"] !== undefined) {
+                  console.log(obj["progress"])
+                  $scope.downloadProgress = obj["progress"] * 100;
+                }
+              })
+          }, 200)
+        }, function(err) {
+          console.log("Error downloading update.");
+          console.log(err);
+        })
+      }
+
+      $scope.checkForUpdates = function() {
+        $scope.working = true;
+        mlgApi.update.check().$promise.then(function(obj) {
+          $scope.working = false;
+          $scope.btnType = "btn-success"
+          $scope.updateStatus = "Download new Version " + obj.Version;
+          $scope.update = obj;
+          $scope.checkForUpdates = downloadUpdate;
+        }, function(obj) {
+          $scope.working = false;
+          if(obj.status == 422) {
+            $scope.updateStatus = "No new update.";
+          } else {
+            console.log("Error getting update.")
+            console.log(obj);
+          }
+        })
       }
 
     }]);

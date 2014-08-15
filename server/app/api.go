@@ -46,6 +46,10 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 
 	pluginPath := filepath.Join(os.Getenv("MLGBASE"), "plugins")
 
+	version := os.Getenv("MLGVERSION")
+	platform := os.Getenv("MLGPLATFORM")
+	appLocation := os.Getenv("MLGAPP")
+
 	// Create Simple Handler Map
 	handlers := map[string]Handler{
 		//
@@ -61,6 +65,20 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 		"/trackers": &ServerLists{
 			URL:      "/trackers",
 			Packager: packager,
+		},
+
+		//
+		// UPDATES
+		//
+
+		"/update": &controllers.CheckUpdateController{
+			Version:  version,
+			Platform: platform,
+		},
+		"/update/download":          &controllers.DownloadUpdateController{},
+		"/update/download/progress": &controllers.UpdateProgressController{},
+		"/update/install": &controllers.InstallUpdateController{
+			AppLocation: appLocation,
 		},
 
 		//

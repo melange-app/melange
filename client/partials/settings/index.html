@@ -11,4 +11,22 @@
       </label>
     </div>
   </form>
+  <br/>
+  <div ng-if="canUpdate">
+    <h4>Updates</h4>
+    <p><a href="" ng-click="checkForUpdates()" class="btn btn-sm" ng-class="btnType"><i class="fa fa-fw fa-refresh" ng-class="{'fa-spin': working}"></i> {{ updateStatus }}</a></p>
+    <br ng-if="downloadProgress"/>
+    <div ng-if="downloadProgress" class="progress">
+      <div class="progress-bar" role="progressbar" aria-valuenow="{{ downloadProgress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ downloadProgress }}%;">
+        <span class="sr-only">{{ downloadProgress }}% Complete</span>
+      </div>
+    </div>
+    <br ng-if="update"/>
+    <div ng-if="update">
+      <div class="well">
+        <h3 style="margin: 0 0 10px 0;">Version: {{ update.Version }}</h3>
+        {{ update.Changelog }}
+      </div>
+    </div>
+  </div>
 </div>

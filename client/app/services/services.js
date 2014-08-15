@@ -168,6 +168,7 @@ var mlgCleanup = function(msg) {
   // MLG-API
   melangeServices.factory('mlgApi', ['$resource', '$q', function($resource, $q) {
     var apiResource = $resource('http://' + melangeAPI + '/:action', {}, {
+      // Contacts
       contacts: {
         method: 'GET',
         isArray: true,
@@ -181,6 +182,31 @@ var mlgCleanup = function(msg) {
           action: "contacts/update",
         }
       },
+      // Updates
+      updateCheck: {
+        method: 'GET',
+        params: {
+          action: "update",
+        }
+      },
+      downloadUpdate: {
+        method: 'POST',
+        params: {
+          action: "update/download",
+        }
+      },
+      downloadProgress: {
+        method: 'POST',
+        params: {
+          action: "update/download/progress",
+        }
+      },
+      installUpdate: {
+        method: 'POST',
+        params: {
+          action: "update/install",
+        }
+      }
     })
 
     var contacts = [];
@@ -210,6 +236,12 @@ var mlgCleanup = function(msg) {
     };
 
     return {
+      update: {
+        check: apiResource.updateCheck,
+        download: apiResource.downloadUpdate,
+        progress: apiResource.downloadProgress,
+        install: apiResource.installUpdate,
+      },
       // Contact Management
       lists: function() {
         return ["Friends", "Family"];

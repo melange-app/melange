@@ -46,6 +46,16 @@ var dataDirectory = function() {
   }
 }
 
+var platform = function() {
+  if(process.platform === 'darwin') {
+    return 'mac'
+  } else if (process.platform === 'win32') {
+    return 'windows'
+  } else {
+    return 'linux'
+  }
+}
+
 var path = require('path');
 var applicationDirectory = function() {
   if(process.platform === 'darwin') {
@@ -138,6 +148,9 @@ app.on('will-finish-launching', function() {
           "MLGBASE": __dirname,
           "MLGDATA": dataDirectory(),
           "MLGPORT": server.address().port,
+          "MLGAPP": applicationDirectory(),
+          "MLGPLATFORM": platform(),
+          "MLGVERSION": "0.0.1",
         },
       });
       logSpawn(go, "PLUGIN");
