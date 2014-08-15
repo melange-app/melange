@@ -102,7 +102,7 @@ var mlgCleanup = function(msg) {
 
     return {
       refresh: function() {
-        anguluar.copy([], identities);
+        angular.copy([], identities);
         angular.copy({}, current);
         currentIdentity(function(id) {});
       },

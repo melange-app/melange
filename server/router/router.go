@@ -108,9 +108,10 @@ func (a *Router) Register(key *identity.Identity, alias string, redirect map[str
 	success := 0
 
 	for _, v := range a.TrackerList {
+		url := tracker.GetTrackingServerLocationFromURL(v)
 		newErr := (&tracker.Router{
 			Origin: a.Origin,
-			URL:    v,
+			URL:    url,
 		}).Register(key, alias, redirect)
 		if newErr == nil {
 			success++
