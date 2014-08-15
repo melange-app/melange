@@ -56,11 +56,8 @@ var applicationDirectory = function() {
 }
 
 
-var debug = true;
+var debug = (process.argv.length === 3 && process.argv[2] === 'debug');
 var go = {};
-
-console.log(applicationDirectory());
-console.log(process.execPath);
 
 global["__dirname"] = __dirname
 // This method will be called when atom-shell has done everything
@@ -127,7 +124,7 @@ app.on('will-finish-launching', function() {
       response.end();
     }
   }
-  var server = http.createServer(onRequest).listen(0, function() {
+  var server = http.createServer(onRequest).listen(0, "127.0.0.1", function() {
     // Listening
     console.log("opened application server on %j", server.address())
     // Launch Go Server

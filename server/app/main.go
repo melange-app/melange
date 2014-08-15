@@ -41,7 +41,7 @@ func (p *Server) AppURL() string {
 
 func (p *Server) Run(port int) error {
 	s := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
+		Addr:    fmt.Sprintf("127.0.0.1:%d", port),
 		Handler: &Router{p},
 	}
 	return s.ListenAndServe()

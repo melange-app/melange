@@ -14,6 +14,10 @@ func WriteView(view View, res http.ResponseWriter) {
 	contentLength := strconv.Itoa(view.ContentLength())
 	res.Header().Add("Content-Length", contentLength)
 
+	if view.Code() == 200 {
+		res.Header().Add("Connection", "keep-alive")
+	}
+
 	for key, value := range view.Headers() {
 		res.Header().Add(key, value)
 	}
