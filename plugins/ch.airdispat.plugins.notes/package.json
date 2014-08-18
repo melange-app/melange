@@ -9,7 +9,7 @@
   },
   "viewers": {
     "default": {
-      "view": "viewer.html",
+      "view": "viewer/viewer.html",
       "type": ["airdispat.ch/notes/title", "airdispat.ch/notes/body"]
     }
   },
