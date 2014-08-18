@@ -48,6 +48,14 @@
       }
     });
 
+    // Sync up if needed.
+    var sync = function() {
+      console.log("Syncing")
+      $scope.newsfeed = mlgApi.getMessages(true, false, false);
+    }
+    sync();
+    $scope.$on("mlgSyncApp", sync)
+
   }]);
 
   melangeControllers.controller('NewProfileCtrl', ['$scope', '$location', 'mlgApi',

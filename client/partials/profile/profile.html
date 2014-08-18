@@ -9,18 +9,19 @@
       <p>{{ profile.description }}</p>
     </div>
   </div>
-
-  <hr/>
-
-  <div ng-hide="messages" class="text-center text-muted">
-    <h2>There's nothing on your profile!</h2>
-    <p><a href="#/contacts">Subscribe to some friends</a>, or receive some messages.</p>
-  </div>
-  <div ng-repeat="message in messages">
-    <h1>I got a message, yo.</h1>
-  </div>
 </div>
 <div ng-if="newProfile" class="text-center text-muted">
   <h2>Looks like you don't have a profile yet.</h2>
   <p><a href="#/profile/new">Let's help set one up.</a></p>
+</div>
+
+<hr/>
+
+<div ng-hide="newsfeed.length > 0" class="text-center text-muted">
+  <h2>There's nothing on your profile!</h2>
+  <p>Go send some messages.</p>
+</div>
+
+<div ng-repeat="message in newsfeed">
+  <message data="message"></message>
 </div>
