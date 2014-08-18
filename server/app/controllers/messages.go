@@ -360,6 +360,10 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 
 			profiles := make([]*melangeProfile, 0)
 			for _, j := range toAddrs {
+				if j == "" {
+					continue
+				}
+
 				addr, _, err := getAddresses(router, &models.Address{
 					Alias: j,
 				})
