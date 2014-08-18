@@ -3,6 +3,8 @@ var BrowserWindow = require('browser-window');  // Module to create native brows
 
 require('./menu.js')(app)
 
+var VERSION = "0.0.2";
+
 // Report crashes to our server.
 require('crash-reporter').start();
 
@@ -150,7 +152,7 @@ app.on('will-finish-launching', function() {
           "MLGPORT": server.address().port,
           "MLGAPP": applicationDirectory(),
           "MLGPLATFORM": platform(),
-          "MLGVERSION": "0.0.1",
+          "MLGVERSION": VERSION,
         },
       });
       logSpawn(go, "SERVER");
@@ -166,7 +168,7 @@ app.on('will-finish-launching', function() {
           "MLGPORT": server.address().port,
           "MLGAPP": applicationDirectory(),
           "MLGPLATFORM": platform(),
-          "MLGVERSION": "0.0.1",
+          "MLGVERSION": VERSION,
         },
       });
         logSpawn(go, "SERVER");
