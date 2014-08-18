@@ -1,0 +1,15 @@
+{
+  "id": "ch.airdispat.plugins.chat",
+  "name": "Chat",
+  "version": "0.0.1",
+  "description": "Send quick messages to one another.",
+  "permissions": {
+    "read-message": ["airdispat.ch/chat/body", "airdispat.ch/chat/data"],
+    "send-message": ["airdispat.ch/chat/body", "airdispat.ch/chat/data"]
+  },
+  "author": {
+    "name": "Hunter Leath",
+    "email": "h@hunterleath.com"
+  },
+  "homepage": "http://airdispat.ch/plugins/chat"
+}

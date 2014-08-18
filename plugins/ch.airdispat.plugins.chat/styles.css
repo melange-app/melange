@@ -1,0 +1,106 @@
+.sidebar {
+  position: fixed;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  width: 175px;
+  background-color: #f0f0f0;
+  border-right: 1px #b6b6b6 solid;
+}
+
+.main {
+  position: fixed;
+  top: 0px;
+  bottom: 0px;
+  left: 175px;
+  right: 0px;
+  background-color: #E1E5EC;
+}
+
+.addMessage {
+  border-bottom: 1px #b6b6b6 solid;
+  text-align: right;
+}
+
+.addMessage a {
+  margin: 5px;
+}
+
+.conversation {
+  padding: 10px;
+  border-bottom: 1px #e1e1e1 solid;
+  /*border-top: 1px #ffffff solid;*/
+}
+
+.conversation:hover {
+  background-color: #d7d7d7;
+  /*color: #eee;*/
+  pointer: hand;
+}
+
+.conversation.active {
+  background-color: #008CBA;
+  color: white;
+}
+
+.main .top {
+  padding: 9px 5px 8px 5px;
+  border-bottom: 1px #cecece solid;
+}
+
+.main .bottom {
+  margin: 10px;
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+}
+
+.main .bottom form {
+  position: relative;
+}
+
+.main .bottom .loading {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  color: #178D00;
+}
+
+.main .messages {
+  position: absolute;
+  top: 39px;
+  bottom: 56px;
+  left: 5px;
+  right: 5px;
+  overflow: auto;
+}
+
+.main .messages table {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+.main .messages .message {
+  margin: 5px;
+  padding: 8px;
+  clear: both;
+  border-radius: 5px;
+}
+
+.main .messages .message.sender {
+  float: right;
+  background-color: #92C4F9;
+}
+
+.main .messages .message.receiver {
+  float: left;
+  background-color: #d6d6d6;
+}
+
+input.to {
+  width: 400px;
+  border: none;
+  background-color: #E1E5EC;
+}
