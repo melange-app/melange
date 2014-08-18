@@ -5,6 +5,12 @@
 var mlgCleanup = function(msg) {
     if(msg.$promise) { delete msg.$promise; }
     if(msg.$resolved) { delete msg.$resolved; }
+    // Remove Proto Messages
+    if(msg.$delete) { delete msg.$delete }
+    if(msg.$get) { delete msg.$get }
+    if(msg.$query) { delete msg.$query }
+    if(msg.$remove) { delete msg.$remove }
+    if(msg.$save) { delete msg.$save }
     return msg;
 };
 
@@ -257,8 +263,25 @@ var mlgCleanup = function(msg) {
         return apiResource.updateContact(contact).$promise;
       },
       // Message Management
-      publishMessage: $resource('http://' + melangeAPI + '/messages/new', {}, {create: {method:'POST'}}).create,
-      getMessages: $resource('http://' + melangeAPI + '/messages', {}, {query: {method:'GET', isArray:true}}).query,
+      publishMessage: function(data) {
+        console.log(data);
+        return $resource('http://' + melangeAPI + '/messages/new', {}, {create: {method:'POST'}}).create(data);
+      },
+      getMessages: function(self, pub, received) {
+        var obj = {
+          public: pub,
+          self: self,
+          received: received,
+        }
+        if(arguments.length === 0) {
+          obj = {
+            public: true,
+            self: true,
+            received: true,
+          };
+        }
+        return $resource('http://' + melangeAPI + '/messages', {}, {query: {method:'POST', isArray:true}}).query(obj);
+      },
       // Profile Management
       updateProfile: function(profile) {
         return $resource('http://' + melangeAPI + '/profile/update', {}, {updateProfile: {method:'POST'}}).updateProfile(profile).$promise

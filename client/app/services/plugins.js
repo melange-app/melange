@@ -35,9 +35,81 @@
       }
     }
 
+    var requiresPermission = function(plugin, perm, type, callback) {
+      var perms = plugin.permissions[perm];
+      if(!angular.isDefined(perms)) {
+        callback({
+          type: type,
+          context: {
+            error: {
+              code: 2,
+              message: "Permissions Error: Cannot find messages if you have no " + perm + " permission.",
+            }
+          }
+        })
+        return false;
+      };
+
+      return perms;
+    }
+
+    var checkPermissionField = function(permission, fields, type, callback) {
+      for(var i in fields) {
+        var field = fields[i];
+        if (field[0] == "?") {
+          field = field.substr(1, field.length)
+        }
+
+        if(permission.indexOf(field) === -1) {
+          callback({
+            type: type,
+            context: {
+              error: {
+                code: 2,
+                message: "Permissions Error: You don't have permission for messages with " + field + " components.",
+              }
+            }
+          })
+          return false
+        }
+      }
+      return true
+    }
+
+    var checkPermissionComponents = function(permission, components, type, callback) {
+      for(var i in components) {
+        if(permission.indexOf(i) === -1) {
+          callback({
+            type: type,
+            context: {
+              error: {
+                code: 2,
+                message: "Permissions Error: You don't have permission for messages with " + field + " components.",
+              }
+            }
+          })
+          return false
+        }
+      }
+      return true
+    }
+
+    var cleanupPermissions = function(permission, message) {
+      var newMessage = {};
+      angular.copy(message, newMessage);
+      newMessage = cleanup(newMessage);
+      for(var i in newMessage.components) {
+        if(permission.indexOf(i) === -1) {
+          delete newMessage.components[i]
+        }
+      }
+      return newMessage;
+    }
+
     // --- Plugin Communication
     var receivers = {
       viewerUpdate: function(origin, data, callback, obj) {
+        // Melange is Loaded
         if(obj !== undefined) {
           obj.element.style.height = data["height"] + "px";
         }
@@ -49,6 +121,17 @@
         }
       },
       createMessage: function(origin, data, callback) {
+        // Enforce Permissions
+        var perms = requiresPermission(allPlugins[origin], "send-message", "createdMessage", callback)
+        if(perms === false) {
+          return
+        }
+
+        var permissionCheck = checkPermissionComponents(perms, data.components, "createdMessage", callback)
+        if(!permissionCheck) {
+          return
+        }
+
         mlgApi.publishMessage(data).$promise.then(
           function(data) {
             callback({
@@ -66,12 +149,50 @@
         );
       },
       findMessages: function(origin, data, callback) {
+        // Enforce Permissions
+        var perms = requiresPermission(allPlugins[origin], "read-message", "foundMessages", callback)
+        if(perms === false) {
+          return
+        }
+
+        var permissionCheck = checkPermissionField(perms, data.fields, "foundMessages", callback)
+        if(!permissionCheck) {
+          return
+        }
+
         mlgApi.getMessages().$promise.then(
           function(msg) {
-            cleanup(msg)
+            cleanup(msg);
+
+            // Ensure that Requested Fields are Returned
+            var cleanedMsgs = [];
+            for (var i in msg) {
+              var check = msg[i];
+              var works = function() {
+                for (var j in data.fields) {
+                  var comp = data.fields[j]
+                  var optional = false;
+                  if (comp[0] === "?") {
+                    optional = true;
+                    comp = comp.substr(1, comp.length)
+                  }
+
+                  if(check.components[comp] === undefined && !optional) {
+                    return false
+                  }
+                }
+                return true
+              }();
+              if (works) {
+                cleanedMsgs.push(
+                  cleanupPermissions(perms, check)
+                );
+              }
+            }
+
             callback({
               type: "foundMessages",
-              context: msg,
+              context: cleanedMsgs,
             });
           },
           function(err) {
@@ -127,6 +248,10 @@
       },
     };
     function messenger(source, data, origin) {
+      if(source == undefined) {
+        // Plugin was closed during request.
+        return
+      }
       source.postMessage(data, origin);
     }
     function receiveMessage(e) {
@@ -138,6 +263,7 @@
         console.log("Couldn't understand message type " + e.data.type)
         return
       }
+
       var frame = undefined;
       for(var p in registeredPlugins) {
         for (var i in registeredPlugins[p]) {
@@ -148,7 +274,7 @@
       }
       var origin = e.origin.substr(7, (e.origin.length - 7 - melangePluginSuffix.length));
       receivers[e.data.type](origin, e.data.context, function(output) {
-        messenger(e.source, output, e.origin)
+        messenger(e.source, output, e.origin);
       }, frame);
     }
     window.addEventListener("message", receiveMessage, false);
