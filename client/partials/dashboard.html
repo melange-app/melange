@@ -7,7 +7,10 @@
 </div>
 <hr class="live-tile-seperator"/>
 <h4>Newsfeed <small><a href="">filter</a></small></h4>
-<div ng-show="newsfeed.length == 0" class="text-center text-muted">
+<div ng-show="loading" class="message-list-loading">
+  <i class="fa fa-circle-o-notch fa-5x fa-spin"></i>
+</div>
+<div ng-show="newsfeed.length == 0 && !loading" class="text-center text-muted">
   <h2>Your newsfeed is completely empty!</h2>
   <p><a href="#/contacts">Subscribe to some friends</a>, or receive some messages.</p>
 </div>

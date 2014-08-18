@@ -7,7 +7,11 @@
   function($scope, mlgApi) {
     // Sync up
     var sync = function() {
-      $scope.messages = mlgApi.getMessages();
+      $scope.loading = true;
+      mlgApi.getMessages().$promise.then(function(data) {
+        $scope.loading = false;
+        $scope.newsfeed = data;
+      });
     }
     sync();
     $scope.$on("mlgSyncApp", sync)
@@ -24,7 +28,11 @@
     // Sync up if needed.
     var sync = function() {
       console.log("Syncing")
-      $scope.newsfeed = mlgApi.getMessages();
+      $scope.loading = true;
+      mlgApi.getMessages().$promise.then(function(data) {
+        $scope.loading = false;
+        $scope.newsfeed = data;
+      });
     }
     sync();
     $scope.$on("mlgSyncApp", sync)
@@ -51,7 +59,11 @@
     // Sync up if needed.
     var sync = function() {
       console.log("Syncing")
-      $scope.newsfeed = mlgApi.getMessages(true, false, false);
+      $scope.loading = true;
+      mlgApi.getMessages(true, false, false).$promise.then(function(data) {
+        $scope.loading = false;
+        $scope.newsfeed = data;
+      });
     }
     sync();
     $scope.$on("mlgSyncApp", sync)
