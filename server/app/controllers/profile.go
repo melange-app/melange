@@ -67,7 +67,7 @@ func (c *UpdateProfile) Handle(req *http.Request) framework.View {
 	msg := &melangeMessage{
 		Name: "profile",
 		Date: time.Now(),
-		From: melangeProfile{
+		From: &melangeProfile{
 			Fingerprint: "",
 			Alias:       "",
 		},

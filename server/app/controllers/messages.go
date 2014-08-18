@@ -8,8 +8,10 @@ import (
 	"melange/router"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
 
+	adErrors "airdispat.ch/errors"
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
 	"airdispat.ch/routing"
@@ -40,9 +42,10 @@ func (m messageList) Swap(i int, j int)      { m[i], m[j] = m[j], m[i] }
 type melangeMessage struct {
 	Name       string                       `json:"name"`
 	Date       time.Time                    `json:"date"`
-	From       melangeProfile               `json:"from"`
-	To         []string                     `json:"to"`
+	From       *melangeProfile              `json:"from"`
+	To         []*melangeProfile            `json:"to"`
 	Public     bool                         `json:"public"`
+	Self       bool                         `json:"self"`
 	Components map[string]*melangeComponent `json:"components"`
 	Context    map[string]string            `json:"context"`
 }
@@ -59,11 +62,43 @@ type melangeProfile struct {
 	Fingerprint string `json:"fingerprint"`
 }
 
-func (m melangeProfile) UnmarshalJSON(data []byte) error {
-	// Data should be a string straight up.
-	fingerprint := string(data)
-	m.Fingerprint = fingerprint
-	return nil
+func (m *melangeMessage) ToModel(from *identity.Identity) (*models.Message, []*models.Component) {
+	toAddrs := ""
+	for i, v := range m.To {
+		if i != 0 {
+			toAddrs += ","
+		}
+		toAddrs += v.Alias
+	}
+
+	message := &models.Message{
+		Name: m.Name,
+		// Address
+		To:   toAddrs,
+		From: from.Address.String(),
+		// Meta
+		Date:     m.Date.Unix(),
+		Incoming: false,
+		Alert:    !m.Public,
+	}
+
+	components := make([]*models.Component, len(m.Components))
+	i := 0
+	for key, v := range m.Components {
+		components[i] = &models.Component{
+			Name: key,
+		}
+
+		if len(v.Binary) == 0 {
+			components[i].Data = []byte(v.String)
+		} else {
+			components[i].Data = v.Binary
+		}
+
+		i++
+	}
+
+	return message, components
 }
 
 func (m *melangeMessage) ToDispatch(from *identity.Identity) (*message.Mail, []*identity.Address, error) {
@@ -74,7 +109,7 @@ func (m *melangeMessage) ToDispatch(from *identity.Identity) (*message.Mail, []*
 	addrs := make([]*identity.Address, len(m.To))
 	for i, v := range m.To {
 		var err error
-		addrs[i], err = r.LookupAlias(v, routing.LookupTypeMAIL)
+		addrs[i], err = r.LookupAlias(v.Alias, routing.LookupTypeMAIL)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -121,10 +156,10 @@ func translateMessage(r routing.Router, from *identity.Identity, public bool, ms
 	out := make([]*melangeMessage, len(msg))
 
 	for i, v := range msg {
-		var profile melangeProfile
+		var profile *melangeProfile
 		obj, stale := profileCache.Get(v.Header().Alias)
 		if !stale {
-			profile = obj.(melangeProfile)
+			profile = obj.(*melangeProfile)
 		} else {
 			var err error
 
@@ -137,7 +172,7 @@ func translateMessage(r routing.Router, from *identity.Identity, public bool, ms
 					name = v.Header().Alias
 				}
 
-				profile = melangeProfile{
+				profile = &melangeProfile{
 					Name:        name,
 					Fingerprint: v.Header().From.String(),
 					Avatar:      "http://placehold.it/404", // haha
@@ -161,14 +196,29 @@ func translateMessage(r routing.Router, from *identity.Identity, public bool, ms
 	return out
 }
 
-func translateProfile(r routing.Router, from *identity.Identity, fp string, alias string) (melangeProfile, error) {
+func translateProfile(r routing.Router, from *identity.Identity, fp string, alias string) (*melangeProfile, error) {
 	if alias == "" {
-		return melangeProfile{}, errors.New("Can't get profile without alias support.")
+		return nil, errors.New("Can't get profile without alias support.")
 	}
+
+	noImage := "http://placehold.it/404"
 
 	profile, err := getProfile(r, from, fp, alias)
 	if err != nil {
-		return melangeProfile{}, err
+		switch t := err.(type) {
+		case (*adErrors.Error):
+			if t.Code == 5 {
+				return &melangeProfile{
+					Name:        alias,
+					Avatar:      noImage,
+					Alias:       alias,
+					Fingerprint: fp,
+				}, nil
+			}
+			return nil, err
+		case error:
+			return nil, err
+		}
 	}
 
 	name := profile.Components.GetStringComponent("airdispat.ch/profile/name")
@@ -178,10 +228,10 @@ func translateProfile(r routing.Router, from *identity.Identity, fp string, alia
 
 	avatar := profile.Components.GetStringComponent("airdispat.ch/profile/avatar")
 	if avatar == "" {
-		avatar = "http://placehold.it/404"
+		avatar = noImage
 	}
 
-	return melangeProfile{
+	return &melangeProfile{
 		Name:        name,
 		Avatar:      avatar,
 		Alias:       alias,
@@ -198,9 +248,28 @@ type Messages struct {
 
 // Handle will download the messages and transform them into JSON.
 func (m *Messages) Handle(req *http.Request) framework.View {
-	dap, err := CurrentDAPClient(m.Store, m.Tables["identity"])
+	request := make(map[string]bool)
+	if req.Method == "GET" {
+		request["self"] = true
+		request["public"] = true
+		request["received"] = true
+	} else {
+		realErr := DecodeJSONBody(req, &request)
+		if realErr != nil {
+			fmt.Println("Error decoding body (MSGS).", realErr)
+			return framework.Error500
+		}
+	}
+
+	id, err := CurrentIdentityOrError(m.Store, m.Tables["identity"])
 	if err != nil {
 		return err
+	}
+
+	dap, realErr := DAPClientFromID(id, m.Store)
+	if realErr != nil {
+		fmt.Println("Couldn't construct DAPClient", err)
+		return framework.Error500
 	}
 
 	router := &router.Router{
@@ -209,20 +278,6 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 			"localhost:2048",
 		},
 	}
-
-	// request := make(map[string]interface{})
-	// json, err := DecodeJSONBody(req, &request)
-	// if err != nil {
-	// 	fmt.Println("Error decoding body.", err)
-	// 	return framework.Error500
-	// }
-	//
-	// if _, ok := request["since"]; !ok {
-	// 	return &framework.HTTPError{
-	// 		ErrorCode: 400,
-	// 		Message:   "Since is required.",
-	// 	}
-	// }
 
 	since := uint64(0)
 
@@ -235,52 +290,149 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 		return framework.Error500
 	}
 
-	// Get Messages from Alerts
-	for _, v := range messages {
-		data, typ, h, realErr := v.Message.Reconstruct(dap.Key, false)
-		if realErr != nil || typ != wire.MessageDescriptionCode {
-			continue
-		}
+	if request["received"] {
+		// Get Messages from Alerts
+		for _, v := range messages {
+			data, typ, h, realErr := v.Message.Reconstruct(dap.Key, false)
+			if realErr != nil || typ != wire.MessageDescriptionCode {
+				continue
+			}
 
-		desc, realErr := server.CreateMessageDescriptionFromBytes(data, h)
+			desc, realErr := server.CreateMessageDescriptionFromBytes(data, h)
+			if realErr != nil {
+				fmt.Println("Can't create message description", realErr)
+				continue
+			}
+
+			// TODO: h.From _MUST_ be the server key, not the client key.
+			mail, realErr := downloadMessage(router, desc.Name, dap.Key, h.From.String(), desc.Location)
+			if realErr != nil {
+				fmt.Println("Got error downloading message", desc.Name, realErr)
+				continue
+			}
+
+			outputMessages = append(outputMessages, translateMessageWithContext(router, dap.Key, false, v.Context, mail)...)
+		}
+	}
+
+	if request["self"] {
+		msgs := make([]*models.Message, 0)
+		realErr = m.Tables["message"].Get().Where("from", dap.Key.Address.String()).All(m.Store, &msgs)
 		if realErr != nil {
-			fmt.Println("Can't create message description", realErr)
-			continue
+			fmt.Println("Unable to get self messages.", realErr)
+			return framework.Error500
 		}
 
-		// TODO: h.From _MUST_ be the server key, not the client key.
-		mail, realErr := downloadMessage(router, desc.Name, dap.Key, h.From.String(), desc.Location)
+		myAlias := &models.Alias{}
+		realErr = m.Tables["alias"].Get().Where("identity", id.Id).One(m.Store, myAlias)
 		if realErr != nil {
-			fmt.Println("Got error downloading message", desc.Name, realErr)
-			continue
+			fmt.Println("Unable to get my profile.", realErr)
+			return framework.Error500
 		}
 
-		outputMessages = append(outputMessages, translateMessageWithContext(router, dap.Key, false, v.Context, mail)...)
+		myProfile := &models.Profile{}
+		realErr = id.Profile.One(m.Store, myProfile)
+		if realErr != nil || myProfile.Id == 0 {
+			fmt.Println("Unable to get my profile.", realErr)
+			myProfile = &models.Profile{
+				Name:  myAlias.String(),
+				Image: "http://placehold.it/400",
+			}
+		}
+
+		for _, v := range msgs {
+			comps := make([]*models.Component, 0)
+			realErr = m.Tables["component"].Get().Where("message", v.Id).All(m.Store, &comps)
+			if realErr != nil {
+				fmt.Println("Unable to get self message components", v.Name, err)
+			}
+
+			mlgComps := make(map[string]*melangeComponent)
+			for _, c := range comps {
+				mlgComps[c.Name] = &melangeComponent{
+					Binary: c.Data,
+					String: string(c.Data),
+				}
+			}
+
+			// Download Profile
+			toAddrs := strings.Split(v.To, ",")
+
+			profiles := make([]*melangeProfile, 0)
+			for _, j := range toAddrs {
+				addr, _, err := getAddresses(router, &models.Address{
+					Alias: j,
+				})
+				if err != nil {
+					fmt.Println("Couldn't get fp for", j, err)
+					continue
+				}
+
+				p, err := translateProfile(router, dap.Key, addr.String(), j)
+				if err != nil {
+					fmt.Println("Couldn't get profile for", j, err)
+				}
+
+				profiles = append(profiles, p)
+			}
+
+			outputMessages = append(outputMessages, &melangeMessage{
+				Name: v.Name,
+				Date: time.Unix(v.Date, 0),
+				// To and From Info
+				From: &melangeProfile{
+					Name:        myProfile.Name,
+					Avatar:      myProfile.Image,
+					Alias:       myAlias.String(),
+					Fingerprint: dap.Key.Address.String(),
+				},
+				To: profiles,
+				// Components
+				Components: mlgComps,
+				// Meta
+				Self:   true,
+				Public: !v.Alert,
+			})
+		}
 	}
 
 	// Download Public Messages
-	var s []*models.Address
-	realErr = m.Tables["address"].Get().Where("subscribed", true).All(m.Store, &s)
-	if realErr != nil {
-		fmt.Println("Error getting contacts", realErr)
-		return framework.Error500
-	}
-
-	for _, v := range s {
-		var msg []*message.Mail
-		list, stale := publicCache.Get(v.Fingerprint)
-		if !stale {
-			msg = list.([]*message.Mail)
-		} else {
-			var realErr error
-			msg, realErr = downloadPublicMail(router, since, dap.Key, v)
-			if realErr != nil {
-				fmt.Println("Error getting public mail", realErr)
-				return framework.Error500
-			}
-			publicCache.Store(v.Fingerprint, msg)
+	if request["public"] {
+		var s []*models.Address
+		realErr = m.Tables["address"].Get().Where("subscribed", true).All(m.Store, &s)
+		if realErr != nil {
+			fmt.Println("Error getting contacts", realErr)
+			return framework.Error500
 		}
-		outputMessages = append(outputMessages, translateMessage(router, dap.Key, true, msg...)...)
+
+		for _, v := range s {
+			var msg []*message.Mail
+			list, stale := publicCache.Get(v.Fingerprint)
+			if !stale {
+				msg = list.([]*message.Mail)
+			} else {
+				var realErr error
+				msg, realErr = downloadPublicMail(router, since, dap.Key, v)
+				if realErr != nil {
+					switch t := realErr.(type) {
+					case *adErrors.Error:
+						if t.Code == 5 {
+							// No public mail available for that user.
+							// No alert needed.
+							continue
+						} else {
+							fmt.Println("Error getting public mail", realErr)
+							return framework.Error500
+						}
+					case error:
+						fmt.Println("Error getting public mail", realErr)
+						return framework.Error500
+					}
+				}
+				publicCache.Store(v.Fingerprint, msg)
+			}
+			outputMessages = append(outputMessages, translateMessage(router, dap.Key, true, msg...)...)
+		}
 	}
 
 	sort.Sort(outputMessages)
@@ -318,11 +470,52 @@ func (m *UpdateMessage) Handle(req *http.Request) framework.View {
 		return framework.Error500
 	}
 
+	modelMsg, modelComp := msg.ToModel(dap.Key)
+
+	currentMsg := &models.Message{}
+	err = m.Tables["message"].Get().Where("name", msg.Name).One(m.Store, currentMsg)
+	if err != nil {
+		fmt.Println("That message doesn't exist.", err)
+		return framework.Error500
+	}
+
+	modelMsg.Id = currentMsg.Id
+
+	_, err = m.Tables["message"].Update(modelMsg).Exec(m.Store)
+	if err != nil {
+		fmt.Println("Couldn't update the message.", err)
+		return framework.Error500
+	}
+
+	currentComp := make([]*models.Component, 0)
+	err = m.Tables["component"].Get().Where("message", modelMsg.Id).All(m.Store, &currentComp)
+	if err != nil {
+		fmt.Println("Couldn't get the components.", err)
+		return framework.Error500
+	}
+
+	for _, v := range currentComp {
+		_, err = m.Tables["component"].Delete(currentComp).Exec(m.Store)
+		if err != nil {
+			fmt.Println("Couldn't delete the component", v.Name, err)
+		}
+	}
+
+	for _, v := range modelComp {
+		v.Message = gdb.ForeignKey(modelMsg)
+		_, err = m.Tables["component"].Insert(v).Exec(m.Store)
+		if err != nil {
+			fmt.Println("Couldn't save component", v.Name, err)
+		}
+	}
+
 	err = dap.UpdateMessage(mail, to, msg.Name)
 	if err != nil {
 		fmt.Println("Can't update message.", err)
 		return framework.Error500
 	}
+
+	// Update Database
 
 	return &framework.HTTPError{
 		ErrorCode: 200,
@@ -358,9 +551,29 @@ func (m *NewMessage) Handle(req *http.Request) framework.View {
 		return framework.Error500
 	}
 
+	// Add to Database
+	modelMsg, modelComp := msg.ToModel(dap.Key)
+	_, err = m.Tables["message"].Insert(modelMsg).Exec(m.Store)
+	if err != nil {
+		fmt.Println("Can't save message.", err)
+		return framework.Error500
+	}
+
+	for _, v := range modelComp {
+		v.Message = gdb.ForeignKey(modelMsg)
+		_, err = m.Tables["component"].Insert(v).Exec(m.Store)
+		if err != nil {
+			fmt.Println("Couldn't save component", v.Name, err)
+		}
+	}
+
 	// Publish Message
 	// *Mail, to []*identity.Address, name string, alert bool
 	name, err := dap.PublishMessage(mail, to, msg.Name, !msg.Public)
+	if err != nil {
+		fmt.Println("Can't publish messages")
+		return framework.Error500
+	}
 
 	if !msg.Public {
 		fmt.Println("Sending alerts...")
@@ -372,8 +585,8 @@ func (m *NewMessage) Handle(req *http.Request) framework.View {
 		}
 
 		for _, v := range msg.To {
-			fmt.Println("Sending alert to", v)
-			err = sendAlert(r, name, dap.Key, v, dap.Server.Alias)
+			fmt.Println("Sending alert to", v.Alias)
+			err = sendAlert(r, name, dap.Key, v.Alias, dap.Server.Alias)
 			if err != nil {
 				fmt.Println("Got error sending alert", err)
 				errs = append(errs, err)

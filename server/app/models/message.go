@@ -1,9 +1,6 @@
 package models
 
-import (
-	"github.com/huntaub/go-db"
-	"time"
-)
+import "github.com/huntaub/go-db"
 
 // A full AirDispatch Message
 type Message struct {
@@ -11,13 +8,13 @@ type Message struct {
 	// Name registered on Server
 	Name string
 	// Cleared Addresses
-	To []string
+	To string
 	// Fingerprint of Sender
 	From string
 	// Message Metadata
 	Alert    bool
 	Incoming bool
-	Date     time.Time
+	Date     int64
 
 	Components *db.HasMany `table:"component" on:"message"`
 }
