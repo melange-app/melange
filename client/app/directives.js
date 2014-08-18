@@ -73,6 +73,7 @@ melangeDirectives.directive("message", ['mlgPlugins', function(mlgPlugins) {
           scope.plugin = thePlugin;
           scope.templateType = "remote";
           scope.url = "http://" + v[0].id + melangePluginSuffix + "/" + v[0].viewers[v[1]].view;
+          scope.hidden = v[0].viewers[v[1]].hidden;
         }, function() { scope.templateType = "default"; });
       })
     }

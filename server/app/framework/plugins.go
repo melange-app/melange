@@ -22,8 +22,9 @@ type Plugin struct {
 }
 
 type Viewer struct {
-	Type []string `json:"type"`
-	View string   `json:"view"`
+	Type   []string `json:"type"`
+	View   string   `json:"view"`
+	Hidden bool     `json:"hidden"`
 }
 
 type Tile struct {

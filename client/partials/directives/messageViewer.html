@@ -9,7 +9,7 @@
   <iframe ng-src="{{ url | unsafeUrl }}" class="message-viewer" style="height: 50px;" sandbox="allow-scripts allow-same-origin"></iframe>
 </script>
 
-<div class="panel panel-default">
+<div class="panel panel-default" ng-if="!hidden">
   <div class="panel-body">
     <div class="row">
       <div class="col-sm-2 col-md-2 col-lg-1">
