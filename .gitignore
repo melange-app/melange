@@ -27,3 +27,8 @@ go/
 data/*
 test/
 test/*
+
+# Ignore Special Builds Paths
+build/tmp
+server/server/server
+releases
