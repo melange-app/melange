@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"melange/dap"
+	"getmelange.com/dap"
 
 	"airdispat.ch/crypto"
 	"airdispat.ch/identity"

@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"melange/app"
-	"melange/app/models"
-	"melange/dispatcher"
-	"melange/tracker"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"getmelange.com/app"
+	"getmelange.com/app/models"
+	"getmelange.com/dispatcher"
+	"getmelange.com/tracker"
 )
 
 // Main Server

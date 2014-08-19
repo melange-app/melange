@@ -3,9 +3,9 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"melange/app/framework"
-	"melange/app/models"
-	"melange/dap"
+	"getmelange.com/app/framework"
+	"getmelange.com/app/models"
+	"getmelange.com/dap"
 	"net/http"
 
 	gdb "github.com/huntaub/go-db"

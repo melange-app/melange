@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"fmt"
-	"melange/app/framework"
-	"melange/updater"
+	"getmelange.com/app/framework"
+	"getmelange.com/updater"
 	"net/http"
 )
 

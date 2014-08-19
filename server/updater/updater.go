@@ -222,6 +222,8 @@ func InstallUpdate(downloadDir, appDir string) updateStatus {
 		}
 	}
 
+	_ = os.Remove(downloadDir)
+
 	// Exec Updater
 	err = exec.Command(filepath.Join(appDir, postUpdate), "-app="+appDir, "-old="+oldPath).Start()
 	if err != nil {

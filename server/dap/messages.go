@@ -1,7 +1,7 @@
 package dap
 
 import (
-	"melange/dap/wire"
+	"getmelange.com/dap/wire"
 
 	"airdispat.ch/identity"
 	"airdispat.ch/message"

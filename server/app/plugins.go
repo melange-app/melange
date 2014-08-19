@@ -2,7 +2,7 @@ package app
 
 import (
 	"fmt"
-	"melange/app/framework"
+	"getmelange.com/app/framework"
 	"net/http"
 	"path/filepath"
 	"strings"

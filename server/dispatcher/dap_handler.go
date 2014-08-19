@@ -1,7 +1,7 @@
 package dispatcher
 
 import (
-	"melange/dap"
+	"getmelange.com/dap"
 	"time"
 
 	"airdispat.ch/identity"

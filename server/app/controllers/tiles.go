@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"fmt"
-	"melange/app/framework"
+	"getmelange.com/app/framework"
 	"net/http"
 )
 

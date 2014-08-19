@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"melange/app/framework"
-	"melange/app/models"
+	"getmelange.com/app/framework"
+	"getmelange.com/app/models"
 
 	gdb "github.com/huntaub/go-db"
 )

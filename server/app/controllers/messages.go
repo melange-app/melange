@@ -3,9 +3,9 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"melange/app/framework"
-	"melange/app/models"
-	"melange/router"
+	"getmelange.com/app/framework"
+	"getmelange.com/app/models"
+	"getmelange.com/router"
 	"net/http"
 	"sort"
 	"strings"

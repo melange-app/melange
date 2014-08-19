@@ -2,10 +2,10 @@ package app
 
 import (
 	"fmt"
-	"melange/app/framework"
-	"melange/app/models"
-	"melange/dispatcher"
-	"melange/tracker"
+	"getmelange.com/app/framework"
+	"getmelange.com/app/models"
+	"getmelange.com/dispatcher"
+	"getmelange.com/tracker"
 	"net/http"
 	"strings"
 )

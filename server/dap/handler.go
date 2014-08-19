@@ -2,7 +2,7 @@ package dap
 
 import (
 	"errors"
-	"melange/dap/wire"
+	"getmelange.com/dap/wire"
 	"strings"
 
 	"airdispat.ch/identity"

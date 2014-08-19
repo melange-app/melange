@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"errors"
-	"melange/app/models"
+	"getmelange.com/app/models"
 
 	adErrors "airdispat.ch/errors"
 	"airdispat.ch/identity"

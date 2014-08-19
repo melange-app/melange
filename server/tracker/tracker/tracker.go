@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"melange/tracker"
+	"getmelange.com/tracker"
 )
 
 // Start the Tracker

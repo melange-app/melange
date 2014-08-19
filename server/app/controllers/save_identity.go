@@ -2,11 +2,11 @@ package controllers
 
 import (
 	"fmt"
-	"melange/app/framework"
-	"melange/app/models"
-	"melange/app/packaging"
-	"melange/dap"
-	"melange/router"
+	"getmelange.com/app/framework"
+	"getmelange.com/app/models"
+	"getmelange.com/app/packaging"
+	"getmelange.com/dap"
+	"getmelange.com/router"
 	"net/http"
 
 	"airdispat.ch/identity"
