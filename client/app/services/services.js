@@ -45,29 +45,13 @@ var mlgCleanup = function(msg) {
       },
     });
 
-    // var tiles = [
-    //   {
-    //     id: 0,
-    //     size: "12",
-    //     height: "85",
-    //     url: "http://" + "ch.airdispat.plugins.status" + melangePluginSuffix + "/tile.html",
-    //     click: true,
-    //   },
-    //   {
-    //     id: 1,
-    //     size: "6",
-    //     height: "150",
-    //     url: "http://" + "ch.airdispat.plugins.news" + melangePluginSuffix + "/tile.html",
-    //     name: "News",
-    //   },
-    //   {
-    //     id: 2,
-    //     size: "6",
-    //     height: "150",
-    //     url: "http://" + "ch.airdispat.plugins.news" + melangePluginSuffix + "/tile.html",
-    //     name: "Family",
-    //   }
-    // ];
+    // {
+    //   id: 2,
+    //   size: "6",
+    //   height: "150",
+    //   url: "http://" + "ch.airdispat.plugins.news" + melangePluginSuffix + "/tile.html",
+    //   name: "Family",
+    // }
 
     var startsWith = function(str, needle) {
       return (str.indexOf(needle) === 0)
