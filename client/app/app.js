@@ -13,6 +13,7 @@ var melangeApp = angular.module('melangeApp', [
   'melangeControllers',
   'melangeFilters',
   'melangeDirectives',
+  'ui.sortable',
 ]);
 
 melangeApp.config(['$routeProvider',

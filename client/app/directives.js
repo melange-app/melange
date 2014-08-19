@@ -14,10 +14,10 @@ melangeDirectives.directive("mlgTile", function() {
       name: "=name",
       click: "=clickthrough",
       edit: "=edit",
+      delete: "=delete",
+      index: "=index",
     },
-    link: function(element, attrs, scope) {
-
-    },
+    link: function(element, attrs, scope) {},
   }
 });
 

@@ -20,10 +20,29 @@
 
   melangeControllers.controller('DashboardCtrl', ['$scope', 'mlgHelper', 'mlgTiles', 'mlgApi',
   function($scope, mlgHelper, mlgTiles, mlgApi) {
+    // Tile Information
     $scope.editDash = false;
     mlgTiles.all().then(function(tiles) {
       $scope.tiles = tiles;
     })
+
+    var stopFunc = function(e, ui) {
+      console.log($scope.tiles);
+    }
+
+    // Conditionally enable tile building
+    $scope.$watch(function() { return $scope.editDash }, function(data) {
+      $scope.sortableOptions = {
+        stop: stopFunc,
+        disabled: !data,
+      }
+    })
+
+    $scope.addTile = false;
+
+    $scope.deleteTile = function(index) {
+      $scope.tiles.splice(index, 1);
+    }
 
     // Sync up if needed.
     var sync = function() {

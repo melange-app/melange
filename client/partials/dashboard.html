@@ -1,10 +1,30 @@
-<h4>Dashboard <small><a href="" ng-class="{'text-danger': editDash}" ng-click="editDash = !editDash">{{ editDash && 'stop editing' || 'edit' }}</a></small></h4>
-<div class="row">
-  <div class="col-xs-{{ tile.size }}" ng-repeat="tile in tiles">
-    <mlg-tile src="tile.url" edit="editDash" height="tile.height" name="tile.name" clickthrough="tile.click"></mlg-tile>
+<h4>Dashboard <small><a href="" ng-class="{'text-danger': editDash}" ng-click="editDash = !editDash; addTile = false">{{ editDash && 'stop editing' || 'edit' }}</a></small></h4>
+
+<div ng-show="addTile && editDash" class="addTile">
+  <h4>Add a Tile <small><a href="" ng-click="addTile = false" class='text-danger'>cancel</a></small></h4>
+  <div class="form-group">
+    <input type="text" class="form-control" placeholder="Search">
   </div>
-  <mlg-add-tile ng-show="editDash"></mlg-add-tile>
+  <div class="pluginTiles" ng-repeat="i in [1, 2, 3, 4, 5, 6, 7]">
+    <p class="text-muted"><small>From <abbr title="ch.airdispatch">Notes</abbr> Plugin</small></p>
+    <div class="list-group">
+      <a href="" class="list-group-item" ng-repeat="i in [1, 2, 3]">
+        <h4 class="list-group-item-heading">Tile Name</h4>
+        <p class="list-group-item-text">Veniam incididunt id culpa proident ad excepteur ipsum. Est nisi quis laboris aliqua labore cupidatat exercitation amet in eiusmod laboris enim sunt. Qui cillum veniam elit ad culpa enim. Sit sint ullamco adipisicing quis ad sint.</p>
+      </a>
+    </div>
+  </div>
 </div>
+
+<div class="row">
+  <div class="tiles" ui-sortable="sortableOptions" ng-model="tiles">
+    <div class="col-xs-{{ tile.size }}" ng-repeat="(index, tile) in tiles">
+      <mlg-tile src="tile.url" index="index" delete="deleteTile" edit="editDash" height="tile.height" name="tile.name" clickthrough="tile.click && (!editDash)"></mlg-tile>
+    </div>
+  </div>
+  <mlg-add-tile ng-click="addTile = true" ng-show="editDash"></mlg-add-tile>
+</div>
+
 <hr class="live-tile-seperator"/>
 <h4>Newsfeed <small><a href="">filter</a></small></h4>
 <div ng-show="loading" class="message-list-loading">
