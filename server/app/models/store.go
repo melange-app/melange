@@ -88,7 +88,7 @@ func (s *Store) Set(key string, value string) error {
 
 func (s *Store) GetDefault(key string, alt string) (string, error) {
 	val, err := s.Get(key)
-	if val == "" && err != nil {
+	if val == "" && err == nil {
 		return alt, err
 	}
 	return val, err
