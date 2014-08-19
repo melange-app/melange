@@ -364,7 +364,7 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 					continue
 				}
 
-				addr, _, err := getAddresses(router, &models.Address{
+				_, addr, err := getAddresses(router, &models.Address{
 					Alias: j,
 				})
 				if err != nil {
