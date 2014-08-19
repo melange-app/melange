@@ -2,7 +2,6 @@ package updater
 
 import (
 	"archive/zip"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -15,7 +14,7 @@ func cloneZipItem(f *zip.File, dest string) error {
 	}
 	// Create full directory path
 	path := filepath.Join(dest, f.Name)
-	fmt.Println("Creating", path)
+	// fmt.Println("Creating", path)
 	err := os.MkdirAll(filepath.Dir(path), os.ModeDir|os.ModePerm)
 	if err != nil {
 		return err
@@ -33,6 +32,12 @@ func cloneZipItem(f *zip.File, dest string) error {
 		if err != nil {
 			return err
 		}
+
+		// for _, v := range executables {
+		// 	if f.Name == v {
+		// 		fileCopy.Chmod()
+		// 	}
+		// }
 
 		_, err = io.Copy(fileCopy, rc)
 		fileCopy.Close()

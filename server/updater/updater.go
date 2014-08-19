@@ -162,12 +162,23 @@ func DownloadUpdate(download string, progress chan<- float64) (string, updateSta
 		}
 	}
 
-	// Unzip the update
-	err = extractZip(file, n, dir)
-	if err != nil {
-		return "", updateStatus{
-			Msg: "Couldn't unzip file.",
-			err: err,
+	if unzipper != nil {
+		file.Close()
+		err = exec.Command(unzipper[0], append(unzipper[1:], file.Name(), dir)...).Run()
+		if err != nil {
+			return "", updateStatus{
+				Msg: "Couldn't unzip file.",
+				err: err,
+			}
+		}
+	} else {
+		// Unzip the update
+		err = extractZip(file, n, dir)
+		if err != nil {
+			return "", updateStatus{
+				Msg: "Couldn't unzip file.",
+				err: err,
+			}
 		}
 	}
 
@@ -179,22 +190,32 @@ func DownloadUpdate(download string, progress chan<- float64) (string, updateSta
 
 // install update from temp directory
 func InstallUpdate(downloadDir, appDir string) updateStatus {
+	fmt.Println("About to install update.")
+
 	var err error
 	defer os.Exit(0)
 
 	// Rename old Melange
 	oldPath := filepath.Join(appDir, "..", ".melange.old")
+
+	// Just in case it wasn't deleted previously.
+	_ = os.Remove(oldPath)
+
 	err = os.Rename(appDir, oldPath)
 	if err != nil {
+		fmt.Println("Error updating renaming", err)
 		return updateStatus{
 			Msg: "Can't rename old melange.",
 			err: err,
 		}
 	}
 
+	updatePath := filepath.Join(downloadDir, updateFile)
+
 	// Move in new Melange
-	err = os.Rename(downloadDir, appDir)
+	err = os.Rename(updatePath, appDir)
 	if err != nil {
+		fmt.Println("Error updating renaming (2)", err)
 		return updateStatus{
 			Msg: "Can't move in new melange",
 			err: err,
@@ -202,10 +223,12 @@ func InstallUpdate(downloadDir, appDir string) updateStatus {
 	}
 
 	// Exec Updater
-	err = exec.Command(filepath.Join(appDir, "updater"), "-app="+appDir, "-old="+oldPath).Start()
+	err = exec.Command(filepath.Join(appDir, postUpdate), "-app="+appDir, "-old="+oldPath).Start()
 	if err != nil {
-		fmt.Println("Couldn't start updater.")
+		fmt.Println("Couldn't start updater.", err)
 	}
+
+	fmt.Println("Going down for update.")
 
 	return updateStatus{
 		Updated: true,
