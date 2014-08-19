@@ -1,13 +1,13 @@
 package melange
 
 type Server interface {
-  Run(port int) error
+	Run(port int) error
 }
 
 type Enabler struct {
-  Server
+	Server
 }
 
 func (t *Enabler) Enable(port int) error {
-  return t.Server.Run(port)
+	return t.Server.Run(port)
 }

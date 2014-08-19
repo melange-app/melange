@@ -2,10 +2,11 @@ package app
 
 import (
 	"fmt"
-	"getmelange.com/app/framework"
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	"getmelange.com/app/framework"
 )
 
 func (r *Server) HandlePlugins(mode string, res http.ResponseWriter, req *http.Request) {

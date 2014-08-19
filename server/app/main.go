@@ -2,12 +2,13 @@ package app
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
+
 	"getmelange.com/app/framework"
 	"getmelange.com/app/models"
 	"getmelange.com/dispatcher"
 	"getmelange.com/tracker"
-	"net/http"
-	"strings"
 )
 
 type Server struct {

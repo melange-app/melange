@@ -2,8 +2,9 @@ package dap
 
 import (
 	"errors"
-	"getmelange.com/dap/wire"
 	"strings"
+
+	"getmelange.com/dap/wire"
 
 	"airdispat.ch/identity"
 	"airdispat.ch/message"

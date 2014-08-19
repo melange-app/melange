@@ -1,8 +1,9 @@
 package dispatcher
 
 import (
-	"getmelange.com/dap"
 	"time"
+
+	"getmelange.com/dap"
 
 	"airdispat.ch/identity"
 	"airdispat.ch/message"

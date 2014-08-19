@@ -3,13 +3,14 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"getmelange.com/app/framework"
-	"getmelange.com/app/models"
-	"getmelange.com/router"
 	"net/http"
 	"sort"
 	"strings"
 	"time"
+
+	"getmelange.com/app/framework"
+	"getmelange.com/app/models"
+	"getmelange.com/router"
 
 	adErrors "airdispat.ch/errors"
 	"airdispat.ch/identity"

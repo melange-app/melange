@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"fmt"
+	"net/http"
+
 	"getmelange.com/app/framework"
 	"getmelange.com/app/models"
-	"net/http"
 
 	gdb "github.com/huntaub/go-db"
 )

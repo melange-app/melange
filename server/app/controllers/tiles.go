@@ -2,8 +2,9 @@ package controllers
 
 import (
 	"fmt"
-	"getmelange.com/app/framework"
 	"net/http"
+
+	"getmelange.com/app/framework"
 )
 
 func getTilesFromPlugins(p []framework.Plugin) map[string]map[string]framework.Tile {

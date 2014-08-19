@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"fmt"
+	"net/http"
+
 	"getmelange.com/app/framework"
 	"getmelange.com/updater"
-	"net/http"
 )
 
 type CheckUpdateController struct {

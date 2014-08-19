@@ -1,13 +1,14 @@
 package dap
 
 import (
+	"fmt"
+	"testing"
+	"time"
+
 	"airdispat.ch/message"
 	"airdispat.ch/server"
 	adTest "airdispat.ch/testing"
 	adWire "airdispat.ch/wire"
-	"fmt"
-	"testing"
-	"time"
 )
 
 func testingSetup(t *testing.T) (quit chan bool, results chan *TestingResult, scene adTest.Scenario, client *Client) {
@@ -336,15 +337,15 @@ func (t *TestingDelegate) GetMessages(since uint64, owner string, context bool) 
 		return nil, nil
 	}
 
-  if since != 1 {
-    t.Results <- &TestingResult{"GetMessages", "Checking that since value is correct."}
-    return nil, nil
-  }
+	if since != 1 {
+		t.Results <- &TestingResult{"GetMessages", "Checking that since value is correct."}
+		return nil, nil
+	}
 
-  if !context {
-    t.Results <- &TestingResult{"GetMessages", "Checking that context value is correct."}
-    return nil, nil
-  }
+	if !context {
+		t.Results <- &TestingResult{"GetMessages", "Checking that context value is correct."}
+		return nil, nil
+	}
 
 	mail := message.CreateMail(t.Scenario.Receiver.Address, t.Scenario.Sender.Address, time.Now())
 	mail.Components.AddComponent(

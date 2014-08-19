@@ -3,6 +3,7 @@ package dap
 import (
 	"encoding/hex"
 	"errors"
+
 	"getmelange.com/dap/wire"
 
 	"airdispat.ch/crypto"
