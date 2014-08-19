@@ -27,6 +27,7 @@ msgApp.controller('messagesCtrl', ["$scope", "$timeout", function($scope, $timeo
 
       var key = "";
       var profile = {};
+
       if(k["self"]) {
         key = k.to[0].fingerprint;
         profile = k.to[0];

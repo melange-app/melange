@@ -32,7 +32,7 @@ func (m *Melange) Run(port int) error {
 	}
 
 	m.App = &app.Server{
-		Suffix:  ".127.0.0.1.xip.io:7776",
+		Suffix:  ":7776",
 		Common:  "http://common.melange",
 		Plugins: "http://*.plugins.melange",
 		API:     "http://api.melange",

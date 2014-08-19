@@ -39,13 +39,7 @@ function logSpawn(spawn, name) {
 }
 
 var dataDirectory = function() {
-  if(process.platform === 'darwin') {
-    return process.env.HOME + "/Library/Application Support/Melange";
-  } else if (process.platform === 'win32') {
-    return process.env.APPDATA + "/Melange"
-  } else {
-    return process.env.HOME + "/.melange";
-  }
+  return app.getDataPath();
 }
 
 var platform = function() {
@@ -70,6 +64,8 @@ var applicationDirectory = function() {
 
 var debug = (process.argv.length === 3 && process.argv[2] === 'debug');
 var go = {};
+
+app.commandLine.appendSwitch("--host-rules", "MAP *.melange 127.0.0.1")
 
 global["__dirname"] = __dirname
 // This method will be called when atom-shell has done everything
@@ -105,7 +101,7 @@ app.on('ready', function() {
 var launched = false;
 var readyToLaunch = false;
 var continueLaunching = function() {
-  mainWindow.loadUrl('http://app.melange.127.0.0.1.xip.io:7776/Index.html#startup');
+  mainWindow.loadUrl('http://app.melange:7776/Index.html#startup');
   launched = true;
 }
 
