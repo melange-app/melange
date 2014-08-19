@@ -74,6 +74,14 @@ msgApp.controller('messagesCtrl', ["$scope", "$timeout", function($scope, $timeo
     $scope.selected = ($scope.users.length - 1);
   }
 
+  $scope.selectConversation = function(index) {
+    $scope.selected = index;
+    
+    $timeout(function() {
+      msgDiv.scrollTop = msgDiv.scrollHeight;
+    }, 0);
+  }
+
   $scope.send = function() {
     if($scope.newMessage === "") { return }
     console.log($scope.users[$scope.selected].alias);
