@@ -3,7 +3,8 @@ var BrowserWindow = require('browser-window');  // Module to create native brows
 
 require('./menu.js')(app)
 
-var VERSION = "0.0.2";
+var VERSION = app.getVersion();
+console.log("Running Melange v" + VERSION);
 
 // Report crashes to our server.
 require('crash-reporter').start();
