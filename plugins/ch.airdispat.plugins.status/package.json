@@ -11,9 +11,15 @@
     "status-updater": {
       "name": "Quick Status Updater",
       "description": "Quickly publish status updates at the top of your dashboard.",
-      "view": "tile.html",
+      "view": "tile/tile.html",
       "click": true,
       "size": "100%x100"
+    }
+  },
+  "viewers": {
+    "default": {
+      "view": "viewer/viewer.html",
+      "type": ["airdispat.ch/status/body"]
     }
   },
   "hideSidebar": true,
