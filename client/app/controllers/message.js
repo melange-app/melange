@@ -18,8 +18,8 @@
 
   }]);
 
-  melangeControllers.controller('DashboardCtrl', ['$scope', 'mlgHelper', 'mlgTiles', 'mlgApi',
-  function($scope, mlgHelper, mlgTiles, mlgApi) {
+  melangeControllers.controller('DashboardCtrl', ['$scope', 'mlgPlugins', 'mlgHelper', 'mlgTiles', 'mlgApi',
+  function($scope, mlgPlugins, mlgHelper, mlgTiles, mlgApi) {
     // Tile Information
     $scope.editDash = false;
     mlgTiles.all().then(function(tiles) {
@@ -38,10 +38,20 @@
       }
     })
 
-    $scope.addTile = false;
+    mlgPlugins.all().then(function(plugins) {
+      $scope.plugins = plugins;
+    });
+
+    $scope.adding = false;
+    $scope.addTile = function(plugin, tileKey) {
+      $scope.tiles.push(mlgTiles.parse(plugin, tileKey));
+      $scope.adding = false;
+      mlgTiles.update($scope.tiles);
+    }
 
     $scope.deleteTile = function(index) {
       $scope.tiles.splice(index, 1);
+      mlgTiles.update($scope.tiles);
     }
 
     // Sync up if needed.

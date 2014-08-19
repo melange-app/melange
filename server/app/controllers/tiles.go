@@ -3,37 +3,50 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"getmelange.com/app/framework"
+	"getmelange.com/app/models"
 )
 
-func getTilesFromPlugins(p []framework.Plugin) map[string]map[string]framework.Tile {
-	output := make(map[string]map[string]framework.Tile)
-	for _, v := range p {
-		output[v.Id] = v.Tiles
-	}
-	return output
+type CurrentTiles struct {
+	Store *models.Store
 }
 
-type AllTiles struct {
-	Path string
-}
-
-func (a *AllTiles) Handle(req *http.Request) framework.View {
-	data, err := framework.AllPlugins(a.Path)
+func (c *CurrentTiles) Handle(req *http.Request) framework.View {
+	data, err := c.Store.GetDefault("tiles_current", "ch.airdispat.plugins.status|status-updater")
 	if err != nil {
-		fmt.Println("Error getting all plugins.", err)
+		fmt.Println("Error getting from the store", err)
 		return framework.Error500
 	}
 
 	return &framework.JSONView{
-		Content: getTilesFromPlugins(data),
+		Content: strings.Split(data, ","),
 	}
 }
 
-type CurrentTiles struct {
+type UpdateTiles struct {
+	Store *models.Store
 }
 
-func (c *CurrentTiles) Handle(req *http.Request) framework.View {
-	return framework.Error500
+func (u *UpdateTiles) Handle(req *http.Request) framework.View {
+	// Decode Body
+	tiles := make([]string, 0)
+	err := DecodeJSONBody(req, &tiles)
+
+	if err != nil {
+		fmt.Println("Error occured while decoding body:", err)
+		return framework.Error500
+	}
+
+	err = u.Store.Set("tiles_current", strings.Join(tiles, ","))
+	if err != nil {
+		fmt.Println("Error setting current tiles", err)
+		return framework.Error500
+	}
+
+	return &framework.HTTPError{
+		ErrorCode: 200,
+		Message:   "OK",
+	}
 }

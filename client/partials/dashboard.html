@@ -1,16 +1,16 @@
-<h4>Dashboard <small><a href="" ng-class="{'text-danger': editDash}" ng-click="editDash = !editDash; addTile = false">{{ editDash && 'stop editing' || 'edit' }}</a></small></h4>
+<h4>Dashboard <small><a href="" ng-class="{'text-danger': editDash}" ng-click="editDash = !editDash; adding = false">{{ editDash && 'stop editing' || 'edit' }}</a></small></h4>
 
-<div ng-show="addTile && editDash" class="addTile">
-  <h4>Add a Tile <small><a href="" ng-click="addTile = false" class='text-danger'>cancel</a></small></h4>
+<div ng-show="adding && editDash" class="addTile">
+  <h4>Add a Tile <small><a href="" ng-click="adding = false" class='text-danger'>cancel</a></small></h4>
   <div class="form-group">
     <input type="text" class="form-control" placeholder="Search">
   </div>
-  <div class="pluginTiles" ng-repeat="i in [1, 2, 3, 4, 5, 6, 7]">
-    <p class="text-muted"><small>From <abbr title="ch.airdispatch">Notes</abbr> Plugin</small></p>
+  <div class="pluginTiles" ng-repeat="plugin in plugins | objectsHave:'tiles' ">
+    <p class="text-muted"><small>From <abbr title="{{ plugin.id }}">{{ plugin.name }}</abbr> Plugin</small></p>
     <div class="list-group">
-      <a href="" class="list-group-item" ng-repeat="i in [1, 2, 3]">
-        <h4 class="list-group-item-heading">Tile Name</h4>
-        <p class="list-group-item-text">Veniam incididunt id culpa proident ad excepteur ipsum. Est nisi quis laboris aliqua labore cupidatat exercitation amet in eiusmod laboris enim sunt. Qui cillum veniam elit ad culpa enim. Sit sint ullamco adipisicing quis ad sint.</p>
+      <a href="" ng-click="addTile(plugin, key)" class="list-group-item" ng-repeat="(key, tile) in plugin.tiles">
+        <h4 class="list-group-item-heading">{{ tile.name || key }}</h4>
+        <p class="list-group-item-text">{{ tile.description }}</p>
       </a>
     </div>
   </div>
@@ -22,7 +22,7 @@
       <mlg-tile src="tile.url" index="index" delete="deleteTile" edit="editDash" height="tile.height" name="tile.name" clickthrough="tile.click && (!editDash)"></mlg-tile>
     </div>
   </div>
-  <mlg-add-tile ng-click="addTile = true" ng-show="editDash"></mlg-add-tile>
+  <mlg-add-tile ng-click="adding = true" ng-show="editDash"></mlg-add-tile>
 </div>
 
 <hr class="live-tile-seperator"/>

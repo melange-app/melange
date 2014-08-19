@@ -15,3 +15,15 @@ melangeFilters.filter('unsafeUrl', ['$sce', function($sce) {
         return $sce.trustAsResourceUrl(val);
     };
 }]);
+
+melangeFilters.filter('objectsHave', function() {
+  return function(val, obj) {
+    var newObj = {};
+    for (var key in val) {
+      if(val[key][obj] !== null) {
+        newObj[key] = val[key];
+      }
+    }
+    return newObj;
+  }
+})

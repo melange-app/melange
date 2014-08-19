@@ -14,41 +14,123 @@ var mlgCleanup = function(msg) {
     return msg;
 };
 
+// "status-updater": {
+//   "name": "Quick Status Updater",
+//   "description": "Quickly publish status updates at the top of your dashboard.",
+//   "view": "tile.html",
+//   "click": true,
+//   "size": "100%x100"
+// }
+
 (function() {
   var melangeServices = angular.module('melangeServices', []);
   var cleanup = mlgCleanup;
 
   // MLG-TILES
-  melangeServices.factory('mlgTiles', ['$resource', '$q', function($resource, $q) {
-    var tiles = [
-      {
-        size: "12",
-        height: "85",
-        url: "http://" + "ch.airdispat.plugins.status" + melangePluginSuffix + "/tile.html",
-        click: true,
+  melangeServices.factory('mlgTiles', ['$resource', '$q', 'mlgPlugins', function($resource, $q, mlgPlugins) {
+    var tilesResource = $resource("http://" + melangeAPI + "/tiles/:action", { action: "" },
+    {
+      current: {
+        method: 'GET',
+        params: {
+          action: "current",
+        },
+        isArray: true,
       },
-      {
-        size: "6",
-        height: "150",
-        url: "http://" + "ch.airdispat.plugins.news" + melangePluginSuffix + "/tile.html",
-        name: "News",
+      update: {
+        method: 'POST',
+        params: {
+          action: "update",
+        }
       },
-      {
-        size: "6",
-        height: "150",
-        url: "http://" + "ch.airdispat.plugins.news" + melangePluginSuffix + "/tile.html",
-        name: "Family",
+    });
+
+    // var tiles = [
+    //   {
+    //     id: 0,
+    //     size: "12",
+    //     height: "85",
+    //     url: "http://" + "ch.airdispat.plugins.status" + melangePluginSuffix + "/tile.html",
+    //     click: true,
+    //   },
+    //   {
+    //     id: 1,
+    //     size: "6",
+    //     height: "150",
+    //     url: "http://" + "ch.airdispat.plugins.news" + melangePluginSuffix + "/tile.html",
+    //     name: "News",
+    //   },
+    //   {
+    //     id: 2,
+    //     size: "6",
+    //     height: "150",
+    //     url: "http://" + "ch.airdispat.plugins.news" + melangePluginSuffix + "/tile.html",
+    //     name: "Family",
+    //   }
+    // ];
+
+    var startsWith = function(str, needle) {
+      return (str.indexOf(needle) === 0)
+    }
+
+    var parse = function(plugin, tileKey) {
+      var theTile = plugin.tiles[tileKey];
+
+      var parsedTile = {
+        id: plugin.id + "|" + tileKey,
+        url: "http://" + plugin.id + melangePluginSuffix + "/" + theTile.view,
+        click: theTile.click,
+      };
+
+      // if (theTile["title"] !== undefined) {
+      //   parsedTile["name"] = theTile["title"];
+      // }
+
+      var size = theTile['size'];
+
+
+      if(startsWith(size, "100%")) {
+        var height = size.split("x")[1];
+        parsedTile["size"] = "12";
+        parsedTile["height"] = height;
+      } else if (startsWith(size, "50%")) {
+        parsedTile["size"] = "6";
+        parsedTile["height"] = "150";
       }
-    ];
+
+      return parsedTile;
+    }
 
     return {
       all: function() {
         var defer = $q.defer();
-        setTimeout(function() {
-          defer.resolve(tiles);
-        }, 0);
+        tilesResource.current().$promise.then(function(data) {
+          mlgPlugins.all().then(function(plugins) {
+            data = cleanup(data);
+            var tiles = [];
+            for(var i in data) {
+              var components = data[i].split("|");
+              var tile = plugins[components[0]].tiles[components[1]]
+              tiles.push(parse(plugins[components[0]], components[1]))
+            }
+            defer.resolve(tiles);
+          });
+        }, function(err) {
+          console.log("Error loading tiles");
+          console.log(err)
+          defer.reject(err);
+        });
         return defer.promise;
-      }
+      },
+      parse: parse,
+      update: function(tiles) {
+        var update = [];
+        for(var i in tiles) {
+          update.push(tiles[i].id);
+        }
+
+        return tilesResource.update(update).$promise
+      },
     }
   }]);
 

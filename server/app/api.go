@@ -95,9 +95,11 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 		// TILES
 		//
 
-		"/tiles/current": &controllers.CurrentTiles{},
-		"/tiles": &controllers.AllTiles{
-			Path: pluginPath,
+		"/tiles/current": &controllers.CurrentTiles{
+			Store: r.Settings,
+		},
+		"/tiles/update": &controllers.UpdateTiles{
+			Store: r.Settings,
 		},
 
 		//
