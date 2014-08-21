@@ -33,12 +33,6 @@ func cloneZipItem(f *zip.File, dest string) error {
 			return err
 		}
 
-		// for _, v := range executables {
-		// 	if f.Name == v {
-		// 		fileCopy.Chmod()
-		// 	}
-		// }
-
 		_, err = io.Copy(fileCopy, rc)
 		fileCopy.Close()
 		if err != nil {
@@ -49,16 +43,22 @@ func cloneZipItem(f *zip.File, dest string) error {
 	return nil
 }
 
-func extractZip(zipPath io.ReaderAt, size int64, dest string) error {
+func ExtractZip(zipPath io.ReaderAt, size int64, dest string) (string, error) {
 	r, err := zip.NewReader(zipPath, size)
 	if err != nil {
-		return err
+		return "", err
 	}
-	for _, f := range r.File {
+
+	base := ""
+	for i, f := range r.File {
+		if i == 0 {
+			base = f.Name
+		}
+
 		err = cloneZipItem(f, dest)
 		if err != nil {
-			return err
+			return base, err
 		}
 	}
-	return nil
+	return base, nil
 }

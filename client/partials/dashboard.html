@@ -21,6 +21,9 @@
     <div class="col-xs-{{ tile.size }}" ng-repeat="(index, tile) in tiles">
       <mlg-tile src="tile.url" index="index" delete="deleteTile" edit="editDash" height="tile.height" name="tile.name" clickthrough="tile.click && (!editDash)"></mlg-tile>
     </div>
+    <div ng-if="tiles.length == 0 && !editDash" class="col-xs-12 text-muted text-center">
+      <p>No tiles here. You should add one.</p>
+    </div>
   </div>
   <mlg-add-tile ng-click="adding = true" ng-show="editDash"></mlg-add-tile>
 </div>

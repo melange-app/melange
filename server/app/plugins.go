@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -12,7 +13,7 @@ import (
 func (r *Server) HandlePlugins(mode string, res http.ResponseWriter, req *http.Request) {
 	// Serve Plugin Files
 	pluginPath := strings.TrimSuffix(mode, ".plugins")
-	view := framework.ServeFile(filepath.Join("plugins", pluginPath), req.URL.Path)
+	view := framework.ServeFile(filepath.Join(os.Getenv("MLGDATA"), "plugins", pluginPath), req.URL.Path)
 	framework.WriteView(&framework.CSPWrapper{
 		CSP: fmt.Sprintf("default-src 'self';"+
 			"img-src *;"+

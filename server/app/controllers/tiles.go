@@ -14,7 +14,7 @@ type CurrentTiles struct {
 }
 
 func (c *CurrentTiles) Handle(req *http.Request) framework.View {
-	data, err := c.Store.GetDefault("tiles_current", "ch.airdispat.plugins.status|status-updater")
+	data, err := c.Store.GetDefault("tiles_current", "")
 	if err != nil {
 		fmt.Println("Error getting from the store", err)
 		return framework.Error500

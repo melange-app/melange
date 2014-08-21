@@ -18,13 +18,40 @@
   // MLG-PLUGINS
   melangeServices.factory('mlgPlugins', ['$resource', '$q', 'mlgApi', function($resource, $q, mlgApi) {
     // Plugins Resource
-    var plugins = $resource('http://' + melangeAPI + '/plugins', {}, {query: {method:'GET', isArray:true}});
+    var plugins = $resource('http://' + melangeAPI + '/plugins/:action', {action: ""},
+    {
+      query: {
+        method:'GET',
+        isArray:true,
+      },
+      store: {
+        method:'GET',
+        isArray:true,
+        params: {
+          action: "store"
+        }
+      },
+      install: {
+        method:'POST',
+        params: {
+          action: "install"
+        }
+      },
+      uninstall: {
+        method:'POST',
+        params: {
+          action: "uninstall"
+        }
+      },
+    });
 
     var allPlugins = {};
     var havePlugins = false;
-    var getAllPlugins = function(callback) {
-      if(!havePlugins) {
+    var getAllPlugins = function(callback, override) {
+      if(!havePlugins || override === true) {
+        if(override) { console.log("Force updating plugins."); }
         plugins.query(function(value) {
+          angular.copy({}, allPlugins);
           for (var index in cleanup(value)) {
             allPlugins[value[index].id] = value[index]
           }
@@ -300,6 +327,19 @@
           defer.resolve(all);
         });
         return defer.promise;
+      },
+      allFromStore: function() {
+        return plugins.store().$promise;
+      },
+      install: function(data) {
+        return plugins.install(data).$promise.then(function() {
+          getAllPlugins(function(all) {}, true);
+        });
+      },
+      uninstall: function(data) {
+        return plugins.uninstall(data).$promise.then(function() {
+          getAllPlugins(function(all) {}, true);
+        });
       },
       viewer: function(msg) {
         var defer = $q.defer();

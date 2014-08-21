@@ -35,8 +35,10 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 	// fmt.Println("API Request", req.Method, req.URL.Path)
 
 	packager := &packaging.Packager{
-		API: "http://www.getmelange.com/api",
+		API:    "http://www.getmelange.com/api",
+		Plugin: filepath.Join(os.Getenv("MLGDATA"), "plugins"),
 	}
+	packager.CreatePluginDirectory()
 
 	tables, err := models.CreateTables(r.Settings)
 	if err != nil {
@@ -44,8 +46,6 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 		framework.WriteView(framework.Error500, res)
 		return
 	}
-
-	pluginPath := filepath.Join(os.Getenv("MLGBASE"), "plugins")
 
 	version := os.Getenv("MLGVERSION")
 	platform := os.Getenv("MLGPLATFORM")
@@ -69,6 +69,27 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 		},
 
 		//
+		// APPLICATIONS
+		//
+
+		// GET  /plugins
+		"/plugins": &PluginServer{
+			Packager: packager,
+		},
+		// GET  /servers
+		"/plugins/store": &controllers.PluginStoreController{
+			Packager: packager,
+		},
+		// GET  /servers
+		"/plugins/install": &controllers.InstallPluginController{
+			Packager: packager,
+		},
+		// GET  /trackers
+		"/plugins/uninstall": &controllers.UninstallPluginController{
+			Packager: packager,
+		},
+
+		//
 		// UPDATES
 		//
 
@@ -85,11 +106,6 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 		//
 		// PLUGINS
 		//
-
-		// GET  /plugins
-		"/plugins": &PluginServer{
-			Path: pluginPath,
-		},
 
 		//
 		// TILES
@@ -284,12 +300,12 @@ func (p *POSTHandler) Handle(req *http.Request) framework.View {
 
 // PluginServer returns the list of plugins from the MLGBASE/plugins directory.
 type PluginServer struct {
-	Path string
+	Packager *packaging.Packager
 }
 
 // Handle the PluginServer.
 func (s *PluginServer) Handle(req *http.Request) framework.View {
-	return framework.LoadPlugins(s.Path)
+	return s.Packager.LoadPlugins()
 }
 
 // ServerLists will return the list of Trackers or Servers from

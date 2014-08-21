@@ -173,7 +173,7 @@ func DownloadUpdate(download string, progress chan<- float64) (string, updateSta
 		}
 	} else {
 		// Unzip the update
-		err = extractZip(file, n, dir)
+		_, err = ExtractZip(file, n, dir)
 		if err != nil {
 			return "", updateStatus{
 				Msg: "Couldn't unzip file.",

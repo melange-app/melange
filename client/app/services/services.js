@@ -90,6 +90,11 @@ var mlgCleanup = function(msg) {
         var defer = $q.defer();
         tilesResource.current().$promise.then(function(data) {
           mlgPlugins.all().then(function(plugins) {
+            if(Object.keys(plugins).length == 0) {
+              defer.resolve([]);
+              return;
+            }
+
             data = cleanup(data);
             var tiles = [];
             for(var i in data) {
@@ -279,6 +284,19 @@ var mlgCleanup = function(msg) {
         method: 'POST',
         params: {
           action: "update/install",
+        }
+      },
+      // Applications
+      installApp: {
+        method: 'POST',
+        params: {
+          action: "app/install",
+        }
+      },
+      uninstallApp: {
+        method: 'POST',
+        params: {
+          action: "app/uninstall",
         }
       }
     })

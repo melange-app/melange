@@ -25,22 +25,36 @@
   <hr/>
   <h4><i class="fa fa-star"></i> Featured Applications</h4>
   <div class="row">
-  </div>
-  <hr/>
-  <h4><i class="fa fa-desktop"></i> Installed Applications</h4>
-  <div class="row">
-    <div class="col-sm-6" ng-repeat="plugin in allPlugins">
+    <div class="col-sm-6" ng-repeat="plugin in store">
       <div class="panel panel-default">
         <div class="panel-body">
-          <p class="lead" style="margin-bottom: 0;">{{ plugin.name }}</p>
-          <p>{{ plugin.description }}</p>
+          <p class="lead" style="margin-bottom: 0;">
+            {{ plugin.Name }}
+          </p>
+          <p>{{ plugin.Description }}</p>
+          <p class="small">by {{ plugin.Username }}</p>
         </div>
         <div class="panel-footer">
-          <a href="#" class="btn btn-xs btn-default">Settings</a>
-          <a href="#" class="btn btn-xs btn-default">Disable</a>
-          <a href="#" class="btn btn-xs btn-default">Uninstall</a>
+          <a href="" ng-click="install(plugin)" ng-disabled="plugin.Installed || plugin.Installing" class="btn btn-xs" ng-class="{'btn-primary': !plugin.Installed, 'btn-default': plugin.Installed}">
+              <span ng-if="plugin.Installing">
+                <i class="fa fa-fw fa-spin fa-circle-o-notch"></i>
+              </span>
+            {{ plugin.Installed ? 'Installed' : 'Install' }}
+          </a>
         </div>
       </div>
     </div>
   </div>
+  <hr/>
+  <h4><i class="fa fa-desktop"></i> Installed Applications</h4>
+  <div ng-if="!hasPlugins" class="text-muted text-center">
+    <p>No plugins installed yet, go ahead and install some.</p>
+  </div>
+  <ul class="list-group">
+    <li class="list-group-item" ng-repeat="plugin in plugins">
+      <p class="pull-right"><a href="" ng-click="uninstall(plugin)" class="btn btn-xs btn-danger">Uninstall</a></p>
+      <h4><abbr title="{{ plugin.id }}">{{ plugin.name }}</abbr> <small>by {{ plugin.author.name }}</small></h4>
+      <p>{{ plugin.description }}</p>
+    </li>
+  </ul>
 </div>

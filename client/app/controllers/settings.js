@@ -85,6 +85,39 @@
 
     }]);
 
+  melangeControllers.controller('PluginSettingsCtrl', ['$scope', 'mlgPlugins',
+    function($scope, mlgPlugins) {
+      mlgPlugins.allFromStore().then(function(data) {
+        $scope.store = data;
+      });
+
+      mlgPlugins.all().then(function(data) {
+        $scope.plugins = data;
+        $scope.hasPlugins = Object.keys(data).length > 0;
+      });
+
+      $scope.install = function(plugin) {
+        plugin.Installing = true;
+        mlgPlugins.install({
+          "Repository": plugin.Repository,
+        }).then(function(data) {
+          plugin.Installing = false;
+          console.log("Installed " + plugin.Id + " successfully.");
+          plugin.Installed = true;
+        })
+      }
+
+      $scope.uninstall = function(plugin) {
+        var id = plugin.id;
+        mlgPlugins.uninstall({
+          "Id": id,
+        }).then(function(data) {
+          console.log("Uninstalled " + id + " successfully.");
+        })
+      }
+    }
+  ]);
+
   melangeControllers.controller('NewIdentityCtrl', ['$scope', '$location', 'mlgIdentity',
     function($scope, $location, mlgIdentity) {
       $scope.profile = mlgIdentity.profile;

@@ -60,8 +60,9 @@ func (p *Provider) LoadDefaults() error {
 
 // Packager is an object that returns providers from getmelange.com
 type Packager struct {
-	API   string
-	cache map[string]map[string]*Provider
+	API    string
+	Plugin string
+	cache  map[string]map[string]*Provider
 }
 
 func (p *Packager) DecodeProviders(url string) ([]*Provider, error) {
