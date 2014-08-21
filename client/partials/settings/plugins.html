@@ -24,6 +24,9 @@
   </div>
   <hr/>
   <h4><i class="fa fa-star"></i> Featured Applications</h4>
+  <div ng-if="loadingStore" class="text-muted">
+    <i class="fa fa-spin fa-circle-notch-o fa-4x"></i>
+  </div>
   <div class="row">
     <div class="col-sm-6" ng-repeat="plugin in store">
       <div class="panel panel-default">
@@ -46,13 +49,15 @@
     </div>
   </div>
   <hr/>
-  <h4><i class="fa fa-desktop"></i> Installed Applications</h4>
+  <h4><i class="fa fa-desktop"></i> Installed Applications <small><a href="">check for updates</a></small></h4>
   <div ng-if="!hasPlugins" class="text-muted text-center">
     <p>No plugins installed yet, go ahead and install some.</p>
   </div>
   <ul class="list-group">
     <li class="list-group-item" ng-repeat="plugin in plugins">
-      <p class="pull-right"><a href="" ng-click="uninstall(plugin)" class="btn btn-xs btn-danger">Uninstall</a></p>
+      <p class="pull-right">
+        <a href="" ng-click="uninstall(plugin)" class="btn btn-xs btn-danger">Uninstall</a>
+      </p>
       <h4><abbr title="{{ plugin.id }}">{{ plugin.name }}</abbr> <small>by {{ plugin.author.name }}</small></h4>
       <p>{{ plugin.description }}</p>
     </li>

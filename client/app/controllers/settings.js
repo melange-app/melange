@@ -87,7 +87,10 @@
 
   melangeControllers.controller('PluginSettingsCtrl', ['$scope', 'mlgPlugins',
     function($scope, mlgPlugins) {
+
+      $scope.loadingStore = true;
       mlgPlugins.allFromStore().then(function(data) {
+        $scope.loadingStore = false;
         $scope.store = data;
       });
 
