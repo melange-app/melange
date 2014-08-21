@@ -14,7 +14,6 @@ mkdir tmp/Melange.app/Contents/Resources/app
 
 cp -R ../client tmp/Melange.app/Contents/Resources/app
 cp -R ../lib tmp/Melange.app/Contents/Resources/app
-cp -R ../plugins tmp/Melange.app/Contents/Resources/app
 cp -R ../*.html tmp/Melange.app/Contents/Resources/app
 cp -R ../*.js tmp/Melange.app/Contents/Resources/app
 cp -R ../*.json tmp/Melange.app/Contents/Resources/app
