@@ -419,7 +419,7 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 
 		for _, v := range s {
 			var msg []*message.Mail
-			list, stale := publicCache.Get(v.Fingerprint)
+			list, stale := publicCache.Get(v.Alias)
 			if !stale {
 				msg = list.([]*message.Mail)
 			} else {
@@ -441,7 +441,7 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 						return framework.Error500
 					}
 				}
-				publicCache.Store(v.Fingerprint, msg)
+				publicCache.Store(v.Alias, msg)
 			}
 			outputMessages = append(outputMessages, translateMessage(router, dap.Key, true, msg...)...)
 		}
