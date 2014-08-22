@@ -123,6 +123,8 @@ type InstallUpdateController struct {
 }
 
 func (i *InstallUpdateController) Handle(req *http.Request) framework.View {
+	fmt.Println("Going to install update")
+
 	u := make(map[string]string)
 	err := DecodeJSONBody(req, &u)
 	if err != nil {

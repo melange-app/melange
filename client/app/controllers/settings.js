@@ -30,13 +30,19 @@
       var dir = undefined;
 
       var installUpdate = function() {
+        console.log("Starting to update.")
         // Install will shutdown the server, I have to shutdown node
         mlgApi.update.install({
           dir: dir,
-        });
-        var remote = require("remote");
-        var app = remote.require("app");
-        app.quit();
+        }).$promise.then(
+          function(data) {
+            console.log("Updated")
+          },
+          function(err) {
+            console.log("Error updating")
+            console.log(err)
+          }
+        );
       }
 
       var downloadUpdate = function() {
@@ -44,20 +50,21 @@
         $scope.updateStatus = "Downloading...";
         mlgApi.update.download($scope.update).$promise.then(function(obj) {
           $scope.downloadProgress = 0;
-          $interval(function() {
+          var checker = $interval(function() {
               mlgApi.update.progress().$promise.then(function(obj) {
                 if(obj["dir"] !== undefined) {
                   $scope.working = false;
                   $scope.btnType = "btn-danger";
                   $scope.updateStatus = "Install and Restart";
                   $scope.checkForUpdates = installUpdate;
+                  $interval.cancel(checker);
                   dir = obj["dir"];
                 } else if (obj["progress"] !== undefined) {
                   console.log(obj["progress"])
-                  $scope.downloadProgress = obj["progress"] * 100;
+                  $scope.downloadProgress = (obj["progress"] * 100).toFixed(2);
                 }
               })
-          }, 200)
+          }, 500)
         }, function(err) {
           console.log("Error downloading update.");
           console.log(err);

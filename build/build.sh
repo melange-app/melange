@@ -3,7 +3,7 @@
 mkdir tmp
 
 # -a -v
-go build -o=tmp/server ../server/server/server.go
+go build -a -v -o=tmp/server ../server/server/server.go
 go build -o=tmp/updater ../server/updater/updater/updater.go
 
 cp -R ../releases/atom/Melange.app tmp/

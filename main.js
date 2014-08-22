@@ -127,6 +127,8 @@ app.on('will-finish-launching', function() {
       } else {
         continueLaunching();
       }
+    } else if (request.url === "/kill") {
+      app.quit();
     } else {
       response.writeHead(404, {"Content-Type": "text/plain"});
       response.write("That request is not allowed.");
@@ -175,5 +177,5 @@ app.on('will-finish-launching', function() {
 
 app.on('will-quit', function() {
   console.log("Will Quit Fired");
-  go.kill('SIGKILL')
+  go.kill();
 });

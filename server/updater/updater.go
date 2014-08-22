@@ -232,6 +232,13 @@ func InstallUpdate(downloadDir, appDir string) updateStatus {
 
 	fmt.Println("Going down for update.")
 
+	_, err = http.Get(
+		fmt.Sprintf("http://localhost:%s/kill", os.Getenv("MLGPORT")),
+	)
+	if err != nil {
+		fmt.Println("Couldn't shut down for update.")
+	}
+
 	return updateStatus{
 		Updated: true,
 	}
