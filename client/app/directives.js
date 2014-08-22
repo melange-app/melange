@@ -79,7 +79,13 @@ melangeDirectives.directive("message", ['mlgPlugins', function(mlgPlugins) {
           if(scope.hidden && scope.all) {
             scope.templateType = "default";
           }
-        }, function() { scope.templateType = "default"; });
+        }, function() {
+          if('airdispat.ch/profile/name' in scope.data.components) {
+            scope.templateType = "profile";
+            return
+          }
+          scope.templateType = "default";
+        });
       })
     }
   }
