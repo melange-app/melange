@@ -23,9 +23,9 @@
     </div>
     <br ng-if="update"/>
     <div ng-if="update">
-      <div class="well">
+      <div class="well update">
         <h3 style="margin: 0 0 10px 0;">Version: {{ update.Version }}</h3>
-        {{ update.Changelog }}
+        <span ng-bind-html="changelog"></span>
       </div>
     </div>
   </div>

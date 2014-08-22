@@ -5,8 +5,8 @@
   var melangeControllers = angular.module('melangeControllers');
 
 
-  melangeControllers.controller('SettingsCtrl', ['$scope', '$interval', 'mlgApi', 'mlgIdentity', 'mlgHelper', '$rootScope',
-    function($scope, $interval, mlgApi, mlgIdentity, mlgHelper, $rootScope) {
+  melangeControllers.controller('SettingsCtrl', ['$scope', '$interval', '$sce', 'mlgApi', 'mlgIdentity', 'mlgHelper', '$rootScope',
+    function($scope, $interval, $sce, mlgApi, mlgIdentity, mlgHelper, $rootScope) {
       mlgIdentity.list().then(function(data) {
         $scope.identities = data;
       })
@@ -78,6 +78,8 @@
           $scope.btnType = "btn-success"
           $scope.updateStatus = "Download new Version " + obj.Version;
           $scope.update = obj;
+          console.log(obj.Changelog);
+          $scope.changelog = $sce.trustAsHtml(obj.Changelog);
           $scope.checkForUpdates = downloadUpdate;
         }, function(obj) {
           $scope.working = false;
