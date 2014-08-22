@@ -133,6 +133,36 @@
       return newMessage;
     }
 
+    var filterByFields = function(msg, fields, perms) {
+      // Ensure that Requested Fields are Returned
+      var cleanedMsgs = [];
+      for (var i in msg) {
+        var check = msg[i];
+        var works = function() {
+          for (var j in fields) {
+            var comp = fields[j]
+            var optional = false;
+            if (comp[0] === "?") {
+              optional = true;
+              comp = comp.substr(1, comp.length)
+            }
+
+            if(check.components[comp] === undefined && !optional) {
+              return false
+            }
+          }
+          return true
+        }();
+        if (works) {
+          cleanedMsgs.push(
+            cleanupPermissions(perms, check)
+          );
+        }
+      }
+
+      return cleanedMsgs
+    }
+
     // --- Plugin Communication
     var receivers = {
       viewerUpdate: function(origin, data, callback, obj) {
@@ -191,31 +221,7 @@
           function(msg) {
             cleanup(msg);
 
-            // Ensure that Requested Fields are Returned
-            var cleanedMsgs = [];
-            for (var i in msg) {
-              var check = msg[i];
-              var works = function() {
-                for (var j in data.fields) {
-                  var comp = data.fields[j]
-                  var optional = false;
-                  if (comp[0] === "?") {
-                    optional = true;
-                    comp = comp.substr(1, comp.length)
-                  }
-
-                  if(check.components[comp] === undefined && !optional) {
-                    return false
-                  }
-                }
-                return true
-              }();
-              if (works) {
-                cleanedMsgs.push(
-                  cleanupPermissions(perms, check)
-                );
-              }
-            }
+            var cleanedMsgs = filterByFields(msg, data.fields, perms);
 
             callback({
               type: "foundMessages",
@@ -237,13 +243,25 @@
           context: mlgStatus,
         })
       },
+      deleteMessage: function(origin, data, callback) {
+        callback({
+          type: "deletedMessage",
+          context: mlgStatus,
+        })
+      },
       downloadMessage: function(origin, data, callback) {
-        mlgApi.getMessages().$promise.then(
+        // Enforce Permissions
+        var perms = requiresPermission(allPlugins[origin], "read-message", "downloadedMessage", callback)
+        if(perms === false) {
+          return
+        }
+
+        mlgApi.getMessage(data.alias, data.name).$promise.then(
           function(msg) {
             cleanup(msg);
             callback({
               type: "downloadedMessage",
-              context: msg[0],
+              context: cleanupPermissions(perms, msg),
             });
           },
           function(err) {
@@ -256,9 +274,23 @@
         );
       },
       downloadPublicMessages: function(origin, data, callback) {
-        mlgApi.getMessages().$promise.then(
+        // Enforce Permissions
+        var perms = requiresPermission(allPlugins[origin], "read-message", "downloadedPublicMessages", callback)
+        if(perms === false) {
+          return
+        }
+
+        var permissionCheck = checkPermissionField(perms, data.fields, "downloadedPublicMessages", callback)
+        if(!permissionCheck) {
+          return
+        }
+
+        mlgApi.getMessagesAtAlias(data.alias, true).$promise.then(
           function(msg) {
             cleanup(msg);
+
+            var cleanedMsgs = filterByFields(msg, data.fields, perms)
+
             callback({
               type: "downloadedPublicMessages",
               context: msg,

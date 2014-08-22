@@ -45,14 +45,7 @@ func getAddresses(r routing.Router, to *models.Address) (server *identity.Addres
 	return
 }
 
-func downloadMessage(r routing.Router, msgName string, from *identity.Identity, to string, serverAlias string) (*message.Mail, error) {
-	srv, err := r.LookupAlias(serverAlias, routing.LookupTypeTX)
-	if err != nil {
-		return nil, err
-	}
-
-	author := identity.CreateAddressFromString(to)
-
+func downloadMessageFromServer(msgName string, from *identity.Identity, author *identity.Address, srv *identity.Address) (*message.Mail, error) {
 	txMsg := server.CreateTransferMessage(msgName, from.Address, srv, author)
 	bytes, typ, h, err := message.SendMessageAndReceive(txMsg, from, srv)
 	if err != nil {
@@ -68,6 +61,17 @@ func downloadMessage(r routing.Router, msgName string, from *identity.Identity, 
 	}
 
 	return message.CreateMailFromBytes(bytes, h)
+}
+
+func downloadMessage(r routing.Router, msgName string, from *identity.Identity, to string, serverAlias string) (*message.Mail, error) {
+	srv, err := r.LookupAlias(serverAlias, routing.LookupTypeTX)
+	if err != nil {
+		return nil, err
+	}
+
+	author := identity.CreateAddressFromString(to)
+
+	return downloadMessageFromServer(msgName, from, author, srv)
 }
 
 func downloadPublicMail(r routing.Router, since uint64, from *identity.Identity, to *models.Address) ([]*message.Mail, error) {

@@ -140,6 +140,16 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 			Store:  r.Settings,
 			Tables: tables,
 		},
+		// POST /messages
+		"/messages/get": &controllers.GetMessage{
+			Store:  r.Settings,
+			Tables: tables,
+		},
+		// POST /messages
+		"/messages/at": &controllers.GetAllMessagesAt{
+			Store:  r.Settings,
+			Tables: tables,
+		},
 		// POST /messages/new
 		"/messages/new": &controllers.NewMessage{
 			Store:  r.Settings,

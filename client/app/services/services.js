@@ -247,6 +247,20 @@ var mlgCleanup = function(msg) {
   // MLG-API
   melangeServices.factory('mlgApi', ['$resource', '$q', function($resource, $q) {
     var apiResource = $resource('http://' + melangeAPI + '/:action', {}, {
+      // Messages
+      getMessage: {
+        method: 'POST',
+        params: {
+          action: "messages/get",
+        }
+      },
+      getMessagesAtAlias: {
+        method: 'POST',
+        isArray: true,
+        params: {
+          action: "messages/at",
+        }
+      },
       // Contacts
       contacts: {
         method: 'GET',
@@ -351,6 +365,12 @@ var mlgCleanup = function(msg) {
         console.log(data);
         return $resource('http://' + melangeAPI + '/messages/new', {}, {create: {method:'POST'}}).create(data);
       },
+      getMessage: function(alias, name) {
+        return apiResource.getMessage({
+          alias: alias,
+          name: name,
+        }).$promise
+      },
       getMessages: function(self, pub, received) {
         var obj = {
           public: pub,
@@ -365,6 +385,14 @@ var mlgCleanup = function(msg) {
           };
         }
         return $resource('http://' + melangeAPI + '/messages', {}, {query: {method:'POST', isArray:true}}).query(obj);
+      },
+      getMessagesAtAlias: function(alias, onlyPublic) {
+        if(arguments.length === 1) { onlyPublic = true; }
+
+        return apiResource.getMessagesAtAlias({
+          alias: alias,
+          onlyPublic: onlyPublic,
+        }).$promise;
       },
       // Profile Management
       updateProfile: function(profile) {

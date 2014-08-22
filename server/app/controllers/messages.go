@@ -176,7 +176,7 @@ func translateMessage(r routing.Router, from *identity.Identity, public bool, ms
 				profile = &melangeProfile{
 					Name:        name,
 					Fingerprint: v.Header().From.String(),
-					Avatar:      "http://placehold.it/404", // haha
+					Avatar:      defaultProfileImage(v.Header().From), // haha
 					Alias:       v.Header().Alias,
 				}
 			} else {
@@ -202,7 +202,10 @@ func translateProfile(r routing.Router, from *identity.Identity, fp string, alia
 		return nil, errors.New("Can't get profile without alias support.")
 	}
 
-	noImage := "http://placehold.it/404"
+	if fp == "" {
+		fmt.Printf("Image won't be correct for no fp lookup with alias", alias)
+	}
+	noImage := defaultProfileImage(identity.CreateAddressFromString(fp))
 
 	profile, err := getProfile(r, from, fp, alias)
 	if err != nil {
@@ -238,6 +241,10 @@ func translateProfile(r routing.Router, from *identity.Identity, fp string, alia
 		Alias:       alias,
 		Fingerprint: fp,
 	}, nil
+}
+
+func defaultProfileImage(from *identity.Address) string {
+	return fmt.Sprintf("http://robohash.org/%s.png?bgset=bg2", from.String())
 }
 
 // Messages Controller will download messages from the server and subscribed
@@ -337,7 +344,7 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 			fmt.Println("Unable to get my profile.", realErr)
 			myProfile = &models.Profile{
 				Name:  myAlias.String(),
-				Image: "http://placehold.it/400",
+				Image: defaultProfileImage(dap.Key.Address),
 			}
 		}
 
@@ -444,6 +451,138 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 
 	return &framework.JSONView{
 		Content: outputMessages,
+	}
+}
+
+type getMessageRequest struct {
+	Name       string `json:"name"`
+	Alias      string `json:"alias"`
+	OnlyPublic bool   `json:"onlyPublic"`
+	Since      uint64 `json:"since"`
+}
+
+// GetMessage controller will download a single message as specified by
+// Alias and Name
+type GetAllMessagesAt struct {
+	Store  *models.Store
+	Tables map[string]gdb.Table
+}
+
+// Handle will download the messages and transform them into JSON.
+func (m *GetAllMessagesAt) Handle(req *http.Request) framework.View {
+	request := &getMessageRequest{}
+	realErr := DecodeJSONBody(req, &request)
+	if realErr != nil {
+		fmt.Println("Error decoding body (MSGS).", realErr)
+		return framework.Error500
+	}
+
+	id, frameErr := CurrentIdentityOrError(m.Store, m.Tables["identity"])
+	if frameErr != nil {
+		return frameErr
+	}
+
+	dap, err := DAPClientFromID(id, m.Store)
+	if err != nil {
+		fmt.Println("Couldn't construct DAPClient", err)
+		return framework.Error500
+	}
+
+	router := &router.Router{
+		Origin: dap.Key,
+		TrackerList: []string{
+			"localhost:2048",
+		},
+	}
+
+	var msg []*message.Mail
+
+	output := make([]*melangeMessage, 0)
+
+	msg, realErr = downloadPublicMail(router, request.Since, dap.Key, &models.Address{
+		Alias: request.Alias,
+	})
+	if realErr != nil {
+		switch t := realErr.(type) {
+		case *adErrors.Error:
+			if t.Code == 5 {
+				// No public mail available for that user.
+				// No alert needed.
+
+			} else {
+				fmt.Println("Error getting public mail", realErr)
+				return framework.Error500
+			}
+		case error:
+			fmt.Println("Error getting public mail", realErr)
+			return framework.Error500
+		}
+	} else {
+		output = translateMessage(router, dap.Key, true, msg...)
+	}
+
+	return &framework.JSONView{
+		Content: output,
+	}
+}
+
+// GetMessage controller will download a single message as specified by
+// Alias and Name
+type GetMessage struct {
+	Store  *models.Store
+	Tables map[string]gdb.Table
+}
+
+// Handle will download the messages and transform them into JSON.
+func (m *GetMessage) Handle(req *http.Request) framework.View {
+	request := &getMessageRequest{}
+	realErr := DecodeJSONBody(req, &request)
+	if realErr != nil {
+		fmt.Println("Error decoding body (MSGS).", realErr)
+		return framework.Error500
+	}
+
+	id, frameErr := CurrentIdentityOrError(m.Store, m.Tables["identity"])
+	if frameErr != nil {
+		return frameErr
+	}
+
+	dap, err := DAPClientFromID(id, m.Store)
+	if err != nil {
+		fmt.Println("Couldn't construct DAPClient", err)
+		return framework.Error500
+	}
+
+	router := &router.Router{
+		Origin: dap.Key,
+		TrackerList: []string{
+			"localhost:2048",
+		},
+	}
+
+	srv, author, err := getAddresses(router, &models.Address{
+		Alias: request.Alias,
+	})
+	if err != nil {
+		fmt.Println("Couldn't get addresses for user", err)
+		return framework.Error500
+	}
+
+	// TODO: h.From _MUST_ be the server key, not the client key.
+	mail, err := downloadMessageFromServer(request.Name, dap.Key, author, srv)
+	if err != nil {
+		fmt.Println("Got error downloading message", request.Name, err)
+		return framework.Error500
+	}
+
+	jsonMsg := translateMessage(router, dap.Key, false, mail)
+	if len(jsonMsg) != 1 {
+		fmt.Println("Expected json message to have 1 message, got", len(jsonMsg), "messages.")
+		return framework.Error500
+	}
+
+	return &framework.JSONView{
+		Content: jsonMsg[0],
 	}
 }
 

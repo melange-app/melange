@@ -99,6 +99,38 @@
 
   }]);
 
+  melangeControllers.controller('UserProfileCtrl', ['$scope', '$routeParams', 'mlgApi',
+  function($scope, $routeParams, mlgApi) {
+    $scope.profile = {
+      name: $routeParams.alias
+    }
+
+    mlgApi.getMessage($routeParams.alias, "profile").then(function(profile) {
+      console.log(profile)
+      $scope.profile = {
+        name: profile.components["airdispat.ch/profile/name"].string,
+        description: profile.components["airdispat.ch/profile/description"].string,
+        image: profile.components["airdispat.ch/profile/avatar"].string,
+      }
+    }, function(err) {
+      console.log("Got an error getting profile")
+      console.log(err)
+    });
+
+    // Sync up if needed.
+    var sync = function() {
+      console.log("Syncing")
+      $scope.loading = true;
+      mlgApi.getMessagesAtAlias($routeParams.alias).then(function(data) {
+        $scope.loading = false;
+        $scope.newsfeed = data;
+      });
+    }
+    sync();
+    $scope.$on("mlgSyncApp", sync)
+
+  }]);
+
   melangeControllers.controller('NewProfileCtrl', ['$scope', '$location', 'mlgApi',
   function($scope, $location, mlgApi) {
     $scope.profile = {};

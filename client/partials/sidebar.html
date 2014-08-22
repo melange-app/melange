@@ -15,8 +15,8 @@
     <li class="header">FAVORITES</li>
     <li
       ng-repeat="contact in contacts | filter: {'favorite': true}"
-      ng-class="{ active: page.indexOf('/contact/' + contact.id) === 0 }">
-        <a ng-href="#/contact/{{ contact.id }}">{{ contact.name }}</a>
+      ng-class="{ active: page.indexOf('/user/' + contact.addresses[0].alias) === 0 }">
+        <a ng-href="#/user/{{ contact.addresses[0].alias }}">{{ contact.name }}</a>
     </li>
   </ul>
 </div>
