@@ -70,6 +70,25 @@
         return title
       }
 
+      $scope.hasButtons = (typeof window.require === 'function');
+      $scope.appClose = function() {
+        var remote = require('remote')
+        remote.getCurrentWindow().close();
+      }
+      $scope.appMinimize = function() {
+        var remote = require('remote')
+        remote.getCurrentWindow().minimize();
+      }
+      $scope.appZoom = function() {
+        var remote = require('remote')
+        var win = remote.getCurrentWindow();
+        if(win.isMaximized()) {
+          win.unmaximize();
+        } else {
+          win.maximize();
+        }
+      }
+
     }]);
 
   melangeControllers.controller('StartupCtrl', ['mlgIdentity', '$location',

@@ -1,5 +1,5 @@
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container-fluid">
+  <div class="container-fluid padding-none">
     <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#mlg-navbar">
@@ -8,6 +8,11 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
+      <div class="close-buttons-mac" ng-if="hasButtons">
+        <a href="" ng-click="appClose()" style="background-image: url('images/close.png');"></a>
+        <a href="" ng-click="appMinimize()" style="background-image: url('images/minimize.png');"></a>
+        <a href="" ng-click="appZoom()" style="background-image: url('images/zoom.png');"></a>
+      </div>
       <a class="navbar-brand">Melange</a>
     </div>
 
