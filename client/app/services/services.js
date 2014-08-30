@@ -99,8 +99,10 @@ var mlgCleanup = function(msg) {
             var tiles = [];
             for(var i in data) {
               var components = data[i].split("|");
-              var tile = plugins[components[0]].tiles[components[1]]
-              tiles.push(parse(plugins[components[0]], components[1]))
+              if(angular.isDefined(plugins[components[0]])) {
+                var tile = plugins[components[0]].tiles[components[1]]
+                tiles.push(parse(plugins[components[0]], components[1]))
+              }
             }
             defer.resolve(tiles);
           });
