@@ -16,7 +16,7 @@
   }
 
   // MLG-PLUGINS
-  melangeServices.factory('mlgPlugins', ['$resource', '$q', 'mlgApi', function($resource, $q, mlgApi) {
+  melangeServices.factory('mlgPlugins', ['$resource', '$q', 'mlgApi', 'mlgIdentity', function($resource, $q, mlgApi, mlgIdentity) {
     // Plugins Resource
     var plugins = $resource('http://' + melangeAPI + '/plugins/:action', {action: ""},
     {
@@ -304,6 +304,23 @@
             })
           }
         );
+      },
+      // User Management
+      currentUser: function(origin, data, callback) {
+        mlgIdentity.current().then(function(data) {
+          callback({
+            type: "currentUser",
+            context: {
+              fingerprint: data.Fingerprint,
+            },
+          });
+        }, function(err) {
+          console.log(err)
+          callback({
+            type: "currentUser",
+            context: {error: {code: 1, message: "Something happened. Too lazy to find out what."}}
+          })
+        })
       },
     };
     function messenger(source, data, origin) {
