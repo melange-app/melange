@@ -1,9 +1,7 @@
-package controllers
+package models
 
 import (
 	"errors"
-
-	"getmelange.com/app/models"
 
 	adErrors "airdispat.ch/errors"
 	"airdispat.ch/identity"
@@ -13,7 +11,9 @@ import (
 	"airdispat.ch/wire"
 )
 
-func sendAlert(r routing.Router, msgName string, from *identity.Identity, to string, serverAlias string) error {
+// Moving the Message Subsystem Here for Future-proofing
+
+func SendAlert(r routing.Router, msgName string, from *identity.Identity, to string, serverAlias string) error {
 	addr, err := r.LookupAlias(to, routing.LookupTypeALERT)
 	if err != nil {
 		return err
@@ -31,7 +31,7 @@ func getProfile(r routing.Router, from *identity.Identity, to string, alias stri
 	return downloadMessage(r, "profile", from, to, alias)
 }
 
-func getAddresses(r routing.Router, to *models.Address) (server *identity.Address, author *identity.Address, err error) {
+func getAddresses(r routing.Router, to *Address) (server *identity.Address, author *identity.Address, err error) {
 	if to.Fingerprint == "" {
 		author, err = r.LookupAlias(to.Alias, routing.LookupTypeMAIL)
 		if err != nil {
@@ -64,6 +64,11 @@ func downloadMessageFromServer(msgName string, from *identity.Identity, author *
 }
 
 func downloadMessage(r routing.Router, msgName string, from *identity.Identity, to string, serverAlias string) (*message.Mail, error) {
+	toLookup := serverAlias
+	if toLookup == "" {
+		toLookup = to
+	}
+
 	srv, err := r.LookupAlias(serverAlias, routing.LookupTypeTX)
 	if err != nil {
 		return nil, err
@@ -74,7 +79,7 @@ func downloadMessage(r routing.Router, msgName string, from *identity.Identity, 
 	return downloadMessageFromServer(msgName, from, author, srv)
 }
 
-func downloadPublicMail(r routing.Router, since uint64, from *identity.Identity, to *models.Address) ([]*message.Mail, error) {
+func downloadPublicMail(r routing.Router, since uint64, from *identity.Identity, to *Address) ([]*message.Mail, error) {
 	srv, author, err := getAddresses(r, to)
 	if err != nil {
 		return nil, err

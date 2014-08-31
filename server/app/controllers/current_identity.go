@@ -42,7 +42,7 @@ func (i *CurrentIdentity) Handle(req *http.Request) framework.View {
 			return framework.Error500
 		}
 
-		invalidateCaches()
+		models.InvalidateCaches()
 
 		return &framework.JSONView{
 			Content: map[string]interface{}{

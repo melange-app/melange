@@ -65,22 +65,22 @@ func (c *UpdateProfile) Handle(req *http.Request) framework.View {
 		return framework.Error500
 	}
 
-	msg := &melangeMessage{
+	msg := &models.JSONMessage{
 		Name: "profile",
 		Date: time.Now(),
-		From: &melangeProfile{
+		From: &models.JSONProfile{
 			Fingerprint: "",
 			Alias:       "",
 		},
 		Public: true,
-		Components: map[string]*melangeComponent{
-			"airdispat.ch/profile/name": &melangeComponent{
+		Components: map[string]*models.JSONComponent{
+			"airdispat.ch/profile/name": &models.JSONComponent{
 				String: profileRequest.Name,
 			},
-			"airdispat.ch/profile/avatar": &melangeComponent{
+			"airdispat.ch/profile/avatar": &models.JSONComponent{
 				String: string(profileRequest.Image),
 			},
-			"airdispat.ch/profile/description": &melangeComponent{
+			"airdispat.ch/profile/description": &models.JSONComponent{
 				String: profileRequest.Description,
 			},
 		},
