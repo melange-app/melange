@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 	"sync"
 	"time"
 
@@ -18,6 +19,13 @@ import (
 var (
 	majorStore   = NewMessageStore()
 	majorFetcher = NewFetcher()
+)
+
+const (
+	updateFrequency        = 2 * time.Minute
+	fetchPublicFrequency   = 5 * time.Minute
+	fetchPrivateFrequency  = 10 * time.Second
+	profileExpiryFrequency = 5 * time.Minute
 )
 
 type updateFunc func() (*JSONMessage, error)
@@ -47,17 +55,19 @@ type MessageStore struct {
 	// Ticker
 	Ticker *time.Ticker
 	// Meta
-	Lock   *sync.RWMutex
-	Latest time.Time
+	Lock        *sync.RWMutex
+	ProfileLock *sync.RWMutex
+	Latest      time.Time
 }
 
 func NewMessageStore() *MessageStore {
 	c := &MessageStore{
-		Named:    make(map[string]*MessageStoreRecord),
-		Profiles: make(map[string]*MessageStoreProfile),
-		Public:   make(map[string][]*MessageStoreRecord),
-		Ticker:   time.NewTicker(2 * time.Minute),
-		Lock:     &sync.RWMutex{},
+		Named:       make(map[string]*MessageStoreRecord),
+		Profiles:    make(map[string]*MessageStoreProfile),
+		Public:      make(map[string][]*MessageStoreRecord),
+		Ticker:      time.NewTicker(updateFrequency),
+		Lock:        &sync.RWMutex{},
+		ProfileLock: &sync.RWMutex{},
 	}
 	go c.updater()
 	return c
@@ -66,12 +76,16 @@ func NewMessageStore() *MessageStore {
 func (c *MessageStore) updater() {
 	for {
 		now := <-c.Ticker.C
-		fmt.Println("Checking to update messages", now)
+		fmt.Println("Updater is Running", now)
 
 		c.Lock.Lock()
-		for _, v := range c.Named {
+		now = time.Now()
+		for key, v := range c.Named {
 			if time.Now().After(v.Expires) {
+				test := time.Now()
+				fmt.Println("[CHECKING]", "about to update a message", key)
 				msg, err := v.Updater()
+				fmt.Println("[CHECKING]", time.Now().Sub(test), "to update a message")
 				if err != nil {
 					fmt.Println("Uh oh, got an error updating a message", err)
 				} else {
@@ -80,7 +94,9 @@ func (c *MessageStore) updater() {
 				}
 			}
 		}
+		c.Lock.Unlock()
 
+		c.ProfileLock.Lock()
 		for _, v := range c.Profiles {
 			if time.Now().After(v.Expires) {
 				msg, err := v.Updater()
@@ -88,19 +104,19 @@ func (c *MessageStore) updater() {
 					fmt.Println("Uh oh, got an error updating a message", err)
 				} else {
 					v.JSONProfile = msg
-					v.Expires = time.Now().Add(5 * time.Minute)
+					v.Expires = time.Now().Add(profileExpiryFrequency)
 				}
 			}
 		}
-		c.Lock.Unlock()
+		c.ProfileLock.Unlock()
 	}
 }
 
 func (c *MessageStore) getExpiryFromMessage(msg *JSONMessage) time.Time {
-	diff := float64(time.Now().Sub(msg.Date))
+	diff := float64((time.Now().Sub(msg.Date) / time.Minute) + 1)
 
-	// 1.13277x10^11 e^(4.34626x10^-12 x)
-	expiresIn := time.Duration(math.Exp(diff*4.34626e-12) * 1.13277e+11)
+	// 4.46489 log(1.56508 x)
+	expiresIn := time.Duration(4.46489*math.Log(1.56508*diff)) * time.Minute
 
 	return time.Now().Add(expiresIn)
 }
@@ -113,6 +129,7 @@ func (c *MessageStore) AddMessage(msg *JSONMessage, refresh updateFunc) {
 	address := fmt.Sprintf("%s/%s", messageFrom, msg.Name)
 
 	expiry := c.getExpiryFromMessage(msg)
+
 	retrieved := time.Now()
 
 	record := &MessageStoreRecord{
@@ -142,8 +159,8 @@ func (c *MessageStore) AddMessage(msg *JSONMessage, refresh updateFunc) {
 }
 
 func (c *MessageStore) AddProfile(msg *JSONProfile, refresh profileFunc) {
-	c.Lock.Lock()
-	defer c.Lock.Unlock()
+	c.ProfileLock.Lock()
+	defer c.ProfileLock.Unlock()
 
 	addr := msg.Fingerprint
 	if msg.Fingerprint == "" {
@@ -152,14 +169,14 @@ func (c *MessageStore) AddProfile(msg *JSONProfile, refresh profileFunc) {
 
 	c.Profiles[addr] = &MessageStoreProfile{
 		JSONProfile: msg,
-		Expires:     time.Now().Add(5 * time.Minute),
+		Expires:     time.Now().Add(profileExpiryFrequency),
 		Updater:     refresh,
 	}
 }
 
 func (c *MessageStore) RetrieveProfile(forAddr string) (*JSONProfile, bool) {
-	c.Lock.RLock()
-	defer c.Lock.RUnlock()
+	c.ProfileLock.RLock()
+	defer c.ProfileLock.RUnlock()
 
 	if msg, ok := c.Profiles[forAddr]; ok {
 		return msg.JSONProfile, true
@@ -195,15 +212,8 @@ func (c *MessageStore) RetrieveMessage(from string, name string) *JSONMessage {
 }
 
 func (c *MessageStore) RetrieveAllPrivate() []*JSONMessage {
-	fmt.Println("Retrieving Private")
-	now := time.Now()
 	c.Lock.RLock()
 	defer c.Lock.RUnlock()
-	fmt.Println("Lock took", time.Now().Sub(now))
-	now = time.Now()
-	defer func() {
-		fmt.Println("Retrieved Private, took", time.Now().Sub(now))
-	}()
 
 	outputMessages := make([]*JSONMessage, 0)
 
@@ -217,15 +227,8 @@ func (c *MessageStore) RetrieveAllPrivate() []*JSONMessage {
 }
 
 func (c *MessageStore) RetrieveAllPublic() []*JSONMessage {
-	fmt.Println("Retrieving Public")
-	now := time.Now()
 	c.Lock.RLock()
 	defer c.Lock.RUnlock()
-	fmt.Println("Lock took", time.Now().Sub(now))
-	now = time.Now()
-	defer func() {
-		fmt.Println("Retrieved Public, took", time.Now().Sub(now))
-	}()
 
 	outputMessages := make([]*JSONMessage, 0)
 
@@ -282,8 +285,8 @@ type Fetcher struct {
 
 func NewFetcher() *Fetcher {
 	f := &Fetcher{
-		Public:  time.NewTicker(5 * time.Minute),
-		Private: time.NewTicker(10 * time.Second),
+		Public:  time.NewTicker(fetchPublicFrequency),
+		Private: time.NewTicker(fetchPrivateFrequency),
 		quit:    make(chan chan bool),
 	}
 
@@ -319,22 +322,27 @@ func (f *Fetcher) startFetch() {
 
 func (f *Fetcher) fetchSpecificMessage(name, from, location string, context map[string][]byte) (*JSONMessage, error) {
 	// TODO: h.From _MUST_ be the server key, not the client key.
+	test := time.Now()
 	mail, realErr := downloadMessage(f.Router, name, f.Client.Key, from, location)
 	if realErr != nil {
 		return nil, realErr
 	}
+	downloadDuration := time.Now().Sub(test)
 
+	test = time.Now()
 	output := translateMessageWithContext(f.Router, f.Client.Key, false, context, mail)
 	if len(output) != 1 {
 		return nil, errors.New("Translated to many messages")
 	}
+	translateDuration := time.Now().Sub(test)
+
+	fmt.Println("Fetching Message Timing", downloadDuration, translateDuration)
 
 	return output[0], nil
 }
 
 func (f *Fetcher) fetchPrivate(since uint64) {
 	// Download Alerts
-	fmt.Println("Fetching private since", since)
 
 	messages, realErr := f.Client.DownloadMessages(since, true)
 	if realErr != nil {
@@ -355,15 +363,16 @@ func (f *Fetcher) fetchPrivate(since uint64) {
 			continue
 		}
 
-		now := time.Now()
 		fetch := func() (*JSONMessage, error) {
 			return f.fetchSpecificMessage(desc.Name, h.From.String(), desc.Location, v.Context)
 		}
 		json, realErr := fetch()
+
 		if realErr == nil {
 			majorStore.AddMessage(json, fetch)
+		} else {
+			fmt.Println("=== Error occurred getting message", realErr)
 		}
-		fmt.Println("Added Message", time.Now().Sub(now))
 	}
 }
 
@@ -387,8 +396,6 @@ func (f *Fetcher) fetchSpecificPublic(since uint64, addr *Address) ([]*JSONMessa
 }
 
 func (f *Fetcher) fetchPublic(since uint64) {
-	fmt.Println("Fetching public since", since)
-
 	var s []*Address
 	realErr := f.Tables["address"].Get().Where("subscribed", true).All(f.Store, &s)
 	if realErr != nil {
@@ -405,7 +412,11 @@ func (f *Fetcher) fetchPublic(since uint64) {
 
 		for _, m := range msgs {
 			majorStore.AddMessage(m, func() (*JSONMessage, error) {
-				return f.fetchSpecificMessage(m.Name, m.From.Fingerprint, "", nil)
+				if !strings.HasPrefix(m.Name, "__") {
+					fmt.Println("Fetching (Public) Message...", m.Name, m.From.Fingerprint)
+					return f.fetchSpecificMessage(m.Name, m.From.Fingerprint, "", nil)
+				}
+				return nil, errors.New("Unable to update a message without name support.")
 			})
 		}
 	}
@@ -419,11 +430,8 @@ func (f *Fetcher) Stop() {
 }
 
 func (f *Fetcher) ForceFetch(since uint64) {
-	fmt.Println("Forcing Fetch")
 	f.fetchPublic(since)
-	fmt.Println("Finished Public")
 	f.fetchPrivate(since)
-	fmt.Println("Finished Private")
 }
 
 func (f *Fetcher) LoadCredentials(c *dap.Client, r routing.Router, t map[string]gdb.Table, s gdb.Executor) {
@@ -524,11 +532,6 @@ func (m *MessageManager) GetPublic(since uint64, addr *Address) ([]*JSONMessage,
 }
 
 func (m *MessageManager) GetSentMessages(since uint64, withComponents []string) ([]*JSONMessage, error) {
-	now := time.Now()
-	defer func() {
-		fmt.Println("Got sent, took", time.Now().Sub(now))
-	}()
-
 	msgs := make([]*Message, 0)
 	realErr := m.Tables["message"].Get().Where("from", m.Client.Key.Address.String()).All(m.Store, &msgs)
 	if realErr != nil {
@@ -551,7 +554,6 @@ func (m *MessageManager) GetSentMessages(since uint64, withComponents []string) 
 		}
 	}
 
-	begin := time.Now()
 	var outputMessages []*JSONMessage
 	for _, v := range msgs {
 		msg, err := translateModel(m.Router, m.Tables["component"], m.Store, v, m.Client, myProfile, myAlias)
@@ -560,7 +562,6 @@ func (m *MessageManager) GetSentMessages(since uint64, withComponents []string) 
 		}
 		outputMessages = append(outputMessages, msg)
 	}
-	fmt.Println("Intermediate", time.Now().Sub(begin))
 
 	return outputMessages, nil
 }
@@ -571,7 +572,7 @@ func (m *MessageManager) GetPublicMessages(since uint64, withComponents []string
 		majorFetcher.LoadCredentials(m.Client, m.Router, m.Tables, m.Store)
 		majorFetcher.ForceFetch(0)
 	}
-	fmt.Println("Getting Public Messages")
+
 	return majorStore.RetrieveAllPublic()
 }
 
@@ -582,6 +583,6 @@ func (m *MessageManager) GetPrivateMessages(since uint64, withComponents []strin
 		majorFetcher.LoadCredentials(m.Client, m.Router, m.Tables, m.Store)
 		majorFetcher.ForceFetch(0)
 	}
-	fmt.Println("Getting Private Messages")
+
 	return majorStore.RetrieveAllPrivate()
 }

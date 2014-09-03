@@ -100,7 +100,7 @@ func (m *JSONMessage) ToDispatch(from *identity.Identity) (*message.Mail, []*ide
 		}
 	}
 
-	mail := message.CreateMail(from.Address, m.Date, addrs...)
+	mail := message.CreateMail(from.Address, m.Date, m.Name, addrs...)
 
 	for key, v := range m.Components {
 		mail.Components.AddComponent(message.Component{
@@ -138,17 +138,11 @@ func translateMessageWithContext(r routing.Router, from *identity.Identity, publ
 }
 
 func translateModel(r routing.Router, cmpTable gdb.Table, store gdb.Executor, v *Message, d *dap.Client, myProfile *Profile, myAlias *Alias) (*JSONMessage, error) {
-	now := time.Now()
 	comps := make([]*Component, 0)
 	realErr := cmpTable.Get().Where("message", v.Id).All(store, &comps)
 	if realErr != nil {
 		return nil, realErr
 	}
-	now = time.Now()
-	fmt.Println("Getting Components takes", time.Now().Sub(now))
-	defer func() {
-		fmt.Println("Getting Everything else takes", time.Now().Sub(now))
-	}()
 
 	mlgComps := make(map[string]*JSONComponent)
 	for _, c := range comps {
@@ -227,8 +221,13 @@ func translateMessage(r routing.Router, from *identity.Identity, public bool, ms
 			}
 		}
 
+		named := v.Name
+		if named == "" {
+			named = fmt.Sprintf("__%d", time.Now().Unix())
+		}
+
 		out[i] = &JSONMessage{
-			Name:       "",
+			Name:       named,
 			Date:       time.Unix(v.Header().Timestamp, 0),
 			From:       profile,
 			Public:     public,
@@ -241,11 +240,6 @@ func translateMessage(r routing.Router, from *identity.Identity, public bool, ms
 }
 
 func translateProfile(r routing.Router, from *identity.Identity, fp string, alias string) (*JSONProfile, error) {
-	now := time.Now()
-	defer func() {
-		fmt.Println("Got profile", time.Now().Sub(now))
-	}()
-
 	if profile, ok := majorStore.RetrieveProfile(fp); ok {
 		return profile, nil
 	}
@@ -260,49 +254,54 @@ func translateProfile(r routing.Router, from *identity.Identity, fp string, alia
 	noImage := defaultProfileImage(identity.CreateAddressFromString(fp))
 
 	refresh := func() (*JSONProfile, error) {
-		return translateProfile(r, from, fp, alias)
-	}
-
-	profile, err := getProfile(r, from, fp, alias)
-	if err != nil {
-		switch t := err.(type) {
-		case (*adErrors.Error):
-			if t.Code == 5 {
-				p := &JSONProfile{
-					Name:        alias,
-					Avatar:      noImage,
-					Alias:       alias,
-					Fingerprint: fp,
+		profile, err := getProfile(r, from, fp, alias)
+		if err != nil {
+			switch t := err.(type) {
+			case (*adErrors.Error):
+				if t.Code == 5 {
+					// Profile doesn't exist.
+					// Return default profile.
+					return &JSONProfile{
+						Name:        alias,
+						Avatar:      noImage,
+						Alias:       alias,
+						Fingerprint: fp,
+					}, nil
 				}
-				majorStore.AddProfile(p, refresh)
-				return p, nil
+				return nil, err
+			case error:
+				return nil, err
 			}
-			return nil, err
-		case error:
-			return nil, err
 		}
+
+		name := profile.Components.GetStringComponent("airdispat.ch/profile/name")
+		if name == "" {
+			name = alias
+		}
+
+		avatar := profile.Components.GetStringComponent("airdispat.ch/profile/avatar")
+		if avatar == "" {
+			avatar = noImage
+		}
+
+		p := &JSONProfile{
+			Name:        name,
+			Avatar:      avatar,
+			Alias:       alias,
+			Fingerprint: fp,
+		}
+
+		return p, nil
 	}
 
-	name := profile.Components.GetStringComponent("airdispat.ch/profile/name")
-	if name == "" {
-		name = alias
+	profile, err := refresh()
+	if err != nil {
+		return nil, err
 	}
 
-	avatar := profile.Components.GetStringComponent("airdispat.ch/profile/avatar")
-	if avatar == "" {
-		avatar = noImage
-	}
+	majorStore.AddProfile(profile, refresh)
 
-	p := &JSONProfile{
-		Name:        name,
-		Avatar:      avatar,
-		Alias:       alias,
-		Fingerprint: fp,
-	}
-
-	majorStore.AddProfile(p, refresh)
-
-	return p, nil
+	return profile, nil
 }
 
 func defaultProfileImage(from *identity.Address) string {

@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 
 	adErrors "airdispat.ch/errors"
 	"airdispat.ch/identity"
@@ -51,7 +52,6 @@ func downloadMessageFromServer(msgName string, from *identity.Identity, author *
 	if err != nil {
 		return nil, err
 	}
-
 	if typ == wire.ErrorCode {
 		return nil, adErrors.CreateErrorFromBytes(bytes, h)
 	}
@@ -60,7 +60,17 @@ func downloadMessageFromServer(msgName string, from *identity.Identity, author *
 		return nil, errors.New("Wrong message type, got " + typ)
 	}
 
-	return message.CreateMailFromBytes(bytes, h)
+	msg, err := message.CreateMailFromBytes(bytes, h)
+	if err != nil {
+		return nil, err
+	}
+
+	if msg.Name != "" && msg.Name != msgName {
+		return nil, fmt.Errorf("Name enumerated in the message (%s) is different than retrieved (%s).", msg.Name, msgName)
+	}
+
+	// TODO: Check for Name Accoutability Here
+	return msg, err
 }
 
 func downloadMessage(r routing.Router, msgName string, from *identity.Identity, to string, serverAlias string) (*message.Mail, error) {
