@@ -64,9 +64,9 @@
       </div>
     </div>
 
-    <!-- Plugin Code Context -->
-    <div class="plugin-context">
-      <mlg-plugin-code ng-repeat="thePlugin in allPlugins" plugin="thePlugin"></mlg-plugin-code>
+    <!-- Container for Candy Bar -->
+    <div class="candy-bar" ng-show="candy.running">
+      <p>{{ candy.current }}</p>
     </div>
 
   </body>

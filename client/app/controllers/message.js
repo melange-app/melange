@@ -18,8 +18,8 @@
 
   }]);
 
-  melangeControllers.controller('DashboardCtrl', ['$scope', 'mlgPlugins', 'mlgHelper', 'mlgTiles', 'mlgApi',
-  function($scope, mlgPlugins, mlgHelper, mlgTiles, mlgApi) {
+  melangeControllers.controller('DashboardCtrl', ['$scope', 'mlgPlugins', 'mlgHelper', 'mlgTiles', 'mlgApi', 'mlgCandyBar',
+  function($scope, mlgPlugins, mlgHelper, mlgTiles, mlgApi, mlgCandyBar) {
     // Tile Information
     $scope.editDash = false;
     mlgTiles.all().then(function(tiles) {

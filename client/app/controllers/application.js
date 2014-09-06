@@ -3,12 +3,11 @@
 (function() {
   var melangeControllers = angular.module('melangeControllers', []);
 
-  melangeControllers.controller('ApplicationCtrl', ['$scope', '$location', '$route', '$interval', 'mlgIdentity', 'mlgPlugins', 'mlgHelper', 'mlgApi',
-    function($scope, $location, $route, $interval, mlgIdentity, mlgPlugins, mlgHelper, mlgApi) {
-
+  melangeControllers.controller('ApplicationCtrl', ['$scope', '$location', '$route', '$interval', 'mlgIdentity', 'mlgPlugins', 'mlgHelper', 'mlgApi', 'mlgCandyBar',
+    function($scope, $location, $route, $interval, mlgIdentity, mlgPlugins, mlgHelper, mlgApi, mlgCandyBar) {
       mlgPlugins.all().then(function(plugins) {
         $scope.allPlugins = plugins;
-      })
+      });
 
       mlgApi.contacts().then(function(data) {
         $scope.contacts = data;
@@ -21,6 +20,8 @@
       mlgIdentity.list().then(function(ids) {
         $scope.allIdentities = ids;
       })
+
+      $scope.candy = mlgCandyBar.status();
 
       $scope.syncInProgress = false;
       var sync = function() {

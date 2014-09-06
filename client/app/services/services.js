@@ -26,6 +26,31 @@ var mlgCleanup = function(msg) {
   var melangeServices = angular.module('melangeServices', []);
   var cleanup = mlgCleanup;
 
+  melangeServices.factory('mlgCandyBar', function() {
+    var status = {
+      running: false,
+      current: "",
+    }
+
+    return {
+      status: function() {
+        return status;
+      },
+      setCandy: function(text) {
+        if(status.running === true) {
+          return false;
+        }
+
+        status.running = true;
+        status.current = text;
+      },
+      stopCandy: function() {
+        status.running = false;
+        status.current = "";
+      }
+    }
+  });
+
   // MLG-TILES
   melangeServices.factory('mlgTiles', ['$resource', '$q', 'mlgPlugins', function($resource, $q, mlgPlugins) {
     var tilesResource = $resource("http://" + melangeAPI + "/tiles/:action", { action: "" },
