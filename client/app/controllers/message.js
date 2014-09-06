@@ -131,9 +131,18 @@
 
   }]);
 
-  melangeControllers.controller('NewProfileCtrl', ['$scope', '$location', 'mlgApi',
+  melangeControllers.controller('EditProfileCtrl', ['$scope', '$location', 'mlgApi',
   function($scope, $location, mlgApi) {
-    $scope.profile = {};
+
+    mlgApi.currentProfile().then(function(data) {
+      $scope.profile = data;
+      $scope.newProfile = false;
+    },
+    function(err) {
+      $scope.newProfile = true;
+      $scope.profile = {};
+    });
+
     $scope.save = function() {
       // Save the profile
       mlgApi.updateProfile($scope.profile).then(

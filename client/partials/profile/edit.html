@@ -1,5 +1,8 @@
-<h1>Create a New Profile</h1>
-<p>Looks like you are new around here, let's get you a profile.</p>
+<h1>
+  {{ newProfile ? 'Create a New Profile' : 'Edit your profile' }}
+</h1>
+<p ng-if="newProfile">Looks like you are new around here, let's get you a profile.</p>
+<p><a href="#/profile">Go Back</a></p>
 
 <form role="form" ng-submit="save()">
   <div class="form-group">
@@ -21,5 +24,5 @@
     <label for="description">About You</label>
     <textarea id="description" name="description" ng-model="profile.description" class="form-control"></textarea>
   </div>
-  <button type="submit" class="btn btn-primary">Save</button>
+  <button type="submit" class="btn btn-primary btn-sm">Save</button>
 </form>

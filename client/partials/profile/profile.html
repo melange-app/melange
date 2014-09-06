@@ -7,12 +7,13 @@
     <div class="col-sm-9">
       <h1>{{ profile.name }} <small>Profile</small></h1>
       <p>{{ profile.description }}</p>
+      <p><a href="#/profile/edit">Edit your Profile</a></p>
     </div>
   </div>
 </div>
 <div ng-if="newProfile" class="text-center text-muted">
   <h2>Looks like you don't have a profile yet.</h2>
-  <p><a href="#/profile/new">Let's help set one up.</a></p>
+  <p><a href="#/profile/edit">Let's help set one up.</a></p>
 </div>
 
 <hr/>

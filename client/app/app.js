@@ -34,9 +34,9 @@ melangeApp.config(['$routeProvider',
         templateUrl: 'partials/profile/profile.html',
         controller: 'ProfileCtrl'
       })
-      .when('/profile/new', {
-        templateUrl: 'partials/profile/new.html',
-        controller: 'NewProfileCtrl'
+      .when('/profile/edit', {
+        templateUrl: 'partials/profile/edit.html',
+        controller: 'EditProfileCtrl'
       })
       .when('/user/:alias', {
         templateUrl: 'partials/profile/profile.html',
