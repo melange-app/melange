@@ -8,6 +8,21 @@ import (
 	"getmelange.com/app/framework"
 )
 
+type CORSFile struct {
+	framework.View
+}
+
+// Headers add the CORS headers to the request:
+//
+// "Access-Control-Allow-Origin"
+// "Access-Control-Allow-Headers"
+func (a *CORSFile) Headers() framework.Headers {
+	hdrs := make(framework.Headers)
+	hdrs["Access-Control-Allow-Origin"] = "*"
+	hdrs["Access-Control-Allow-Headers"] = "Content-Type"
+	return hdrs
+}
+
 func (r *Server) HandleCommon(res http.ResponseWriter, req *http.Request) {
 	// fmt.Println("Get Common", req.URL.Path)
 	// Serve Library Files
@@ -23,7 +38,13 @@ func (r *Server) HandleCommon(res http.ResponseWriter, req *http.Request) {
 		}
 		typ, lib, version := dirs[1], dirs[2], dirs[3]
 		// fmt.Println("About to serve file", typ, lib, version)
+
 		view := framework.ServeFile("lib", filepath.Join(filepath.FromSlash(lib), version+"."+filepath.FromSlash(typ)))
-		framework.WriteView(view, res)
+
+		// Resources from Common can be Accessed by All Origins
+		framework.WriteView(
+			&CORSFile{
+				View: view,
+			}, res)
 	}
 }
