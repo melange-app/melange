@@ -17,8 +17,18 @@ module.exports = function(app) {
         },
         {
           label: 'Preferences',
-          accelerator: 'Command+,',
-          selector: ''
+          accelerator: 'CommandOrControl+,',
+          click: function() {
+            var current = BrowserWindow.getFocusedWindow().webContents;
+            current.executeJavaScript("location.hash = '#/settings'");
+            // current.executeJavaScript("alert('hi')");
+          }
+        },
+        {
+          type: 'separator'
+        },
+        {
+          label: 'Services',
         },
         {
           type: 'separator'
@@ -90,12 +100,12 @@ module.exports = function(app) {
       submenu: [
         {
           label: 'Reload',
-          accelerator: 'Command+R',
+          accelerator: 'CommandOrControl+R',
           click: function() { BrowserWindow.getFocusedWindow().reloadIgnoringCache(); }
         },
         {
           label: 'Toggle DevTools',
-          accelerator: 'Alt+Command+I',
+          accelerator: 'Alt+CommandOrControl+I',
           click: function() { BrowserWindow.getFocusedWindow().toggleDevTools(); }
         },
       ]
@@ -121,6 +131,10 @@ module.exports = function(app) {
           selector: 'arrangeInFront:'
         },
       ]
+    },
+    {
+      label: 'Help',
+      submenu: [],
     },
   ];
 
