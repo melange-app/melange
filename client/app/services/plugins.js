@@ -56,6 +56,7 @@
             allPlugins[value[index].id] = value[index]
           }
           callback(allPlugins);
+          havePlugins = true;
         });
       } else {
         callback(allPlugins);
