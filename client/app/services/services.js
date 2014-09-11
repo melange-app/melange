@@ -272,7 +272,7 @@ var mlgCleanup = function(msg) {
 
 
   // MLG-API
-  melangeServices.factory('mlgApi', ['$resource', '$q', function($resource, $q) {
+  melangeServices.factory('mlgApi', ['$resource', '$q', '$timeout', 'mlgMessages', function($resource, $q, $timeout, mlgMessages) {
     var apiResource = $resource('http://' + melangeAPI + '/:action', {}, {
       // Messages
       getMessage: {
@@ -399,19 +399,23 @@ var mlgCleanup = function(msg) {
         }).$promise
       },
       getMessages: function(self, pub, received) {
-        var obj = {
-          public: pub,
-          self: self,
-          received: received,
-        }
-        if(arguments.length === 0) {
-          obj = {
-            public: true,
-            self: true,
-            received: true,
-          };
-        }
-        return $resource('http://' + melangeAPI + '/messages', {}, {query: {method:'POST', isArray:true}}).query(obj);
+        var defered = $q.defer();
+        defered.resolve(mlgMessages.getMessages())
+        return defered.promise;
+
+        // var obj = {
+        //   public: pub,
+        //   self: self,
+        //   received: received,
+        // }
+        // if(arguments.length === 0) {
+        //   obj = {
+        //     public: true,
+        //     self: true,
+        //     received: true,
+        //   };
+        // }
+        // return $resource('http://' + melangeAPI + '/messages', {}, {query: {method:'POST', isArray:true}}).query(obj).$promise;
       },
       getMessagesAtAlias: function(alias, onlyPublic) {
         if(arguments.length === 1) { onlyPublic = true; }

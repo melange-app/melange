@@ -218,7 +218,7 @@
           return
         }
 
-        mlgApi.getMessages().$promise.then(
+        mlgApi.getMessages().then(
           function(msg) {
             cleanup(msg);
 

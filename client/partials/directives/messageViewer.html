@@ -1,42 +1,44 @@
-<script type="text/ng-template" id="default">
-      <div ng-repeat="(key, component) in data.components">
-        <p><strong>{{ key }}</strong></p>
-        <p class="can-select" style='word-wrap: break-word;'>{{ component.string }}</p>
-      </div>
-</script>
+<div ng-if="!hidden || all">
+  <script type="text/ng-template" id="default">
+        <div ng-repeat="(key, component) in data.components">
+          <p><strong>{{ key }}</strong></p>
+          <p class="can-select" style='word-wrap: break-word;'>{{ component.string }}</p>
+        </div>
+  </script>
 
-<script type="text/ng-template" id="remote">
-  <iframe ng-src="{{ url | unsafeUrl }}" class="message-viewer" style="height: 0px;" sandbox="allow-scripts allow-same-origin"></iframe>
-</script>
+  <script type="text/ng-template" id="remote">
+    <iframe ng-src="{{ url | unsafeUrl }}" class="message-viewer" style="height: 0px;" sandbox="allow-scripts allow-same-origin"></iframe>
+  </script>
 
-<script type="text/ng-template" id="profile">
-  Updated profile.
-</script>
+  <script type="text/ng-template" id="profile">
+    Updated profile.
+  </script>
 
-<div class="panel panel-default" ng-if="!hidden || all">
-  <div class="panel-body">
-    <div class="row">
-      <div class="col-sm-2 col-md-2 col-lg-1">
-        <img ng-src="{{ data.from.avatar }}" class="img-responsive img-circle"/>
-      </div>
-      <div class="col-sm-10 col-md-10 col-lg-11">
-        <p class="text-muted" style="font-size: 50%;"><i class="fa fa-fw fa-rss" ng-show="data.public"></i> {{ data.date | date : 'short' }}</p>
-        <h5 class="text-muted">
-          <span ng-if="!data.self">
-            <a ng-href="#/user/{{ data.from.alias }}">{{ data.from.name }}</a>
-          </span>
-          <span ng-if="data.self">
-            {{ data.from.name }}
-            <span ng-if="!data.public">
-              <i class="fa fa-caret-right"></i>
-              <span ng-repeat="to in data.to">
-                <a ng-href="#/user/{{ to.alias }}">{{ to.name }}</a>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-sm-2 col-md-2 col-lg-1">
+          <img ng-src="{{ data.from.avatar }}" class="img-responsive img-circle"/>
+        </div>
+        <div class="col-sm-10 col-md-10 col-lg-11">
+          <p class="text-muted" style="font-size: 50%;"><i class="fa fa-fw fa-rss" ng-show="data.public"></i> {{ data.date | date : 'short' }}</p>
+          <h5 class="text-muted">
+            <span ng-if="!data.self">
+              <a ng-href="#/user/{{ data.from.alias }}">{{ data.from.name }}</a>
+            </span>
+            <span ng-if="data.self">
+              {{ data.from.name }}
+              <span ng-if="!data.public">
+                <i class="fa fa-caret-right"></i>
+                <span ng-repeat="to in data.to">
+                  <a ng-href="#/user/{{ to.alias }}">{{ to.name }}</a>
+                </span>
               </span>
             </span>
-          </span>
-        </h5>
-        <ng-include src="templateType" onload="register()"></ng-include>
-        <p ng-if="templateType == 'remote'" class="text-muted" style="margin: 0;"><small>viewed by <abbr title="{{ plugin.id }}">{{ plugin.name }}</abbr></small></p>
+          </h5>
+          <ng-include src="templateType" onload="register()"></ng-include>
+          <p ng-if="templateType == 'remote'" class="text-muted" style="margin: 0;"><small>viewed by <abbr title="{{ plugin.id }}">{{ plugin.name }}</abbr></small></p>
+        </div>
       </div>
     </div>
   </div>

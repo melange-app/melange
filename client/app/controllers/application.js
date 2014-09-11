@@ -3,8 +3,8 @@
 (function() {
   var melangeControllers = angular.module('melangeControllers', []);
 
-  melangeControllers.controller('ApplicationCtrl', ['$scope', '$location', '$route', '$interval', 'mlgIdentity', 'mlgPlugins', 'mlgHelper', 'mlgApi', 'mlgCandyBar',
-    function($scope, $location, $route, $interval, mlgIdentity, mlgPlugins, mlgHelper, mlgApi, mlgCandyBar) {
+  melangeControllers.controller('ApplicationCtrl', ['$scope', '$location', '$route', '$interval', 'mlgIdentity', 'mlgPlugins', 'mlgHelper', 'mlgApi', 'mlgCandyBar', 'mlgRealtime',
+    function($scope, $location, $route, $interval, mlgIdentity, mlgPlugins, mlgHelper, mlgApi, mlgCandyBar, mlgRealtime) {
       mlgPlugins.all().then(function(plugins) {
         $scope.allPlugins = plugins;
       });

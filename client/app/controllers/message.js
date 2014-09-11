@@ -8,7 +8,7 @@
     // Sync up
     var sync = function() {
       $scope.loading = true;
-      mlgApi.getMessages().$promise.then(function(data) {
+      mlgApi.getMessages().then(function(data) {
         $scope.loading = false;
         $scope.newsfeed = data;
       });
@@ -18,8 +18,8 @@
 
   }]);
 
-  melangeControllers.controller('DashboardCtrl', ['$scope', 'mlgPlugins', 'mlgHelper', 'mlgTiles', 'mlgApi', 'mlgCandyBar',
-  function($scope, mlgPlugins, mlgHelper, mlgTiles, mlgApi, mlgCandyBar) {
+  melangeControllers.controller('DashboardCtrl', ['$scope', 'mlgPlugins', 'mlgHelper', 'mlgTiles', 'mlgApi', 'mlgRealtime',
+  function($scope, mlgPlugins, mlgHelper, mlgTiles, mlgApi, mlgRealtime) {
     // Tile Information
     $scope.editDash = false;
     mlgTiles.all().then(function(tiles) {
@@ -54,11 +54,15 @@
       mlgTiles.update($scope.tiles);
     }
 
+    mlgRealtime.subscribe("*", function(msg) {
+
+    });
+
     // Sync up if needed.
     var sync = function() {
       console.log("Syncing")
       $scope.loading = true;
-      mlgApi.getMessages().$promise.then(function(data) {
+      mlgApi.getMessages().then(function(data) {
         $scope.loading = false;
         $scope.newsfeed = data;
       });
@@ -89,7 +93,7 @@
     var sync = function() {
       console.log("Syncing")
       $scope.loading = true;
-      mlgApi.getMessages(true, false, false).$promise.then(function(data) {
+      mlgApi.getMessages(true, false, false).then(function(data) {
         $scope.loading = false;
         $scope.newsfeed = data;
       });
