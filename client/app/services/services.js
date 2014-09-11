@@ -400,21 +400,22 @@ var mlgCleanup = function(msg) {
       },
       getMessages: function(self, pub, received) {
         var defered = $q.defer();
-        defered.resolve(mlgMessages.getMessages())
-        return defered.promise;
 
-        // var obj = {
-        //   public: pub,
-        //   self: self,
-        //   received: received,
-        // }
-        // if(arguments.length === 0) {
-        //   obj = {
-        //     public: true,
-        //     self: true,
-        //     received: true,
-        //   };
-        // }
+        var obj = {
+          public: pub,
+          self: self,
+          received: received,
+        }
+        if(arguments.length === 0) {
+          obj = {
+            public: true,
+            self: true,
+            received: true,
+          };
+        }
+
+        defered.resolve(mlgMessages.getMessages(obj))
+        return defered.promise;
         // return $resource('http://' + melangeAPI + '/messages', {}, {query: {method:'POST', isArray:true}}).query(obj).$promise;
       },
       getMessagesAtAlias: function(alias, onlyPublic) {

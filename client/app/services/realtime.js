@@ -63,21 +63,46 @@
 
   melangeServices.factory('mlgMessages', [function() {
     var messages = [];
+    var selfMessages = [];
+
+    var msgCompare = function(a, b) {
+        if(a.date < b.date) { return 1; }
+        if(a.date > b.date) { return -1; }
+        return 0;
+    }
 
     return {
       addMessage: function(data) {
         console.log("Adding Message " + data.name);
         console.log(data);
+
+        // Add message to global list.
         messages.unshift(data);
-        messages.sort(function compare(a, b) {
-          if(a.date < b.date) { return 1; }
-          if(a.date > b.date) { return -1; }
-          return 0;
-        });
+        messages.sort(msgCompare);
+
+        // Add message to local list.
+        // if(messagesFrom[data.from.fingerprint] === undefined) {
+        //   messagesFrom[data.from.fingerprint] = [];
+        // }
+        // messagesFrom[data.from.fingerprint].unshift(data);
+        // messagesFrom[data.from.fingerprint].sort(msgCompare);
+
+        if(data.self) {
+          selfMessages.unshift(data);
+          selfMessages.sort(msgCompare);
+        }
       },
-      getMessages: function() {
+      getMessages: function(obj) {
+        // Only give back self messages.
+        if(obj.self == true && obj.received == false && obj.public == false) { return selfMessages; }
+
         return messages;
-      }
+      },
+      getSpecificMessages: function(user) {
+        var out = messagesFrom[user];
+        if (out === undefined) { return []; }
+        return out;
+      },
     };
   }]);
 })()
