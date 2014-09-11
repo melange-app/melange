@@ -26,7 +26,7 @@ var mlgCleanup = function(msg) {
   var melangeServices = angular.module('melangeServices', []);
   var cleanup = mlgCleanup;
 
-  melangeServices.factory('mlgCandyBar', function() {
+  melangeServices.factory('mlgCandyBar', ['$sce', function($sce) {
     var status = {
       running: false,
       current: "",
@@ -42,14 +42,14 @@ var mlgCleanup = function(msg) {
         }
 
         status.running = true;
-        status.current = text;
+        status.current = $sce.trustAsHtml(text);
       },
       stopCandy: function() {
         status.running = false;
         status.current = "";
       }
     }
-  });
+  }]);
 
   // MLG-TILES
   melangeServices.factory('mlgTiles', ['$resource', '$q', 'mlgPlugins', function($resource, $q, mlgPlugins) {

@@ -65,8 +65,7 @@
     </div>
 
     <!-- Container for Candy Bar -->
-    <div class="candy-bar" ng-show="candy.running">
-      <p>{{ candy.current }}</p>
+    <div class="candy-bar" ng-show="candy.running" ng-bind-html="candy.current">
     </div>
 
   </body>
