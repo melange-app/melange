@@ -18,6 +18,41 @@ type Messages struct {
 	Tables map[string]gdb.Table
 }
 
+func (m *Messages) retrieveMessages(self, public, received bool) ([]*models.JSONMessage, error) {
+	manager, err := constructManager(m.Store, m.Tables)
+	if err != nil {
+		return nil, err
+	}
+
+	since := uint64(0)
+
+	var outputMessages models.JSONMessageList
+
+	if received {
+		outputMessages = append(outputMessages, manager.GetPrivateMessages(since, nil)...)
+	}
+
+	if self {
+		msgs, err := manager.GetSentMessages(since, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		outputMessages = append(outputMessages, msgs...)
+	}
+
+	// Download Public Messages
+	if public {
+		outputMessages = append(outputMessages, manager.GetPublicMessages(since, nil)...)
+	}
+
+	sort.Sort(outputMessages)
+
+	fmt.Println("Finished Retrieving Messages")
+
+	return outputMessages, nil
+}
+
 // Handle will download the messages and transform them into JSON.
 func (m *Messages) Handle(req *http.Request) framework.View {
 	request := make(map[string]bool)
@@ -33,58 +68,12 @@ func (m *Messages) Handle(req *http.Request) framework.View {
 		}
 	}
 
-	id, err := CurrentIdentityOrError(m.Store, m.Tables["identity"])
+	outputMessages, err := m.retrieveMessages(request["self"], request["public"], request["received"])
 	if err != nil {
-		return err
-	}
-
-	client, realErr := DAPClientFromID(id, m.Store)
-	if realErr != nil {
-		fmt.Println("Couldn't construct DAPClient", err)
+		fmt.Println("Error retrieving messages", err)
 		return framework.Error500
 	}
 
-	router := &router.Router{
-		Origin: client.Key,
-		TrackerList: []string{
-			"localhost:2048",
-		},
-	}
-
-	since := uint64(0)
-
-	var outputMessages models.JSONMessageList
-
-	manager := &models.MessageManager{
-		Tables:   m.Tables,
-		Store:    m.Store,
-		Client:   client,
-		Identity: id,
-		Router:   router,
-	}
-
-	if request["received"] {
-		outputMessages = append(outputMessages, manager.GetPrivateMessages(since, nil)...)
-	}
-
-	if request["self"] {
-		msgs, err := manager.GetSentMessages(since, nil)
-		if err != nil {
-			fmt.Println("Error getting self messages.", err)
-			return framework.Error500
-		}
-
-		outputMessages = append(outputMessages, msgs...)
-	}
-
-	// Download Public Messages
-	if request["public"] {
-		outputMessages = append(outputMessages, manager.GetPublicMessages(since, nil)...)
-	}
-
-	sort.Sort(outputMessages)
-
-	fmt.Println("Finished Retrieving Messages")
 	return &framework.JSONView{
 		Content: outputMessages,
 	}
@@ -303,63 +292,16 @@ func (m *NewMessage) Handle(req *http.Request) framework.View {
 		return framework.Error500
 	}
 
-	// Get current DAP Client
-	dap, fErr := CurrentDAPClient(m.Store, m.Tables["identity"])
-	if fErr != nil {
-		return fErr
-	}
-
-	mail, to, err := msg.ToDispatch(dap.Key)
+	manager, err := constructManager(m.Store, m.Tables)
 	if err != nil {
-		fmt.Println("Couldn't convert JSON to Dispatcher", err)
+		fmt.Println("Error creating manager", err)
 		return framework.Error500
 	}
 
-	// Add to Database
-	modelMsg, modelComp := msg.ToModel(dap.Key)
-	_, err = m.Tables["message"].Insert(modelMsg).Exec(m.Store)
+	err = manager.PublishMessage(msg)
 	if err != nil {
-		fmt.Println("Can't save message.", err)
+		fmt.Println("Error publishing message", err)
 		return framework.Error500
-	}
-
-	for _, v := range modelComp {
-		v.Message = gdb.ForeignKey(modelMsg)
-		_, err = m.Tables["component"].Insert(v).Exec(m.Store)
-		if err != nil {
-			fmt.Println("Couldn't save component", v.Name, err)
-		}
-	}
-
-	// Publish Message
-	// *Mail, to []*identity.Address, name string, alert bool
-	name, err := dap.PublishMessage(mail, to, msg.Name, !msg.Public)
-	if err != nil {
-		fmt.Println("Can't publish messages")
-		return framework.Error500
-	}
-
-	if !msg.Public {
-		fmt.Println("Sending alerts...")
-		// Send Alert
-		var errs []error
-
-		r := &router.Router{
-			Origin: dap.Key,
-		}
-
-		for _, v := range msg.To {
-			fmt.Println("Sending alert to", v.Alias)
-			err = models.SendAlert(r, name, dap.Key, v.Alias, dap.Server.Alias)
-			if err != nil {
-				fmt.Println("Got error sending alert", err)
-				errs = append(errs, err)
-			}
-		}
-
-		if len(errs) > 0 {
-			return framework.Error500
-		}
 	}
 
 	return &framework.HTTPError{

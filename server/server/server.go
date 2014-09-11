@@ -1,10 +1,14 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"runtime/pprof"
 
 	"getmelange.com/app"
 	"getmelange.com/app/models"
@@ -34,10 +38,10 @@ func (m *Melange) Run(port int) error {
 
 	m.App = &app.Server{
 		Suffix:  ":7776",
-		Common:  "http://common.melange",
-		Plugins: "http://*.plugins.melange",
-		API:     "http://api.melange",
-		App:     "http://app.melange",
+		Common:  "common.melange",
+		Plugins: "*.plugins.melange",
+		API:     "api.melange",
+		App:     "app.melange",
 		// Other Servers
 		Dispatcher: m.Dispatcher,
 		Tracker:    m.Tracker,
@@ -60,6 +64,29 @@ func (m *Melange) Run(port int) error {
 }
 
 func main() {
+	var (
+		cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+	)
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		go func() {
+			for sig := range c {
+				fmt.Println("Caught", sig)
+				pprof.StopCPUProfile()
+				os.Exit(0)
+			}
+		}()
+	}
+
 	mel := &Melange{}
 	err := mel.Run(7776)
 	if err != nil {

@@ -11,6 +11,9 @@ import (
 	"getmelange.com/tracker"
 )
 
+const webProtocol = "http://"
+const webSocketProtocol = "ws://"
+
 type Server struct {
 	Suffix  string
 	Common  string
@@ -25,19 +28,23 @@ type Server struct {
 }
 
 func (p *Server) CommonURL() string {
-	return p.Common + p.Suffix
+	return webProtocol + p.Common + p.Suffix
 }
 
 func (p *Server) PluginURL() string {
-	return p.Plugins + p.Suffix
+	return webProtocol + p.Plugins + p.Suffix
 }
 
 func (p *Server) APIURL() string {
-	return p.API + p.Suffix
+	return webProtocol + p.API + p.Suffix
 }
 
 func (p *Server) AppURL() string {
-	return p.App + p.Suffix
+	return webProtocol + p.App + p.Suffix
+}
+
+func (p *Server) APIRealtimeURL() string {
+	return webSocketProtocol + p.API + p.Suffix
 }
 
 func (p *Server) Run(port int) error {
@@ -54,6 +61,7 @@ type Router struct {
 
 func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	// fmt.Println(req.Method, req.URL.Path, "on", req.Host)
+
 	// Ensure that the Host matches what we expect
 	url := strings.Split(req.Host, ".melange")
 
@@ -64,7 +72,8 @@ func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	if len(url) != 2 || !(strings.HasPrefix(url[1], ":") || url[1] == r.p.Suffix) {
+	if (len(url) != 2 || !(strings.HasPrefix(url[1], ":") || url[1] == r.p.Suffix)) &&
+		(req.URL.Path != "/realtime") {
 		framework.WriteView(framework.Error403, res)
 		return
 	}

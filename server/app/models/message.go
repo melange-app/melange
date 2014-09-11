@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -264,13 +265,21 @@ func (c *MessageStore) LatestMessage() time.Time {
 }
 
 func (c *MessageStore) Invalidate() {
+	c.Lock.Lock()
 	c.Named = make(map[string]*MessageStoreRecord)
 	c.Public = make(map[string][]*MessageStoreRecord)
+	c.Lock.Unlock()
+
+	c.ProfileLock.Lock()
+	c.Profiles = make(map[string]*MessageStoreProfile)
+	c.ProfileLock.Unlock()
 }
 
 type Fetcher struct {
 	Public  *time.Ticker
 	Private *time.Ticker
+
+	Watchers []chan *JSONMessage
 
 	Client *dap.Client
 	Router routing.Router
@@ -285,9 +294,10 @@ type Fetcher struct {
 
 func NewFetcher() *Fetcher {
 	f := &Fetcher{
-		Public:  time.NewTicker(fetchPublicFrequency),
-		Private: time.NewTicker(fetchPrivateFrequency),
-		quit:    make(chan chan bool),
+		Public:   time.NewTicker(fetchPublicFrequency),
+		Private:  time.NewTicker(fetchPrivateFrequency),
+		Watchers: make([]chan *JSONMessage, 0),
+		quit:     make(chan chan bool),
 	}
 
 	go f.startFetch()
@@ -304,7 +314,6 @@ func (f *Fetcher) startFetch() {
 
 			fmt.Println("Fetching Public Messages", now)
 			go f.fetchPublic(f.lastPublic)
-			f.lastPublic = uint64(now.Unix())
 		case now := <-f.Private.C:
 			if f.Client == nil {
 				continue
@@ -312,7 +321,6 @@ func (f *Fetcher) startFetch() {
 
 			fmt.Println("Fetching Private Messages", now)
 			go f.fetchPrivate(f.lastPrivate)
-			f.lastPrivate = uint64(now.Unix())
 		case c := <-f.quit:
 			c <- true
 			return
@@ -338,10 +346,13 @@ func (f *Fetcher) fetchSpecificMessage(name, from, location string, context map[
 
 	fmt.Println("Fetching Message Timing", downloadDuration, translateDuration)
 
+	output[0].Name = name
+
 	return output[0], nil
 }
 
 func (f *Fetcher) fetchPrivate(since uint64) {
+	f.lastPrivate = uint64(time.Now().Unix())
 	// Download Alerts
 
 	messages, realErr := f.Client.DownloadMessages(since, true)
@@ -370,6 +381,7 @@ func (f *Fetcher) fetchPrivate(since uint64) {
 
 		if realErr == nil {
 			majorStore.AddMessage(json, fetch)
+			f.sendToWatchers(json)
 		} else {
 			fmt.Println("=== Error occurred getting message", realErr)
 		}
@@ -396,6 +408,8 @@ func (f *Fetcher) fetchSpecificPublic(since uint64, addr *Address) ([]*JSONMessa
 }
 
 func (f *Fetcher) fetchPublic(since uint64) {
+	f.lastPublic = uint64(time.Now().Unix())
+
 	var s []*Address
 	realErr := f.Tables["address"].Get().Where("subscribed", true).All(f.Store, &s)
 	if realErr != nil {
@@ -411,6 +425,7 @@ func (f *Fetcher) fetchPublic(since uint64) {
 		}
 
 		for _, m := range msgs {
+			f.sendToWatchers(m)
 			majorStore.AddMessage(m, func() (*JSONMessage, error) {
 				if !strings.HasPrefix(m.Name, "__") {
 					fmt.Println("Fetching (Public) Message...", m.Name, m.From.Fingerprint)
@@ -447,6 +462,21 @@ func (f *Fetcher) NeedsCredentials() bool {
 	return f.Client == nil
 }
 
+func (f *Fetcher) sendToWatchers(j *JSONMessage) {
+	for _, v := range f.Watchers {
+		v <- j
+	}
+}
+
+func (f *Fetcher) addWatcher(j chan *JSONMessage) {
+	f.Watchers = append(f.Watchers, j)
+}
+
+func AddFetchWatcher(j chan *JSONMessage) {
+	majorFetcher.addWatcher(j)
+	return
+}
+
 // A full AirDispatch Message
 type Message struct {
 	Id gdb.PrimaryKey
@@ -467,6 +497,8 @@ type Message struct {
 func InvalidateCaches() {
 	fmt.Println("Invalidating Caches")
 	majorStore.Invalidate()
+	majorFetcher.Stop()
+	majorFetcher.Client = nil
 }
 
 // CreateMessage(name, to, from, alert, component...)
@@ -490,7 +522,73 @@ type MessageManager struct {
 	Identity *Identity
 }
 
+func (m *MessageManager) PublishMessage(msg *JSONMessage) error {
+	mail, to, err := msg.ToDispatch(m.Client.Key)
+	if err != nil {
+		return err
+	}
+
+	// Add to Database
+	modelMsg, modelComp := msg.ToModel(m.Client.Key)
+	_, err = m.Tables["message"].Insert(modelMsg).Exec(m.Store)
+	if err != nil {
+		return err
+	}
+
+	for _, v := range modelComp {
+		v.Message = gdb.ForeignKey(modelMsg)
+		_, err = m.Tables["component"].Insert(v).Exec(m.Store)
+		if err != nil {
+			fmt.Println("Couldn't save component", v.Name, err)
+		}
+	}
+
+	// Publish Message
+	// *Mail, to []*identity.Address, name string, alert bool
+	name, err := m.Client.PublishMessage(mail, to, msg.Name, !msg.Public)
+	if err != nil {
+		return err
+	}
+
+	if !msg.Public {
+		fmt.Println("Sending alerts...")
+		// Send Alert
+		var errs []error
+
+		for _, v := range msg.To {
+			fmt.Println("Sending alert to", v.Alias)
+			err = SendAlert(m.Router, name, m.Client.Key, v.Alias, m.Client.Server.Alias)
+			if err != nil {
+				fmt.Println("Got error sending alert", err)
+				errs = append(errs, err)
+			}
+		}
+
+		if len(errs) > 0 {
+			return errs[0]
+		}
+	}
+
+	// Load the new message into the webpage.
+	go func() {
+		msg.Self = true
+
+		myProfile, myAlias, _ := m.currentProfile()
+		msg.From = &JSONProfile{
+			Name:        myProfile.Name,
+			Avatar:      myProfile.Image,
+			Alias:       myAlias.String(),
+			Fingerprint: m.Client.Key.Address.String(),
+		}
+
+		majorFetcher.sendToWatchers(msg)
+	}()
+
+	return nil
+}
+
 func (m *MessageManager) GetMessage(alias string, name string) (*JSONMessage, error) {
+	fmt.Println("[DEPRECEATED] Call to deprecated method GetMessage.")
 	srv, author, err := getAddresses(m.Router, &Address{
 		Alias: alias,
 	})
@@ -513,6 +611,7 @@ func (m *MessageManager) GetMessage(alias string, name string) (*JSONMessage, er
 }
 
 func (m *MessageManager) GetPublic(since uint64, addr *Address) ([]*JSONMessage, error) {
+	fmt.Println("[DEPRECEATED] Call to deprecated method GetPublic.")
 	msg, realErr := downloadPublicMail(m.Router, since, m.Client.Key, addr)
 	if realErr != nil {
 		switch t := realErr.(type) {
@@ -531,27 +630,37 @@ func (m *MessageManager) GetPublic(since uint64, addr *Address) ([]*JSONMessage,
 	return translateMessage(m.Router, m.Client.Key, true, msg...), nil
 }
 
+func (m *MessageManager) currentProfile() (*Profile, *Alias, error) {
+	myAlias := &Alias{}
+	err := m.Tables["alias"].Get().Where("identity", m.Identity.Id).One(m.Store, myAlias)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	myProfile := &Profile{}
+	err = m.Identity.Profile.One(m.Store, myProfile)
+	if err != nil || myProfile.Id == 0 {
+		fmt.Println("Unable to get my profile.", err)
+		myProfile = &Profile{
+			Name:  myAlias.String(),
+			Image: defaultProfileImage(m.Client.Key.Address),
+		}
+	}
+
+	return myProfile, myAlias, nil
+}
+
 func (m *MessageManager) GetSentMessages(since uint64, withComponents []string) ([]*JSONMessage, error) {
+	fmt.Println("[DEPRECEATED] Call to deprecated method GetSentMessages(?).")
 	msgs := make([]*Message, 0)
 	realErr := m.Tables["message"].Get().Where("from", m.Client.Key.Address.String()).All(m.Store, &msgs)
 	if realErr != nil {
 		return nil, realErr
 	}
 
-	myAlias := &Alias{}
-	realErr = m.Tables["alias"].Get().Where("identity", m.Identity.Id).One(m.Store, myAlias)
-	if realErr != nil {
-		return nil, realErr
-	}
-
-	myProfile := &Profile{}
-	realErr = m.Identity.Profile.One(m.Store, myProfile)
-	if realErr != nil || myProfile.Id == 0 {
-		fmt.Println("Unable to get my profile.", realErr)
-		myProfile = &Profile{
-			Name:  myAlias.String(),
-			Image: defaultProfileImage(m.Client.Key.Address),
-		}
+	myProfile, myAlias, err := m.currentProfile()
+	if err != nil {
+		return nil, err
 	}
 
 	var outputMessages []*JSONMessage
@@ -566,11 +675,37 @@ func (m *MessageManager) GetSentMessages(since uint64, withComponents []string) 
 	return outputMessages, nil
 }
 
-func (m *MessageManager) GetPublicMessages(since uint64, withComponents []string) []*JSONMessage {
+func (m *MessageManager) GetAllMessages(msgChan chan *JSONMessage) {
+	var newData JSONMessageList
 	if majorFetcher.NeedsCredentials() {
-		fmt.Println("Forcing Fetch")
-		majorFetcher.LoadCredentials(m.Client, m.Router, m.Tables, m.Store)
-		majorFetcher.ForceFetch(0)
+		m.forceFetch()
+	} else {
+		newData = JSONMessageList(append(majorStore.RetrieveAllPublic(), majorStore.RetrieveAllPrivate()...))
+	}
+
+	data, err := m.GetSentMessages(0, []string{})
+	if err != nil {
+		fmt.Println("Error getting Sent Messages", err)
+	}
+	newData = append(newData, data...)
+
+	sort.Reverse(newData)
+
+	for _, v := range newData {
+		msgChan <- v
+	}
+}
+
+func (m *MessageManager) forceFetch() {
+	fmt.Println("Forcing Fetch")
+	majorFetcher.LoadCredentials(m.Client, m.Router, m.Tables, m.Store)
+	majorFetcher.ForceFetch(0)
+}
+
+func (m *MessageManager) GetPublicMessages(since uint64, withComponents []string) []*JSONMessage {
+	fmt.Println("[DEPRECEATED] Call to deprecated method GetPublicMessages.")
+	if majorFetcher.NeedsCredentials() {
+		go m.forceFetch()
 	}
 
 	return majorStore.RetrieveAllPublic()
@@ -578,10 +713,9 @@ func (m *MessageManager) GetPublicMessages(since uint64, withComponents []string
 
 // GetPrivateMessages will return an array of JSON Messges with the given arguments.
 func (m *MessageManager) GetPrivateMessages(since uint64, withComponents []string) []*JSONMessage {
+	fmt.Println("[DEPRECEATED] Call to deprecated method GetPrivateMessages.")
 	if majorFetcher.NeedsCredentials() {
-		fmt.Println("Forcing Fetch")
-		majorFetcher.LoadCredentials(m.Client, m.Router, m.Tables, m.Store)
-		majorFetcher.ForceFetch(0)
+		go m.forceFetch()
 	}
 
 	return majorStore.RetrieveAllPrivate()

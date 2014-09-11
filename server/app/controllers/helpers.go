@@ -2,12 +2,14 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"getmelange.com/app/framework"
 	"getmelange.com/app/models"
 	"getmelange.com/dap"
+	"getmelange.com/router"
 
 	gdb "github.com/huntaub/go-db"
 )
@@ -77,4 +79,33 @@ func DAPClientFromID(id *models.Identity, store *models.Store) (*dap.Client, err
 		Key:    adID,
 		Server: server,
 	}, nil
+}
+
+// ConstructManager will use the Store and Tables to create a *models.MessageManager.
+func constructManager(store *models.Store, tables map[string]gdb.Table) (*models.MessageManager, error) {
+	id, err := CurrentIdentityOrError(store, tables["identity"])
+	if err != nil {
+		return nil, errors.New("Couldn't get current Identity.")
+	}
+
+	client, realErr := DAPClientFromID(id, store)
+	if realErr != nil {
+		return nil, realErr
+	}
+
+	router := &router.Router{
+		Origin: client.Key,
+		TrackerList: []string{
+			"localhost:2048",
+		},
+	}
+
+	return &models.MessageManager{
+		Tables:   tables,
+		Store:    store,
+		Client:   client,
+		Identity: id,
+		Router:   router,
+	}, nil
+
 }

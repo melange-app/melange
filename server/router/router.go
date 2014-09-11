@@ -43,6 +43,14 @@ func (r *Router) HandleRedirect(name routing.LookupType, redirect routing.Redire
 }
 
 func (a *Router) LookupAlias(from string, name routing.LookupType) (*identity.Address, error) {
+	b := &Router{
+		Origin:      a.Origin,
+		TrackerList: a.TrackerList,
+	}
+	return b.lookupAliasHelper(from, name)
+}
+
+func (a *Router) lookupAliasHelper(from string, name routing.LookupType) (*identity.Address, error) {
 	key := fmt.Sprintf("%s:%s", from, name)
 	test, stale := routeCache.Get(key)
 	if !stale {
@@ -81,6 +89,14 @@ func (a *Router) LookupAlias(from string, name routing.LookupType) (*identity.Ad
 }
 
 func (a *Router) Lookup(from string, name routing.LookupType) (*identity.Address, error) {
+	b := &Router{
+		Origin:      a.Origin,
+		TrackerList: a.TrackerList,
+	}
+	return b.lookupHelper(from, name)
+}
+
+func (a *Router) lookupHelper(from string, name routing.LookupType) (*identity.Address, error) {
 	key := fmt.Sprintf("%s:%s", from, name)
 	test, stale := routeCache.Get(key)
 	if !stale {

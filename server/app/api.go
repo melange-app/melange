@@ -34,18 +34,27 @@ type Handler interface {
 func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 	// fmt.Println("API Request", req.Method, req.URL.Path)
 
-	packager := &packaging.Packager{
-		API:    "http://www.getmelange.com/api",
-		Plugin: filepath.Join(os.Getenv("MLGDATA"), "plugins"),
-	}
-	packager.CreatePluginDirectory()
-
 	tables, err := models.CreateTables(r.Settings)
 	if err != nil {
 		fmt.Println("Error creating tables", err)
 		framework.WriteView(framework.Error500, res)
 		return
 	}
+
+	if req.URL.Path == "/realtime" {
+		h := &controllers.RealtimeHandler{
+			Store:  r.Settings,
+			Tables: tables,
+		}
+		h.UpgradeConnection(res, req)
+		return
+	}
+
+	packager := &packaging.Packager{
+		API:    "http://www.getmelange.com/api",
+		Plugin: filepath.Join(os.Getenv("MLGDATA"), "plugins"),
+	}
+	packager.CreatePluginDirectory()
 
 	version := os.Getenv("MLGVERSION")
 	platform := os.Getenv("MLGPLATFORM")
