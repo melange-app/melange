@@ -71,6 +71,8 @@
         return 0;
     }
 
+    var subscribers = [];
+
     return {
       addMessage: function(data) {
         console.log("Adding Message " + data.name);
@@ -91,6 +93,21 @@
           selfMessages.unshift(data);
           selfMessages.sort(msgCompare);
         }
+
+        for(var i in subscribers) {
+          try {
+            subscribers[i].callback(data);
+          } catch (e) {
+            console.log("Likely that mlgMessages subscriber left.")
+            console.log(e);
+            delete subscribers[i];
+          }
+        }
+      },
+      subscribe: function(callback) {
+        subscribers.push({
+          callback: callback,
+        });
       },
       getMessages: function(obj) {
         // Only give back self messages.

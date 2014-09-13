@@ -16,7 +16,7 @@
   }
 
   // MLG-PLUGINS
-  melangeServices.factory('mlgPlugins', ['$resource', '$q', 'mlgApi', 'mlgIdentity', function($resource, $q, mlgApi, mlgIdentity) {
+  melangeServices.factory('mlgPlugins', ['$resource', '$q', 'mlgApi', 'mlgIdentity', 'mlgMessages', function($resource, $q, mlgApi, mlgIdentity, mlgMessages) {
     // Plugins Resource
     var plugins = $resource('http://' + melangeAPI + '/plugins/:action', {action: ""},
     {
@@ -164,6 +164,36 @@
       return cleanedMsgs
     }
 
+    var realtimeSubscribers = {};
+    mlgMessages.subscribe(function(data) {
+      for(var origin in realtimeSubscribers) {
+        for(var i in realtimeSubscribers[origin]) {
+          var subscriber = realtimeSubscribers[origin][i];
+
+          var msgs = filterByFields([data], subscriber.fields, subscriber.permissions);
+          if(msgs.length < 1) {
+            // It wasn't a message of the correct type.
+            return
+          }
+
+          try {
+            subscriber.callback({
+              type: "realtimeUpdate",
+              context: {
+                message: msgs[0],
+                subscriber: subscriber.subscriber,
+              }
+            });
+          } catch(e) {
+            console.log("Likely that plugin went away.")
+            console.log(e)
+            // realtimeSubscribers[origin].splice(i, 1);
+            delete realtimeSubscribers[origin][i];
+          }
+        }
+      }
+    });
+
     // --- Plugin Communication
     var receivers = {
       viewerUpdate: function(origin, data, callback, obj) {
@@ -216,6 +246,21 @@
         var permissionCheck = checkPermissionField(perms, data.fields, "foundMessages", callback)
         if(!permissionCheck) {
           return
+        }
+
+        if (data.realtime !== false) {
+          // ENABLE Realtime Support on origin and subscriber
+          if(realtimeSubscribers[origin] === undefined) {
+            realtimeSubscribers[origin] = [];
+          }
+
+          // Add the subscriber
+          realtimeSubscribers[origin].push({
+            subscriber: data.realtime,
+            fields: data.fields,
+            callback: callback,
+            permissions: perms,
+          })
         }
 
         mlgApi.getMessages().then(
