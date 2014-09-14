@@ -111,7 +111,7 @@
       },
       getMessages: function(obj) {
         // Only give back self messages.
-        if(obj.self == true && obj.received == false && obj.public == false) { return selfMessages; }
+        if(obj !== undefined && obj.self == true && obj.received == false && obj.public == false) { return selfMessages; }
 
         return messages;
       },
