@@ -90,6 +90,7 @@
     });
 
     // Sync up if needed.
+    $scope.me = true;
     var sync = function() {
       console.log("Syncing")
       $scope.loading = true;

@@ -7,7 +7,7 @@
     <div class="col-sm-9">
       <h1>{{ profile.name }} <small>Profile</small></h1>
       <p>{{ profile.description }}</p>
-      <p><a href="#/profile/edit">Edit your Profile</a></p>
+      <p ng-if="me"><a href="#/profile/edit">Edit your Profile</a></p>
     </div>
   </div>
 </div>
