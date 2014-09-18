@@ -128,7 +128,7 @@
       $scope.loading = true;
       mlgApi.getMessagesAtAlias($routeParams.alias).then(function(data) {
         $scope.loading = false;
-        $scope.newsfeed = data;
+        $scope.newsfeed = data.reverse();
       });
     }
     sync();
