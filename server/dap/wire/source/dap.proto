@@ -48,6 +48,20 @@ message UpdateMessage {
 }
 
 // ---------
+// AD Data Messages
+// ---------
+
+// PublishDataMessage will take an encrypted data header, some metadata about
+// the data message, and publish it on the server.
+message PublishDataMessage {
+	required bytes  header = 1;
+	repeated string to     = 2;
+	required string name   = 3;
+	required uint64 length = 4;
+	required bytes  hash   = 5;
+}
+
+// ---------
 // Arbitrary Data Store
 // ---------
 

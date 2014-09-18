@@ -133,6 +133,54 @@ func (m *UpdateMessage) GetData() []byte {
 	return nil
 }
 
+type PublishDataMessage struct {
+	Header           []byte   `protobuf:"bytes,1,req,name=header" json:"header,omitempty"`
+	To               []string `protobuf:"bytes,2,rep,name=to" json:"to,omitempty"`
+	Name             *string  `protobuf:"bytes,3,req,name=name" json:"name,omitempty"`
+	Length           *uint64  `protobuf:"varint,4,req,name=length" json:"length,omitempty"`
+	Hash             []byte   `protobuf:"bytes,5,req,name=hash" json:"hash,omitempty"`
+	XXX_unrecognized []byte   `json:"-"`
+}
+
+func (m *PublishDataMessage) Reset()         { *m = PublishDataMessage{} }
+func (m *PublishDataMessage) String() string { return proto.CompactTextString(m) }
+func (*PublishDataMessage) ProtoMessage()    {}
+
+func (m *PublishDataMessage) GetHeader() []byte {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+func (m *PublishDataMessage) GetTo() []string {
+	if m != nil {
+		return m.To
+	}
+	return nil
+}
+
+func (m *PublishDataMessage) GetName() string {
+	if m != nil && m.Name != nil {
+		return *m.Name
+	}
+	return ""
+}
+
+func (m *PublishDataMessage) GetLength() uint64 {
+	if m != nil && m.Length != nil {
+		return *m.Length
+	}
+	return 0
+}
+
+func (m *PublishDataMessage) GetHash() []byte {
+	if m != nil {
+		return m.Hash
+	}
+	return nil
+}
+
 type Data struct {
 	Key              *string `protobuf:"bytes,1,req,name=key" json:"key,omitempty"`
 	Data             []byte  `protobuf:"bytes,2,req,name=data" json:"data,omitempty"`

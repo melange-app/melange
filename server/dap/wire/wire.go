@@ -8,6 +8,8 @@ const (
 	DownloadMessagesCode = "DAP-MSG"
 	PublishMessageCode   = "DAP-PUB"
 	UpdateMessageCode    = "DAP-UPD"
+	// AD Data Messages
+	PublishDataMessageCode = "DAP-DMG"
 	// Data Management
 	DataCode    = "DAP-DAT"
 	GetDataCode = "DAP-GET"
