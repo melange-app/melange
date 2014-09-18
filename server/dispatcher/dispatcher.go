@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 
 	"getmelange.com/dap"
 
@@ -136,6 +137,10 @@ func (m *Server) SaveMessageDescription(alert *message.EncryptedMessage) {
 	if err != nil {
 		m.HandleError(createError("Saving new alert to db.", err))
 	}
+}
+
+func (m *Server) RetrieveDataForUser(name string, author *identity.Address, forAddr *identity.Address) (*message.EncryptedMessage, io.ReadCloser) {
+	return nil, nil
 }
 
 // RetrieveMessageForUser will retrieve the message stored for the specified user
