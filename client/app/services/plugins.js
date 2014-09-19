@@ -31,6 +31,20 @@
           action: "store"
         }
       },
+      updates: {
+        method:'GET',
+        isArray:true,
+        params: {
+          action: "updates"
+        }
+      },
+      update: {
+        method:'POST',
+        isArray:false,
+        params: {
+          action: "update"
+        }
+      },
       install: {
         method:'POST',
         params: {
@@ -425,6 +439,12 @@
       },
       allFromStore: function() {
         return plugins.store().$promise;
+      },
+      allUpdates: function() {
+        return plugins.updates().$promise;
+      },
+      update: function(plugin) {
+        return plugins.update(plugin).$promise;
       },
       install: function(data) {
         return plugins.install(data).$promise.then(function() {
