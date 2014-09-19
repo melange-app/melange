@@ -365,6 +365,15 @@
           }
         );
       },
+      // Link Management
+      openLink: function(origin, data, callback) {
+        if(window.require !== undefined) {
+          var shell = require("shell");
+          shell.openExternal(data.url);
+        } else {
+          window.open(data.url, '_blank');
+        }
+      },
       // User Management
       currentUser: function(origin, data, callback) {
         mlgIdentity.current().then(function(data) {
