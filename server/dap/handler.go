@@ -1,10 +1,16 @@
 package dap
 
 import (
+	"bytes"
 	"errors"
+	"hash"
+	"io"
+	"net"
 	"strings"
 
 	"getmelange.com/dap/wire"
+
+	"crypto/sha256"
 
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
@@ -21,9 +27,16 @@ type Delegate interface {
 	GetMessages(since uint64, owner string, context bool) ([]*ResponseMessage, error)
 	PublishMessage(name string, to []string, author string, message *message.EncryptedMessage, alerted bool) error
 	UpdateMessage(name string, author string, message *message.EncryptedMessage) error
+	// AD Data
+	PublishDataMessage(name string, to []string, author string, message *message.EncryptedMessage, length uint64, r ReadVerifier) error
 	// Data
 	GetData(owner string, key string) ([]byte, error)
 	SetData(owner string, key string, data []byte) error
+}
+
+type ReadVerifier interface {
+	io.Reader
+	Verify() bool
 }
 
 type Handler struct {
@@ -37,7 +50,7 @@ func (h *Handler) HandlesType(typ string) bool {
 }
 
 // Handle the DAP Request
-func (h *Handler) HandleMessage(typ string, data []byte, head message.Header) ([]message.Message, error) {
+func (h *Handler) HandleMessage(typ string, data []byte, head message.Header, conn net.Conn) ([]message.Message, error) {
 	// I love that Golang doesn't have Generics. I promise!
 	switch typ {
 	case wire.RegisterCode:
@@ -80,6 +93,14 @@ func (h *Handler) HandleMessage(typ string, data []byte, head message.Header) ([
 			return nil, err
 		}
 		return h.UpdateMessage(unmarsh, head)
+	case wire.PublishDataMessageCode:
+		// Handle PublishDataMessage
+		unmarsh := &wire.PublishDataMessage{}
+		err := proto.Unmarshal(data, unmarsh)
+		if err != nil {
+			return nil, err
+		}
+		return h.PublishDataMessage(unmarsh, head, conn)
 	case wire.DataCode:
 		// Handle Data
 		unmarsh := &wire.Data{}
@@ -166,6 +187,48 @@ func (h *Handler) UpdateMessage(r *wire.UpdateMessage, head message.Header) ([]m
 
 	// Name, To, Author, Message
 	err = h.Delegate.UpdateMessage(r.GetName(), head.From.String(), msg)
+	if err != nil {
+		return nil, err
+	}
+
+	return CreateResponse(0, "OK", h.Key.Address, head.From), nil
+}
+
+type dataReader struct {
+	io.Reader
+
+	expectedHash []byte
+	runningHash  hash.Hash
+}
+
+func createDataReader(r io.Reader, length int64, hash []byte) *dataReader {
+	newHash := sha256.New()
+	return &dataReader{
+		Reader:       io.TeeReader(io.LimitReader(r, length), newHash),
+		expectedHash: hash,
+		runningHash:  newHash,
+	}
+}
+
+func (d *dataReader) Verify() bool {
+	return bytes.Equal(d.runningHash.Sum(nil), d.expectedHash)
+}
+
+// Publish a message on Delegate.
+func (h *Handler) PublishDataMessage(r *wire.PublishDataMessage, head message.Header, conn net.Conn) ([]message.Message, error) {
+	msg, err := message.CreateEncryptedMessageFromBytes(r.GetHeader())
+	if err != nil {
+		return nil, err
+	}
+
+	// Name, To, Author, Message
+	err = h.Delegate.PublishDataMessage(
+		r.GetName(),
+		r.GetTo(),
+		head.From.String(),
+		msg,
+		r.GetLength(),
+		createDataReader(conn, int64(r.GetLength()), r.GetHash()))
 	if err != nil {
 		return nil, err
 	}
