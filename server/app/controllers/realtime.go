@@ -86,6 +86,9 @@ func (r *RealtimeHandler) UpgradeConnection(res http.ResponseWriter, req *http.R
 				if err == io.EOF {
 					fmt.Println("Lost connection from websocket.")
 					return
+				} else if err.Error() == "unexpected EOF" {
+					fmt.Println("Lost connection from websocket.")
+					return
 				}
 
 				fmt.Println("Error reading from websocket.", err)
