@@ -1,10 +1,16 @@
 package dap
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"io"
 
 	"getmelange.com/dap/wire"
+
+	"crypto/rand"
 
 	"airdispat.ch/crypto"
 	adErrors "airdispat.ch/errors"
@@ -34,8 +40,8 @@ func CreateClient(key *identity.Identity, server *identity.Address) *Client {
 	return &Client{key, server}
 }
 
-func (c *Client) createHeader(to *identity.Address) message.Header {
-	header := message.CreateHeader(c.Key.Address, to)
+func (c *Client) createHeader(to ...*identity.Address) message.Header {
+	header := message.CreateHeader(c.Key.Address, to...)
 	header.EncryptionKey = crypto.RSAToBytes(c.Key.Address.EncryptionKey)
 	return header
 }
@@ -133,25 +139,40 @@ func (c *Client) decryptAndVerify(msg *message.EncryptedMessage, ts bool) ([]byt
 	}
 }
 
-func (c *Client) signAndEncrypt(msg *message.Mail, to []*identity.Address) ([]byte, error) {
+func (c *Client) signAndEncrypt(msg message.Message, to ...*identity.Address) ([]byte, error) {
+	enc, err := c.signAndEncryptMessage(msg, to...)
+	if err != nil {
+		return nil, err
+	}
+
+	return enc.ToBytes()
+}
+
+func (c *Client) signAndEncryptMessage(msg message.Message, to ...*identity.Address) (*message.EncryptedMessage, error) {
 	signed, err := message.SignMessage(msg, c.Key)
 	if err != nil {
 		return nil, err
 	}
 
-	var enc *message.EncryptedMessage
 	if len(to) == 0 {
-		enc, err = signed.UnencryptedMessage(nil)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		enc, err = signed.EncryptWithKey(to[0])
-		if err != nil {
-			return nil, err
+		return signed.UnencryptedMessage(nil)
+	}
+
+	enc, err := signed.EncryptWithKey(to[0])
+	if err != nil {
+		return nil, err
+	}
+
+	for i, v := range to {
+		if i != 0 {
+			err = enc.AddRecipient(v)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
-	return enc.ToBytes()
+
+	return enc, nil
 }
 
 // Download Messages from Server
@@ -226,7 +247,7 @@ func (c *Client) DownloadMessages(since uint64, context bool) ([]*ResponseMessag
 
 // Publish Message on Server
 func (c *Client) PublishMessage(enc *message.Mail, to []*identity.Address, name string, alert bool) (string, error) {
-	bytes, err := c.signAndEncrypt(enc, to)
+	bytes, err := c.signAndEncrypt(enc, to...)
 	if err != nil {
 		return "", err
 	}
@@ -258,7 +279,7 @@ func (c *Client) PublishMessage(enc *message.Mail, to []*identity.Address, name 
 
 // Update Message on Server
 func (c *Client) UpdateMessage(enc *message.Mail, to []*identity.Address, name string) error {
-	bytes, err := c.signAndEncrypt(enc, to)
+	bytes, err := c.signAndEncrypt(enc, to...)
 	if err != nil {
 		return err
 	}
@@ -277,6 +298,123 @@ func (c *Client) UpdateMessage(enc *message.Mail, to []*identity.Address, name s
 	}
 
 	return c.sendAndCheck(msg)
+}
+
+// ----
+// AD Data
+// ----
+
+func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ, name string) error {
+	// Hash the Plaintext
+	hasher := sha256.New()
+
+	n, err := io.Copy(hasher, r)
+	if err != nil && err != io.EOF {
+		return err
+	}
+
+	// Return to Beginning
+	_, err = r.Seek(0, 0)
+	if err != nil {
+		return err
+	}
+
+	// Draw a Random Key
+	key := make([]byte, 32)
+	rand.Read(key)
+
+	length := uint64(n) + uint64(aes.BlockSize)
+
+	// Sign and Encrypt the Data Header
+	encData, err := c.signAndEncrypt(
+		&RawMessage{
+			Message: &adWire.Data{
+				Hash:   hasher.Sum(nil),
+				Length: &length,
+				Key:    key,
+				Type:   &typ,
+				Name:   &name,
+			},
+			Code: adWire.DataCode,
+			Head: c.createHeader(to...),
+		}, to...)
+	if err != nil {
+		return err
+	}
+
+	// Get the Encrypted Hash
+	encHasher := sha256.New()
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return err
+	}
+
+	// Create the CFB IV
+	iv := make([]byte, aes.BlockSize)
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		return err
+	}
+	encHasher.Write(iv)
+
+	stream := cipher.NewCFBEncrypter(block, iv)
+
+	// Create the StreamWriter to Write Encrypted to the Hash Function
+	encWriter := cipher.StreamWriter{
+		S: stream,
+		W: encHasher,
+	}
+
+	_, err = io.Copy(encWriter, r)
+	if err != nil {
+		return err
+	}
+
+	// Return to Beginning
+	_, err = r.Seek(0, 0)
+	if err != nil {
+		return err
+	}
+
+	// Write PublishDataMessage
+
+	// Connect to Server
+	conn, err := message.ConnectToServer(c.Server.Location)
+	if err != nil {
+		return err
+	}
+
+	// Create the Encrypted Message
+	enc, err := c.signAndEncryptMessage(&RawMessage{
+		Message: &wire.PublishDataMessage{
+			Header: encData,
+			Hash:   encHasher.Sum(nil),
+			Name:   &name,
+			Length: &length,
+		},
+		Code: wire.PublishDataMessageCode,
+		Head: c.createHeader(c.Server),
+	}, c.Server)
+	if err != nil {
+		return err
+	}
+
+	err = enc.SendMessageToConnection(conn)
+	if err != nil {
+		return err
+	}
+
+	// Write actual Data
+	actualStream := cipher.StreamWriter{
+		S: cipher.NewCFBEncrypter(block, iv),
+		W: conn,
+	}
+
+	_, err = io.Copy(actualStream, r)
+	if err != nil {
+		return err
+	}
+
+	return adErrors.CheckConnectionForError(conn)
 }
 
 // ----
