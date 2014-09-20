@@ -10,18 +10,20 @@ import (
 
 // Table Names
 const (
-	TableNameUser     = "melange_user"
-	TableNameIdentity = "melange_identity"
-	TableNameMessage  = "melange_message"
-	TableNameStorage  = "melange_storage"
+	TableNameUser        = "melange_user"
+	TableNameIdentity    = "melange_identity"
+	TableNameMessage     = "melange_message"
+	TableNameStorage     = "melange_storage"
+	TableNameDataMessage = "melange_data_msg"
 )
 
 // Primary Key Names
 const (
-	PKUser     = "Id"
-	PKIdentity = "Id"
-	PKMessage  = "Id"
-	PKStorage  = "Id"
+	PKUser        = "Id"
+	PKIdentity    = "Id"
+	PKMessage     = "Id"
+	PKStorage     = "Id"
+	PKDataMessage = "Id"
 )
 
 // Create the Table Objects
@@ -33,8 +35,84 @@ func (s *Server) CreateTables() {
 	// Message Management
 	s.dbmap.AddTableWithName(Message{}, TableNameMessage).SetKeys(true, PKMessage)
 
+	// Data Message Management
+	s.dbmap.AddTableWithName(File{}, TableNameDataMessage).SetKeys(true, PKDataMessage)
+
 	// Storage
 	s.dbmap.AddTableWithName(Storage{}, TableNameStorage).SetKeys(true, PKStorage)
+}
+
+// File represents the AD Data messages.
+type File struct {
+	Id int
+	// To / From Information
+	Owner  int
+	To     string
+	Sender string
+	// Message Information
+	Name    string
+	Path    string
+	Length  int64
+	Message []byte
+	// Metadata
+	Received int64
+}
+
+// Change Outgoing Message into Encrypted Message
+func (o *File) ToDispatch(retriever string) (*message.EncryptedMessage, error) {
+	return message.CreateEncryptedMessageFromBytes(o.Message)
+}
+
+// Save Data Message
+func (m *Server) SaveDataMessage(name string, to []string, from string, message *message.EncryptedMessage, path string, length int64) error {
+	ownerId := -1
+	if from != "" {
+		user, err := m.UserForIdentity(from)
+		if err != nil {
+			fmt.Println("Got error getting user for identity.")
+			return err
+		}
+		ownerId = user.Id
+	}
+
+	data, err := message.ToBytes()
+	if err != nil {
+		return err
+	}
+
+	out := &File{
+		To:       strings.Join(to, ","),
+		Sender:   from,
+		Owner:    ownerId,
+		Name:     name,
+		Message:  data,
+		Path:     path,
+		Length:   length,
+		Received: time.Now().Unix(),
+	}
+	return m.dbmap.Insert(out)
+}
+
+const QueryDataMessage = "select * from " + TableNameDataMessage + " o where o.Owner = :owner and o.Name = :name and o.To like :recv"
+
+// Return Outgoing Message Named
+func (m *Server) GetDataMessageNamed(name string, owner string, receiver string) (*File, error) {
+	user, err := m.UserForIdentity(owner)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &File{}
+
+	// Create the Query
+	err = m.dbmap.SelectOne(result, QueryDataMessage,
+		map[string]interface{}{
+			"name":  name,
+			"recv":  fmt.Sprintf("%%%s%%", receiver),
+			"owner": user.Id,
+		})
+
+	return result, err
 }
 
 // Outgoing Messages
