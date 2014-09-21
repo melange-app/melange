@@ -1,6 +1,8 @@
 package dap
 
 import (
+	"bytes"
+	"crypto/aes"
 	"fmt"
 	"testing"
 	"time"
@@ -221,6 +223,25 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
+// Test Delegate Update Message
+func TestPublishDataMessage(t *testing.T) {
+	quit, results, scene, client := testingSetup(t)
+	defer func() { quit <- true }()
+
+	data := bytes.NewReader([]byte("hello-world"))
+
+	err := client.PublishDataMessage(data, []*identity.Address{scene.Receiver.Address}, "airdispat.ch/data", "helloData")
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	result := <-results
+	if result != nil {
+		t.Error(result.Error())
+	}
+}
+
 func TestGetData(t *testing.T) {
 	quit, results, _, client := testingSetup(t)
 	defer func() { quit <- true }()
@@ -419,9 +440,102 @@ func (t *TestingDelegate) PublishMessage(name string, to []string, author string
 	return nil
 }
 
-// func (t *TestingDelegate) PublishDataMessage(name string, to []string, author string, message *message.EncryptedMessage, length uint64, r ReadVerifier) error {
-// 	return nil
-// }
+func (t *TestingDelegate) PublishDataMessage(name string, to []string, author string, msg *message.EncryptedMessage, length uint64, r ReadVerifier) error {
+	// Verifiy Arguments
+	if author != t.Scenario.Sender.Address.String() {
+		t.Results <- &TestingResult{"Publish Data Message", "Checking address is correct."}
+		return nil
+	}
+
+	if name != "helloData" {
+		t.Results <- &TestingResult{"Publish Data Message", "Checking that name is correct."}
+		return nil
+	}
+
+	if len(to) != 1 || to[0] != t.Scenario.Receiver.Address.String() {
+		t.Results <- &TestingResult{"Publish Data Message", "Checking that to is correct."}
+		return nil
+	}
+
+	if length != 11+aes.BlockSize {
+		t.Results <- &TestingResult{"Publish Data Message", "Checking that length is correct."}
+		return nil
+	}
+
+	// Verify Message
+	receivedSign, err := msg.Decrypt(t.Scenario.Receiver)
+	if err != nil {
+		t.Results <- &TestingResult{"Publish Data Message, Decryption", err.Error()}
+		return nil
+	}
+
+	if !receivedSign.Verify() {
+		t.Results <- &TestingResult{"Publish Data Message, Verification", err.Error()}
+		return nil
+	}
+
+	data, typ, h, err := receivedSign.ReconstructMessageWithTimestamp()
+	if err != nil {
+		t.Results <- &TestingResult{"Publish Data Message, Reconstruction", err.Error()}
+		return nil
+	}
+
+	if typ != adWire.DataCode {
+		t.Results <- &TestingResult{"Publish Data Message", "Type of Message is unexpected, " + typ}
+		return nil
+	}
+
+	mail, err := message.CreateDataMessageFromBytes(data, h)
+	if err != nil {
+		t.Results <- &TestingResult{"Publish Data Message, Creation", err.Error()}
+		return nil
+	}
+
+	b := &bytes.Buffer{}
+	_, err = b.ReadFrom(r)
+	if err != nil {
+		t.Results <- &TestingResult{"Publish Data Message, Reading from Verifier", err.Error()}
+		return nil
+	}
+
+	// Verify the Encrypted Payload
+	if !r.Verify() {
+		t.Results <- &TestingResult{"Publish Data Message", "Verification of payload."}
+		return nil
+	}
+
+	if uint64(b.Len()) != mail.Length {
+		t.Results <- &TestingResult{"Publish Data Message", "Length mistmatch."}
+		return nil
+	}
+
+	// Time to decrypt the plaintext.
+	d := &bytes.Buffer{}
+	decrypted, err := mail.DecryptReader(b)
+	if err != nil {
+		t.Results <- &TestingResult{"Publish Data Message, Creating Decrypter", err.Error()}
+		return nil
+	}
+
+	_, err = d.ReadFrom(decrypted)
+	if err != nil {
+		t.Results <- &TestingResult{"Publish Data Message, Reading from Decrypter", err.Error()}
+		return nil
+	}
+
+	if !mail.VerifyPayload() {
+		t.Results <- &TestingResult{"Publish Data Message", "Unable to verify plaintext."}
+		return nil
+	}
+
+	if !bytes.Equal(d.Bytes(), []byte("hello-world")) {
+		t.Results <- &TestingResult{"Publish Data Message", "Payload is incorrect."}
+		return nil
+	}
+
+	t.Results <- nil
+	return nil
+}
 
 // Mock UpdateMessage
 func (t *TestingDelegate) UpdateMessage(name string, author string, msg *message.EncryptedMessage) error {

@@ -383,6 +383,11 @@ func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ
 		return err
 	}
 
+	var toAddrs []string
+	for _, v := range to {
+		toAddrs = append(toAddrs, v.String())
+	}
+
 	// Create the Encrypted Message
 	enc, err := c.signAndEncryptMessage(&RawMessage{
 		Message: &wire.PublishDataMessage{
@@ -390,6 +395,7 @@ func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ
 			Hash:   encHasher.Sum(nil),
 			Name:   &name,
 			Length: &length,
+			To:     toAddrs,
 		},
 		Code: wire.PublishDataMessageCode,
 		Head: c.createHeader(c.Server),
@@ -399,6 +405,11 @@ func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ
 	}
 
 	err = enc.SendMessageToConnection(conn)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Write(iv)
 	if err != nil {
 		return err
 	}
