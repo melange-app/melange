@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"airdispat.ch/identity"
 	"airdispat.ch/message"
 	"airdispat.ch/server"
 	adTest "airdispat.ch/testing"
@@ -129,7 +130,7 @@ func TestGetMessages(t *testing.T) {
 		return
 	}
 
-	receivedSign, err := res.Message.Decrypt(scene.Sender)
+	receivedSign, err := res.Message.Decrypt(scene.Receiver)
 	if err != nil {
 		t.Error("Decrypting Message: " + err.Error())
 		return
@@ -173,7 +174,7 @@ func TestPublish(t *testing.T) {
 	quit, results, scene, client := testingSetup(t)
 	defer func() { quit <- true }()
 
-	mail := message.CreateMail(scene.Receiver.Address, scene.Sender.Address, time.Now())
+	mail := message.CreateMail(scene.Sender.Address, time.Now(), "test_message", scene.Receiver.Address)
 	mail.Components.AddComponent(
 		message.Component{
 			Name: "test_verification",
@@ -181,19 +182,9 @@ func TestPublish(t *testing.T) {
 		},
 	)
 
-	signed, err := message.SignMessage(mail, scene.Receiver)
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-
-	encrypted, err := signed.EncryptWithKey(scene.Sender.Address)
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-
-	_, err = client.PublishMessage(encrypted, []string{"not_real"}, "test_message", true)
+	_, err := client.PublishMessage(mail, []*identity.Address{
+		scene.Receiver.Address,
+	}, "test_message", true)
 	if err != nil {
 		t.Error(err.Error())
 		return
@@ -210,7 +201,7 @@ func TestUpdate(t *testing.T) {
 	quit, results, scene, client := testingSetup(t)
 	defer func() { quit <- true }()
 
-	mail := message.CreateMail(scene.Receiver.Address, scene.Sender.Address, time.Now())
+	mail := message.CreateMail(scene.Sender.Address, time.Now(), "test_message", scene.Receiver.Address)
 	mail.Components.AddComponent(
 		message.Component{
 			Name: "test_verification",
@@ -218,19 +209,7 @@ func TestUpdate(t *testing.T) {
 		},
 	)
 
-	signed, err := message.SignMessage(mail, scene.Receiver)
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-
-	encrypted, err := signed.EncryptWithKey(scene.Sender.Address)
-	if err != nil {
-		t.Error(err.Error())
-		return
-	}
-
-	err = client.UpdateMessage(encrypted, "test_message")
+	err := client.UpdateMessage(mail, []*identity.Address{scene.Receiver.Address}, "test_message")
 	if err != nil {
 		t.Error(err.Error())
 		return
@@ -347,7 +326,7 @@ func (t *TestingDelegate) GetMessages(since uint64, owner string, context bool) 
 		return nil, nil
 	}
 
-	mail := message.CreateMail(t.Scenario.Receiver.Address, t.Scenario.Sender.Address, time.Now())
+	mail := message.CreateMail(t.Scenario.Sender.Address, time.Now(), "test_message", t.Scenario.Receiver.Address)
 	mail.Components.AddComponent(
 		message.Component{
 			Name: "test_verification",
@@ -355,13 +334,13 @@ func (t *TestingDelegate) GetMessages(since uint64, owner string, context bool) 
 		},
 	)
 
-	signed, err := message.SignMessage(mail, t.Scenario.Receiver)
+	signed, err := message.SignMessage(mail, t.Scenario.Sender)
 	if err != nil {
 		t.Results <- &TestingResult{"GetMessages, Signing Message", err.Error()}
 		return nil, nil
 	}
 
-	encrypted, err := signed.EncryptWithKey(t.Scenario.Sender.Address)
+	encrypted, err := signed.EncryptWithKey(t.Scenario.Receiver.Address)
 	if err != nil {
 		t.Results <- &TestingResult{"GetMessages, Encrypting Message", err.Error()}
 		return nil, nil
@@ -387,7 +366,7 @@ func (t *TestingDelegate) PublishMessage(name string, to []string, author string
 		return nil
 	}
 
-	if len(to) != 1 || to[0] != "not_real" {
+	if len(to) != 1 || to[0] != t.Scenario.Receiver.Address.String() {
 		t.Results <- &TestingResult{"Publish Message", "Checking that to is correct."}
 		return nil
 	}
@@ -398,7 +377,7 @@ func (t *TestingDelegate) PublishMessage(name string, to []string, author string
 	}
 
 	// Verify Message
-	receivedSign, err := msg.Decrypt(t.Scenario.Sender)
+	receivedSign, err := msg.Decrypt(t.Scenario.Receiver)
 	if err != nil {
 		t.Results <- &TestingResult{"Publish Message, Decryption", err.Error()}
 		return nil
@@ -440,6 +419,10 @@ func (t *TestingDelegate) PublishMessage(name string, to []string, author string
 	return nil
 }
 
+// func (t *TestingDelegate) PublishDataMessage(name string, to []string, author string, message *message.EncryptedMessage, length uint64, r ReadVerifier) error {
+// 	return nil
+// }
+
 // Mock UpdateMessage
 func (t *TestingDelegate) UpdateMessage(name string, author string, msg *message.EncryptedMessage) error {
 	// Verifiy Arguments
@@ -454,7 +437,7 @@ func (t *TestingDelegate) UpdateMessage(name string, author string, msg *message
 	}
 
 	// Verify Message
-	receivedSign, err := msg.Decrypt(t.Scenario.Sender)
+	receivedSign, err := msg.Decrypt(t.Scenario.Receiver)
 	if err != nil {
 		t.Results <- &TestingResult{"Update Message, Decryption", err.Error()}
 		return nil
