@@ -103,6 +103,22 @@
         $scope.store = data;
       });
 
+      $scope.loadingUpdates = true;
+      mlgPlugins.allUpdates().then(function(data) {
+        $scope.loadingUpdates = false;
+        $scope.updates = data;
+        console.log(data);
+      })
+
+      $scope.update = function(plugin) {
+        plugin.Updating = true;
+
+        mlgPlugins.update(plugin).then(function() {
+          plugin.Updating = false;
+          plugin.Updated = true;
+        });
+      }
+
       mlgPlugins.all().then(function(data) {
         $scope.plugins = data;
         $scope.hasPlugins = Object.keys(data).length > 0;

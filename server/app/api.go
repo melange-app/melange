@@ -81,20 +81,22 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 		// APPLICATIONS
 		//
 
-		// GET  /plugins
 		"/plugins": &PluginServer{
 			Packager: packager,
 		},
-		// GET  /servers
 		"/plugins/store": &controllers.PluginStoreController{
 			Packager: packager,
 		},
-		// GET  /servers
 		"/plugins/install": &controllers.InstallPluginController{
 			Packager: packager,
 		},
-		// GET  /trackers
 		"/plugins/uninstall": &controllers.UninstallPluginController{
+			Packager: packager,
+		},
+		"/plugins/updates": &controllers.CheckForPluginUpdatesController{
+			Packager: packager,
+		},
+		"/plugins/update": &controllers.UpdatePluginController{
 			Packager: packager,
 		},
 

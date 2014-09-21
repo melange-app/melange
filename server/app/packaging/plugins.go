@@ -98,22 +98,43 @@ type Author struct {
 	Homepage string `json:"homepage"`
 }
 
-func (p *Packager) InstallPlugin(repo string) error {
-	repoComponents := strings.Split(repo, "/")
-	if len(repoComponents) < 2 || !strings.HasPrefix(repo, "http://github.com/") {
-		return errors.New("Not a valid github repo url.")
+func (p *Packager) verifyPlugin(latest *github.RepositoryTag, user string, name string) (*Plugin, error) {
+	// Ensure that the Package ID is still correct
+	packageJSON := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/package.json", user, name, *latest.Name)
+	fmt.Println(packageJSON)
+	res, err := http.Get(packageJSON)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	plugin := &Plugin{}
+	dec := json.NewDecoder(res.Body)
+	err = dec.Decode(plugin)
+	if err != nil {
+		fmt.Println("Error decoding body")
+		return nil, err
 	}
 
-	// Get the Path Components
-	user := repoComponents[len(repoComponents)-2]
-	name := repoComponents[len(repoComponents)-1]
+	// Check that plugin has correct id.
+	expected := fmt.Sprintf("com.github.%s.%s", user, name)
+	if plugin.Id != expected {
+		return nil, fmt.Errorf("Couldn't get plugin as ids didn't match. Expected %s, got %s", expected, plugin.Id)
+	}
 
-	gh := github.NewClient(nil)
+	// Check that plugin has correct version.
+	if plugin.Version != strings.TrimPrefix(*latest.Name, "v") {
+		return nil, fmt.Errorf("Plugin doesn't have correct version (%s) in the manifest file (%s).", strings.TrimPrefix(*latest.Name, "v"), plugin.Version)
+	}
 
+	return plugin, nil
+}
+
+func (p *Packager) getLatestPluginVersion(gh *github.Client, user, name string) (*github.RepositoryTag, error) {
 	// Get the Release Version
 	tags, _, err := gh.Repositories.ListTags(user, name, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var latest *github.RepositoryTag
@@ -125,31 +146,31 @@ func (p *Packager) InstallPlugin(repo string) error {
 	}
 
 	if latest == nil {
-		return errors.New("Can't install a repository without a release.")
+		return nil, errors.New("Can't install a repository without a release.")
 	}
 
-	// Got here
+	return latest, nil
+}
 
-	// Ensure that the Package ID is still correct
-	packageJSON := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/package.json", user, name, *latest.Name)
-	fmt.Println(packageJSON)
-	res, err := http.Get(packageJSON)
+func (p *Packager) InstallPlugin(repo string) error {
+	repoComponents := strings.Split(repo, "/")
+	if len(repoComponents) < 2 || !strings.HasPrefix(repo, "http://github.com/") {
+		return errors.New("Not a valid github repo url.")
+	}
+
+	// Get the Path Components
+	user := repoComponents[len(repoComponents)-2]
+	name := repoComponents[len(repoComponents)-1]
+
+	gh := github.NewClient(nil)
+	latest, err := p.getLatestPluginVersion(gh, user, name)
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
 
-	plugin := &Plugin{}
-	dec := json.NewDecoder(res.Body)
-	err = dec.Decode(plugin)
+	plugin, err := p.verifyPlugin(latest, user, name)
 	if err != nil {
-		fmt.Println("Error decoding body")
 		return err
-	}
-
-	expected := fmt.Sprintf("com.github.%s.%s", user, name)
-	if plugin.Id != expected {
-		return fmt.Errorf("Couldn't get plugin as ids didn't match. Expected %s, got %s", expected, plugin.Id)
 	}
 
 	// Download the Zipball
@@ -192,6 +213,93 @@ func (p *Packager) InstallPlugin(repo string) error {
 	os.Remove(file.Name())
 
 	return nil
+}
+
+type PluginUpdate struct {
+	Id         string
+	Version    string
+	Changelog  string
+	Repository string
+}
+
+func (p *Packager) CheckForPluginUpdates() ([]*PluginUpdate, error) {
+	// Fetch the correct plugin
+	plugins, err := p.AllPlugins()
+	if err != nil {
+		return nil, err
+	}
+
+	var updates []*PluginUpdate
+	for _, v := range plugins {
+		u, err := p.pluginUpdates(&v)
+		if err != nil {
+			fmt.Println("Error checking for updates on plugin", v.Id, err)
+			continue
+		}
+
+		updates = append(updates, u)
+	}
+
+	return updates, nil
+}
+
+func (p *Packager) pluginUpdates(thePlugin *Plugin) (*PluginUpdate, error) {
+	idComp := strings.Split(thePlugin.Id, ".")
+	if len(idComp) != 4 || idComp[0] != "com" || idComp[1] != "github" {
+		return nil, fmt.Errorf("Unable to get plugin with malformed id (%s).", idComp)
+	}
+
+	// Get the repository associated with the plugin
+	user := idComp[2]
+	name := idComp[3]
+	repository := fmt.Sprintf("http://github.com/%s/%s", user, name)
+
+	gh := github.NewClient(nil)
+	latest, err := p.getLatestPluginVersion(gh, user, name)
+	if err != nil {
+		return nil, err
+	}
+
+	newestPlugin, err := p.verifyPlugin(latest, user, name)
+	if err != nil {
+		return nil, err
+	}
+
+	changelog := ""
+	func() {
+		if latest.Commit.Message != nil {
+			changelog = *latest.Commit.Message
+		} else {
+			commit, _, err := gh.Repositories.GetCommit(user, name, *latest.Commit.SHA)
+
+			if err != nil {
+				fmt.Println("Couldn't get commit.", err)
+				return
+			}
+
+			if commit.Message == nil {
+				return
+			}
+
+			changelog = *commit.Message
+		}
+	}()
+
+	return &PluginUpdate{
+		Id:         newestPlugin.Id,
+		Version:    newestPlugin.Version,
+		Changelog:  changelog,
+		Repository: repository,
+	}, nil
+}
+
+func (p *Packager) ExecuteUpdate(update *PluginUpdate) error {
+	err := p.UninstallPlugin(update.Id)
+	if err != nil {
+		return err
+	}
+
+	return p.InstallPlugin(update.Repository)
 }
 
 func (p *Packager) UninstallPlugin(id string) error {
