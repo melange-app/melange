@@ -150,6 +150,52 @@ var mlgCleanup = function(msg) {
     }
   }]);
 
+  // MLG-FILES
+  melangeServices.factory('mlgFile', ['$resource', function($resource) {
+    var useIPC = false;
+    var ipc;
+    var ipcReceivers = {};
+
+    if(typeof window.require === "function") {
+      ipc = require("ipc");
+      useIPC = true;
+
+      ipc.on("got-file", function(args) {
+        if(args.id in ipcReceivers) {
+          ipcReceivers[args.id].callback(args.data);
+        }
+      });
+    } else {
+      console.log("No support for uploading yet.")
+      return {};
+    }
+
+    return {
+      upload: function(prefix, progress) {
+        if(useIPC) {
+          var id = (new Date()) + " - " + Math.random();
+
+          ipcReceivers[id] = {
+            callback: function(data) {
+              console.log(id);
+              console.log(data);
+            },
+          }
+
+          ipc.send("start-upload", {
+            id: id,
+          });
+        } else {
+          console.log("No support for uploading yet.")
+          return false;
+        }
+      },
+      download: function() {
+
+      },
+    }
+  }]);
+
   // MLG-IDENTITY
   melangeServices.factory('mlgIdentity', ['$resource', '$q', function($resource, $q) {
     var resource = $resource('http://' + melangeAPI + '/identity/:action', {

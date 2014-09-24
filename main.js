@@ -97,6 +97,25 @@ app.on('ready', function() {
   });
 
   mainWindow.focus();
+
+  var ipc = require("ipc");
+  var dialog = require('dialog');
+
+  ipc.on("start-upload", function(e, args) {
+    var title = "Melange File Upload";
+    if("title" in args) {
+      title += (": " + args.title);
+    }
+
+    dialog.showOpenDialog({
+      title: title,
+    }, function(data) {
+      e.sender.send("got-file", {
+        data: data,
+        id: args.id,
+      });
+    })
+  });
 });
 
 var launched = false;
