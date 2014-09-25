@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"os"
+	"path/filepath"
 
 	"airdispat.ch/identity"
 
@@ -118,6 +119,7 @@ func (m *UploadController) UploadFile(filename string, to []*identity.Address, t
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
 	info, err := file.Stat()
 	if err != nil {
@@ -156,5 +158,5 @@ func (m *UploadController) UploadFile(filename string, to []*identity.Address, t
 	}
 
 	// Upload the message
-	return client.PublishDataMessage(uploader, to, typ, name)
+	return client.PublishDataMessage(uploader, to, typ, name, filepath.Base(filename))
 }

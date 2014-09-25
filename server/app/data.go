@@ -117,11 +117,16 @@ func (p *Server) HandleData(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// if dataMessage.Name != name {
-	// 	fmt.Println("Name mismatch. Expected", name, "got", dataMessage.Name)
-	// 	framework.WriteView(framework.Error500, res)
-	// 	return
-	// }
+	if dataMessage.Name != name {
+		fmt.Println("Name mismatch. Expected", name, "got", dataMessage.Name)
+		framework.WriteView(framework.Error500, res)
+		return
+	}
+
+	if dataMessage.Filename != "" {
+		cd := fmt.Sprintf(`attachment; filename="%s"`, dataMessage.Filename)
+		res.Header().Add("Content-Disposition", cd)
+	}
 
 	res.Header().Add("Content-Length", strconv.Itoa(int(dataMessage.TrueLength())))
 

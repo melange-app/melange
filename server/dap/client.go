@@ -304,10 +304,11 @@ func (c *Client) UpdateMessage(enc *message.Mail, to []*identity.Address, name s
 // AD Data
 // ----
 
-func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ, name string) error {
+func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ, name, file string) error {
 	// Hash the Plaintext
 	hasher := sha256.New()
 
+	// Read Once
 	n, err := io.Copy(hasher, r)
 	if err != nil && err != io.EOF {
 		return err
@@ -334,6 +335,7 @@ func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ
 				Key:    key,
 				Type:   &typ,
 				Name:   &name,
+				File:   &file,
 			},
 			Code: adWire.DataCode,
 			Head: c.createHeader(to...),
