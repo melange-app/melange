@@ -110,7 +110,7 @@ func (m *Server) PublishDataMessage(name string, to []string, author string, mes
 	randomName := hex.EncodeToString(uuid.NewRandom())
 
 	s3cred := s3.New(auth, aws.USEast)
-	buck := s3cred.Bucket("dispatcher_uploads")
+	buck := s3cred.Bucket("dispatcher-uploads")
 
 	filename := fmt.Sprintf("/uploads/%s", randomName)
 

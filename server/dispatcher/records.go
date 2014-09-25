@@ -93,7 +93,7 @@ func (m *Server) SaveDataMessage(name string, to []string, from string, message 
 	return m.dbmap.Insert(out)
 }
 
-const QueryDataMessage = "select * from " + TableNameDataMessage + " o where o.Owner = :owner and o.Name = :name and o.To like :recv"
+const QueryDataMessage = "select * from " + TableNameDataMessage + " o where o.Owner = :owner and o.Name = :name and (o.To like :recv or o.To = '')"
 
 // Return Outgoing Message Named
 func (m *Server) GetDataMessageNamed(name string, owner string, receiver string) (*File, error) {

@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"syscall"
 
 	"getmelange.com/app/framework"
 	"getmelange.com/app/models"
+
 	"github.com/gorilla/websocket"
 	gdb "github.com/huntaub/go-db"
 )
@@ -56,22 +58,25 @@ func (r *RealtimeHandler) UpgradeConnection(res http.ResponseWriter, req *http.R
 
 	go func(mes <-chan *models.JSONMessage, data <-chan interface{}, quit <-chan struct{}) {
 		for {
+			var err error
 			select {
 			case m := <-data:
-				err := conn.WriteJSON(m)
-				if err != nil {
-					fmt.Println("Error writing to WS", err)
-				}
+				err = conn.WriteJSON(m)
 			case m := <-mes:
-				err := conn.WriteJSON(map[string]interface{}{
+				err = conn.WriteJSON(map[string]interface{}{
 					"type": "message",
 					"data": m,
 				})
-				if err != nil {
-					fmt.Println("Error writing to WS", err)
-				}
 			case <-quit:
 				return
+			}
+
+			// Check Write Error
+			if err == syscall.EPIPE {
+				// Stop!
+				return
+			} else if err != nil {
+				fmt.Println("Error writing to WS", err)
 			}
 		}
 	}(r.messageChan, r.dataChan, quitChan)
@@ -86,7 +91,7 @@ func (r *RealtimeHandler) UpgradeConnection(res http.ResponseWriter, req *http.R
 				if err == io.EOF {
 					fmt.Println("Lost connection from websocket.")
 					return
-				} else if err.Error() == "unexpected EOF" {
+				} else if err.Error() == "unexpected EOF" || err.Error() == "use of closed network connection" {
 					fmt.Println("Lost connection from websocket.")
 					return
 				}
@@ -135,7 +140,26 @@ func (r *RealtimeHandler) HandleWSRequest(t string, d interface{}) (string, inte
 
 		m.GetAllMessages(r.messageChan)
 		return "initDone", nil
+	} else if t == "uploadFile" {
+		// Asynchronously perform the upload.
+		go func() {
+			err := (&UploadController{
+				Store:  r.Store,
+				Tables: r.Tables,
+			}).HandleWSRequest(d.(map[string]interface{}), r.dataChan)
+
+			if err != nil {
+				fmt.Println("Unable to upload file.", err)
+				r.dataChan <- map[string]string{
+					"type": "uploadError",
+					"data": err.Error(),
+				}
+			}
+		}()
+
+		return "uploadingFile", nil
 	}
+
 	fmt.Println("Got message", t, "from ws.")
 	return "gotIt", nil
 }
