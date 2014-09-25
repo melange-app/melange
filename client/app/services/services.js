@@ -151,7 +151,7 @@ var mlgCleanup = function(msg) {
   }]);
 
   // MLG-FILES
-  melangeServices.factory('mlgFile', ['$resource', function($resource) {
+  melangeServices.factory('mlgFile', ['$resource', 'mlgRealtime', function($resource, mlgRealtime) {
     var useIPC = false;
     var ipc;
     var ipcReceivers = {};
@@ -170,15 +170,44 @@ var mlgCleanup = function(msg) {
       return {};
     }
 
+    // Upload is just beginning, get ID.
+    mlgRealtime.subscribe("uploadingFile", function(data) {
+      console.log(data);
+    });
+
+    // Upload is progressing.
+    mlgRealtime.subscribe("uploadProgress", function(data) {
+      console.log(data);
+    });
+
+    // Finished uploading.
+    mlgRealtime.subscribe("uploadedFile", function(data) {
+      console.log("Upload complete.")
+    });
+
+    // Upload Error!
+    mlgRealtime.subscribe("uploadError", function(data) {
+      console.log("Upload error!")
+      console.log(data);
+    });
+
     return {
-      upload: function(prefix, progress) {
+      upload: function(prefix, to, type, progress, complete) {
         if(useIPC) {
           var id = (new Date()) + " - " + Math.random();
 
           ipcReceivers[id] = {
             callback: function(data) {
-              console.log(id);
+              delete ipcReceivers[id];
+
               console.log(data);
+              mlgRealtime.send("uploadFile", {
+                filename: data[0],
+                to: to,
+                type: type,
+                name: (prefix + ""),
+                id: id,
+              });
             },
           }
 

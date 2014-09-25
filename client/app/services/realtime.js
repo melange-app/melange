@@ -38,6 +38,25 @@
           mlgMessages.addMessage(msg["data"])
         })
       }
+
+      if(msg["type"] in subscribers) {
+        var receivers = subscribers[msg["type"]]
+        var toRemove = [];
+        for(var i in receivers) {
+          try {
+            receivers[i].callback(msg["data"])
+          } catch (err) {
+            toRemove.push(i)
+          }
+        }
+
+        for (var i in toRemove) {
+          receivers.removeAt(toRemove[i]);
+        }
+        subscribers[msg["type"]] = receivers;
+      } else {
+        console.log("Got unknown message with type " + msg["type"])
+      }
     }
 
     function sendData(type, data) {
@@ -52,11 +71,23 @@
     }
 
     return {
+      send: sendData,
       subscribe: function(type, callback) {
+        if(!(type in subscribers)) {
+          subscribers[type] = [];
+        }
 
+        subscribers[type].push({
+          callback: callback,
+        });
+
+        return subscribers[type].length - 1;
       },
-      unsubscribe: function(id) {
-
+      unsubscribe: function(type, id) {
+        if(!(type in subscribers && id < subscribers[type].length)) {
+          return
+        }
+        subscribers[type].removeAt(id);
       },
     }
   }]);
