@@ -93,5 +93,7 @@ func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		r.p.HandleApp(res, req)
 	} else if mode == "api" {
 		r.p.HandleAPI(res, req)
+	} else if mode == "data" {
+		r.p.HandleData(res, req)
 	}
 }

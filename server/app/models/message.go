@@ -589,7 +589,7 @@ func (m *MessageManager) PublishMessage(msg *JSONMessage) error {
 
 func (m *MessageManager) GetMessage(alias string, name string) (*JSONMessage, error) {
 	fmt.Println("[DEPRECEATED] Call to deprecated method GetMessage.")
-	srv, author, err := getAddresses(m.Router, &Address{
+	srv, author, err := GetAddresses(m.Router, &Address{
 		Alias: alias,
 	})
 	if err != nil {

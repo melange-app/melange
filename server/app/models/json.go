@@ -161,7 +161,7 @@ func translateModel(r routing.Router, cmpTable gdb.Table, store gdb.Executor, v 
 			continue
 		}
 
-		_, addr, err := getAddresses(r, &Address{
+		_, addr, err := GetAddresses(r, &Address{
 			Alias: j,
 		})
 		if err != nil {

@@ -71,7 +71,7 @@ func (m *Server) RetrieveDataForUser(name string, author *identity.Address, forA
 	}
 
 	s3cred := s3.New(auth, aws.USEast)
-	buck := s3cred.Bucket("dispatcher_uploads")
+	buck := s3cred.Bucket("dispatcher-uploads")
 
 	msg, err := m.GetDataMessageNamed(name, author.String(), forAddr.String())
 	if err != nil {

@@ -32,7 +32,7 @@ func getProfile(r routing.Router, from *identity.Identity, to string, alias stri
 	return downloadMessage(r, "profile", from, to, alias)
 }
 
-func getAddresses(r routing.Router, to *Address) (server *identity.Address, author *identity.Address, err error) {
+func GetAddresses(r routing.Router, to *Address) (server *identity.Address, author *identity.Address, err error) {
 	if to.Fingerprint == "" {
 		author, err = r.LookupAlias(to.Alias, routing.LookupTypeMAIL)
 		if err != nil {
@@ -90,7 +90,7 @@ func downloadMessage(r routing.Router, msgName string, from *identity.Identity, 
 }
 
 func downloadPublicMail(r routing.Router, since uint64, from *identity.Identity, to *Address) ([]*message.Mail, error) {
-	srv, author, err := getAddresses(r, to)
+	srv, author, err := GetAddresses(r, to)
 	if err != nil {
 		return nil, err
 	}
