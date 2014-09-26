@@ -102,7 +102,7 @@ func (m *UploadController) HandleWSRequest(data map[string]interface{}, ws chan<
 	return m.UploadFile(filename, to, typ, name, ws)
 }
 
-func (m *UploadController) UploadFile(filename string, to []*identity.Address, typ string, name string, ws chan<- interface{}) error {
+func (m *UploadController) UploadFile(filename string, to []*identity.Address, typ string, prefix string, ws chan<- interface{}) error {
 	// Current User Identity
 	id, frameErr := CurrentIdentityOrError(m.Store, m.Tables["identity"])
 	if frameErr != nil {
@@ -127,6 +127,7 @@ func (m *UploadController) UploadFile(filename string, to []*identity.Address, t
 	}
 
 	n := make(chan float64)
+	nameChan := make(chan string, 1)
 
 	// Get upload status and send it to web socket
 	go func() {
@@ -135,9 +136,12 @@ func (m *UploadController) UploadFile(filename string, to []*identity.Address, t
 
 			// Exit on Close
 			if !ok {
+				name := <-nameChan
 				ws <- map[string]interface{}{
 					"type": "uploadedFile",
-					"data": nil,
+					"data": map[string]string{
+						"name": name,
+					},
 				}
 
 				return
@@ -158,5 +162,11 @@ func (m *UploadController) UploadFile(filename string, to []*identity.Address, t
 	}
 
 	// Upload the message
-	return client.PublishDataMessage(uploader, to, typ, name, filepath.Base(filename))
+	name, err := client.PublishDataMessage(uploader, to, typ, prefix, filepath.Base(filename))
+
+	if err == nil {
+		nameChan <- name
+	}
+
+	return err
 }

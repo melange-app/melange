@@ -142,17 +142,30 @@ func (r *RealtimeHandler) HandleWSRequest(t string, d interface{}) (string, inte
 		return "initDone", nil
 	} else if t == "uploadFile" {
 		// Asynchronously perform the upload.
+		obj, ok := d.(map[string]interface{})
+		if !ok {
+			return "uploadError", nil
+		}
+
+		id, ok := obj["id"].(string)
+		if !ok {
+			return "uploadError", nil
+		}
+
 		go func() {
 			err := (&UploadController{
 				Store:  r.Store,
 				Tables: r.Tables,
-			}).HandleWSRequest(d.(map[string]interface{}), r.dataChan)
+			}).HandleWSRequest(obj, r.dataChan)
 
 			if err != nil {
 				fmt.Println("Unable to upload file.", err)
-				r.dataChan <- map[string]string{
+				r.dataChan <- map[string]interface{}{
 					"type": "uploadError",
-					"data": err.Error(),
+					"data": map[string]interface{}{
+						"id":    id,
+						"error": err.Error(),
+					},
 				}
 			}
 		}()

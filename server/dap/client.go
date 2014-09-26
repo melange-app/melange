@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 
 	"getmelange.com/dap/wire"
@@ -304,20 +305,20 @@ func (c *Client) UpdateMessage(enc *message.Mail, to []*identity.Address, name s
 // AD Data
 // ----
 
-func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ, name, file string) error {
+func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ, prefix, file string) (string, error) {
 	// Hash the Plaintext
 	hasher := sha256.New()
 
 	// Read Once
 	n, err := io.Copy(hasher, r)
 	if err != nil && err != io.EOF {
-		return err
+		return "", err
 	}
 
 	// Return to Beginning
 	_, err = r.Seek(0, 0)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Draw a Random Key
@@ -325,6 +326,8 @@ func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ
 	rand.Read(key)
 
 	length := uint64(n) + uint64(aes.BlockSize)
+
+	name := fmt.Sprintf("%s:%x", prefix, hasher.Sum(nil))
 
 	// Sign and Encrypt the Data Header
 	encData, err := c.signAndEncrypt(
@@ -341,20 +344,20 @@ func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ
 			Head: c.createHeader(to...),
 		}, to...)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Get the Encrypted Hash
 	encHasher := sha256.New()
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Create the CFB IV
 	iv := make([]byte, aes.BlockSize)
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		return err
+		return "", err
 	}
 	encHasher.Write(iv)
 
@@ -366,15 +369,16 @@ func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ
 		W: encHasher,
 	}
 
+	// Read Twice
 	_, err = io.Copy(encWriter, r)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Return to Beginning
 	_, err = r.Seek(0, 0)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Write PublishDataMessage
@@ -382,7 +386,7 @@ func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ
 	// Connect to Server
 	conn, err := message.ConnectToServer(c.Server.Location)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	var toAddrs []string
@@ -403,17 +407,17 @@ func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ
 		Head: c.createHeader(c.Server),
 	}, c.Server)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = enc.SendMessageToConnection(conn)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	_, err = conn.Write(iv)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Write actual Data
@@ -422,12 +426,13 @@ func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ
 		W: conn,
 	}
 
+	// Three Times, You're Out
 	_, err = io.Copy(actualStream, r)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return adErrors.CheckConnectionForError(conn)
+	return name, adErrors.CheckConnectionForError(conn)
 }
 
 // ----
