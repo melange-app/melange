@@ -4,7 +4,7 @@
 <p ng-if="newProfile">Looks like you are new around here, let's get you a profile.</p>
 <p><a href="#/profile">Go Back</a></p>
 
-<form role="form" ng-submit="save()">
+<form role="form" enctype="multipart/form-data" ng-submit="save()">
   <div class="form-group">
     <label for="full-name">Full Name</label>
     <input type="text" id="full-name" name="full-name" ng-model="profile.name" class="form-control">
@@ -13,16 +13,22 @@
     <div class="col-xs-10 col-md-11">
       <div class="form-group">
         <label for="image">Profile Picture</label>
-        <input type="text" id="image" name="image" ng-model="profile.image" class="form-control">
+        <div>
+          <button id="image" type="button" ng-click="upload()" class="btn btn-primary btn-sm" ng-disabled="uploading">
+            <i class="fa fa-spin fa-circle-o-notch" ng-show="uploading"></i>
+            {{ uploading ? "Uploading your Picture" : "Upload a Profile Picture" }}
+          </button>
+        </div>
       </div>
     </div>
     <div class="col-xs-2 col-md-1 text-center">
-      <img ng-if="profile.image" ng-src="{{ profile.image }}" class="img-circle img-responsive">
+      <label for="preview">Preview</label>
+      <img id="preview" ng-if="avatar" ng-src="{{ avatar }}" class="img-circle img-responsive">
     </div>
   </div>
   <div class="form-group">
     <label for="description">About You</label>
     <textarea id="description" name="description" ng-model="profile.description" class="form-control"></textarea>
   </div>
-  <button type="submit" class="btn btn-primary btn-sm">Save</button>
+  <button type="submit" class="btn btn-primary btn-sm" ng-disabled="uploading">Save</button>
 </form>

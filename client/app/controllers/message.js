@@ -136,8 +136,8 @@
 
   }]);
 
-  melangeControllers.controller('EditProfileCtrl', ['$scope', '$location', 'mlgApi',
-  function($scope, $location, mlgApi) {
+  melangeControllers.controller('EditProfileCtrl', ['$scope', '$location', 'mlgFile', 'mlgApi',
+  function($scope, $location, mlgFile, mlgApi) {
 
     mlgApi.currentProfile().then(function(data) {
       $scope.profile = data;
@@ -147,6 +147,23 @@
       $scope.newProfile = true;
       $scope.profile = {};
     });
+
+    $scope.upload = function() {
+      $scope.uploading = true;
+      mlgFile.upload("airdispat.ch/profile", [], "airdispat.ch/profile/image").then(
+        function(data) {
+          $scope.uploading = false;
+          $scope.avatar = "http://data.melange:7776/" + data.user + "/" + data.name;
+          $scope.profile.image = data.user + "/" + data.name;
+        },
+        function(error) {
+
+        },
+        function(progress) {
+
+        }
+      );
+    }
 
     $scope.save = function() {
       // Save the profile
