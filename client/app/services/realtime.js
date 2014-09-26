@@ -46,12 +46,14 @@
           try {
             receivers[i].callback(msg["data"])
           } catch (err) {
+            console.log("Couldn't get to callback.")
+            console.log(err)
             toRemove.push(i)
           }
         }
 
         for (var i in toRemove) {
-          receivers.removeAt(toRemove[i]);
+          delete receivers[toRemove[i]];
         }
         subscribers[msg["type"]] = receivers;
       } else {

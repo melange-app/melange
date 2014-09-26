@@ -156,7 +156,7 @@ func (r *RealtimeHandler) HandleWSRequest(t string, d interface{}) (string, inte
 			err := (&UploadController{
 				Store:  r.Store,
 				Tables: r.Tables,
-			}).HandleWSRequest(obj, r.dataChan)
+			}).HandleWSRequest(obj, r.dataChan, id)
 
 			if err != nil {
 				fmt.Println("Unable to upload file.", err)

@@ -53,7 +53,7 @@ type UploadController struct {
 	Tables map[string]gdb.Table
 }
 
-func (m *UploadController) HandleWSRequest(data map[string]interface{}, ws chan<- interface{}) error {
+func (m *UploadController) HandleWSRequest(data map[string]interface{}, ws chan<- interface{}, uploadID string) error {
 	fTest, ok := data["filename"]
 	if !ok {
 		return errors.New("Data must include filename.")
@@ -99,10 +99,10 @@ func (m *UploadController) HandleWSRequest(data map[string]interface{}, ws chan<
 		return errors.New("Name of data must be string.")
 	}
 
-	return m.UploadFile(filename, to, typ, name, ws)
+	return m.UploadFile(filename, to, typ, name, ws, uploadID)
 }
 
-func (m *UploadController) UploadFile(filename string, to []*identity.Address, typ string, prefix string, ws chan<- interface{}) error {
+func (m *UploadController) UploadFile(filename string, to []*identity.Address, typ string, prefix string, ws chan<- interface{}, uploadID string) error {
 	// Current User Identity
 	id, frameErr := CurrentIdentityOrError(m.Store, m.Tables["identity"])
 	if frameErr != nil {
@@ -126,6 +126,12 @@ func (m *UploadController) UploadFile(filename string, to []*identity.Address, t
 		return err
 	}
 
+	alias := &models.Alias{}
+	err = id.Aliases.Limit(1).One(m.Store, alias)
+	if err != nil {
+		return err
+	}
+
 	n := make(chan float64)
 	nameChan := make(chan string, 1)
 
@@ -140,7 +146,9 @@ func (m *UploadController) UploadFile(filename string, to []*identity.Address, t
 				ws <- map[string]interface{}{
 					"type": "uploadedFile",
 					"data": map[string]string{
+						"id":   uploadID,
 						"name": name,
+						"user": alias.String(),
 					},
 				}
 
@@ -149,7 +157,10 @@ func (m *UploadController) UploadFile(filename string, to []*identity.Address, t
 
 			ws <- map[string]interface{}{
 				"type": "uploadProgress",
-				"data": data,
+				"data": map[string]interface{}{
+					"id":       uploadID,
+					"progress": data,
+				},
 			}
 		}
 	}()
@@ -166,6 +177,9 @@ func (m *UploadController) UploadFile(filename string, to []*identity.Address, t
 
 	if err == nil {
 		nameChan <- name
+	} else {
+		close(n)
+		close(nameChan)
 	}
 
 	return err

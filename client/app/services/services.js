@@ -151,7 +151,7 @@ var mlgCleanup = function(msg) {
   }]);
 
   // MLG-FILES
-  melangeServices.factory('mlgFile', ['$resource', 'mlgRealtime', function($resource, mlgRealtime) {
+  melangeServices.factory('mlgFile', ['$resource', '$q', 'mlgRealtime', function($resource, $q, mlgRealtime) {
     var useIPC = false;
     var ipc;
     var ipcReceivers = {};
@@ -172,33 +172,65 @@ var mlgCleanup = function(msg) {
 
     // Upload is just beginning, get ID.
     mlgRealtime.subscribe("uploadingFile", function(data) {
-      console.log(data);
+      if(!(data.id in ipcReceivers)) {
+        return;
+      }
+
+      ipcReceivers[data.id].defer.notify({
+        status: 1,
+        progress: 0,
+      });
     });
 
     // Upload is progressing.
     mlgRealtime.subscribe("uploadProgress", function(data) {
-      console.log(data);
+      if(!(data.id in ipcReceivers)) {
+        return;
+      }
+
+      ipcReceivers[data.id].defer.notify({
+        progress: data.progress,
+      });
     });
 
     // Finished uploading.
     mlgRealtime.subscribe("uploadedFile", function(data) {
-      console.log("Upload complete.")
+      if(!(data.id in ipcReceivers)) {
+        return;
+      }
+
+      ipcReceivers[data.id].defer.resolve({
+        name: data.name,
+        user: data.user,
+      });
+      ipcReceivers[data.id].complete();
     });
 
     // Upload Error!
     mlgRealtime.subscribe("uploadError", function(data) {
-      console.log("Upload error!")
-      console.log(data);
+      if(!(data.id in ipcReceivers)) {
+        return;
+      }
+
+      ipcReceivers[data.id].defer.reject(data);
+      ipcReceivers[data.id].complete();
     });
 
     return {
-      upload: function(prefix, to, type, progress, complete) {
+      upload: function(prefix, to, type) {
+        var defer = $q.defer();
+
         if(useIPC) {
           var id = (new Date()) + " - " + Math.random();
 
           ipcReceivers[id] = {
-            callback: function(data) {
+            defer: defer,
+            complete: function() {
               delete ipcReceivers[id];
+            },
+            callback: function(data) {
+              // This shouldn't really happen...
+              if(data == undefined) { return; }
 
               console.log(data);
               mlgRealtime.send("uploadFile", {
@@ -218,6 +250,8 @@ var mlgCleanup = function(msg) {
           console.log("No support for uploading yet.")
           return false;
         }
+
+        return defer.promise;
       },
       download: function() {
 
