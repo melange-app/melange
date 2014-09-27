@@ -574,6 +574,7 @@ func (m *MessageManager) PublishMessage(msg *JSONMessage) error {
 		msg.Self = true
 
 		myProfile, myAlias, _ := m.currentProfile()
+
 		msg.From = &JSONProfile{
 			Name:        myProfile.Name,
 			Avatar:      myProfile.Image,
@@ -645,6 +646,10 @@ func (m *MessageManager) currentProfile() (*Profile, *Alias, error) {
 			Name:  myAlias.String(),
 			Image: defaultProfileImage(m.Client.Key.Address),
 		}
+	}
+
+	if strings.Contains(myProfile.Image, "@") {
+		myProfile.Image = fmt.Sprintf("http://data.melange:7776/%s", myProfile.Image)
 	}
 
 	return myProfile, myAlias, nil
