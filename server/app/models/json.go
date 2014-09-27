@@ -284,6 +284,11 @@ func translateProfile(r routing.Router, from *identity.Identity, fp string, alia
 			avatar = noImage
 		}
 
+		// This is an AirDispatch image.
+		if strings.Contains(avatar, "@") {
+			avatar = fmt.Sprintf("http://data.melange:7776/%s", avatar)
+		}
+
 		p := &JSONProfile{
 			Name:        name,
 			Avatar:      avatar,

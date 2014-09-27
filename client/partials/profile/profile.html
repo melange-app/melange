@@ -1,17 +1,12 @@
-<br/>
 <div ng-if="!newProfile">
-  <div class="row">
-    <div class="col-sm-3">
-      <img class="img-responsive img-circle" ng-src="{{ profile.image }}">
-    </div>
-    <div class="col-sm-9">
-      <h1>{{ profile.name }} <small>Profile</small></h1>
-      <p>{{ profile.description }}</p>
-      <p ng-if="me"><a href="#/profile/edit">Edit your Profile</a></p>
-    </div>
-  </div>
+  <div ng-if="profile.image" class="square-window" style="width: 150px; height: 150px;" ng-style="{'background-image':'url({{ profile.image }})'}"></div>
+  <h1>{{ profile.name }} <small>Profile</small></h1>
+  <p>{{ profile.description }}</p>
+  <p ng-if="me"><a href="#/profile/edit">Edit your Profile</a></p>
+  <div class="clear"></div>
 </div>
 <div ng-if="newProfile" class="text-center text-muted">
+  <br/>
   <h2>Looks like you don't have a profile yet.</h2>
   <p><a href="#/profile/edit">Let's help set one up.</a></p>
 </div>

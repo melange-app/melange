@@ -78,7 +78,14 @@
 
     mlgApi.currentProfile().then(function(data) {
       console.log(data);
+
+      var image = data.image;
+      if(image.indexOf("@") != -1) {
+        image = "http://data.melange:7776/" + image;
+      }
+
       $scope.profile = data;
+      $scope.profile.image = image;
     },
     function(err) {
       if(err === true) {
@@ -112,10 +119,18 @@
 
     mlgApi.getMessage($routeParams.alias, "profile").then(function(profile) {
       console.log(profile)
+
+      var image = profile.components["airdispat.ch/profile/avatar"].string;
+      if(image.indexOf("@") != -1) {
+        image = "http://data.melange:7776/" + image;
+      } else if (image == "") {
+        image = "http://robohash.org/" + profile.from.fingerprint + ".png?bgset=bg2";
+      }
+
       $scope.profile = {
         name: profile.components["airdispat.ch/profile/name"].string,
         description: profile.components["airdispat.ch/profile/description"].string,
-        image: profile.components["airdispat.ch/profile/avatar"].string,
+        image: image,
       }
     }, function(err) {
       console.log("Got an error getting profile")
