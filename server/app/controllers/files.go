@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -149,6 +150,7 @@ func (m *UploadController) UploadFile(filename string, to []*identity.Address, t
 						"id":   uploadID,
 						"name": name,
 						"user": alias.String(),
+						"url":  fmt.Sprintf("http://data.melange:7776/%s/%s", alias.String(), name),
 					},
 				}
 

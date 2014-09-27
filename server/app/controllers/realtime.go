@@ -170,7 +170,9 @@ func (r *RealtimeHandler) HandleWSRequest(t string, d interface{}) (string, inte
 			}
 		}()
 
-		return "uploadingFile", nil
+		return "uploadingFile", map[string]interface{}{
+			"id": id,
+		}
 	}
 
 	fmt.Println("Got message", t, "from ws.")

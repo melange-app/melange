@@ -33,10 +33,14 @@
           mlgCandyBar.stopCandy();
           console.log(mlgMessages.getMessages().length);
         })
+
+        return;
       } else if (msg["type"] == "message") {
         $rootScope.$evalAsync(function() {
           mlgMessages.addMessage(msg["data"])
         })
+
+        return;
       }
 
       if(msg["type"] in subscribers) {

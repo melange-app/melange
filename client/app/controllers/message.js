@@ -152,12 +152,16 @@
       $scope.uploading = true;
       mlgFile.upload("airdispat.ch/profile", [], "airdispat.ch/profile/image").then(
         function(data) {
+          console.log("Completed upload!")
+          console.log(data);
           $scope.uploading = false;
-          $scope.avatar = "http://data.melange:7776/" + data.user + "/" + data.name;
+          $scope.avatar = data.url;
           $scope.profile.image = data.user + "/" + data.name;
         },
         function(error) {
-
+          console.log("Error uploading profile.")
+          console.log(error);
+          $scope.uploading = false;
         },
         function(progress) {
 

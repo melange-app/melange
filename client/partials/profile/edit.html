@@ -9,21 +9,19 @@
     <label for="full-name">Full Name</label>
     <input type="text" id="full-name" name="full-name" ng-model="profile.name" class="form-control">
   </div>
-  <div class="row">
-    <div class="col-xs-10 col-md-11">
-      <div class="form-group">
-        <label for="image">Profile Picture</label>
-        <div>
-          <button id="image" type="button" ng-click="upload()" class="btn btn-primary btn-sm" ng-disabled="uploading">
-            <i class="fa fa-spin fa-circle-o-notch" ng-show="uploading"></i>
-            {{ uploading ? "Uploading your Picture" : "Upload a Profile Picture" }}
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="col-xs-2 col-md-1 text-center">
+  <div class="image">
+    <div class="text-center" style="float: right;">
       <label for="preview">Preview</label>
-      <img id="preview" ng-if="avatar" ng-src="{{ avatar }}" class="img-circle img-responsive">
+      <div class="square-window" style="float: none;" ng-style="{'background-image':'url({{ avatar }})'}"></div>
+    </div>
+    <div class="form-group">
+      <label for="image">Profile Picture</label>
+      <div>
+        <button id="image" type="button" ng-click="upload()" class="btn btn-primary btn-sm" ng-disabled="uploading">
+          <i class="fa fa-spin fa-circle-o-notch" ng-show="uploading"></i>
+          {{ uploading ? "Uploading your Picture" : "Upload a Profile Picture" }}
+        </button>
+      </div>
     </div>
   </div>
   <div class="form-group">

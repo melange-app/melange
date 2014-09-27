@@ -172,6 +172,7 @@ var mlgCleanup = function(msg) {
 
     // Upload is just beginning, get ID.
     mlgRealtime.subscribe("uploadingFile", function(data) {
+      if(data == null) { return; }
       if(!(data.id in ipcReceivers)) {
         return;
       }
@@ -184,6 +185,7 @@ var mlgCleanup = function(msg) {
 
     // Upload is progressing.
     mlgRealtime.subscribe("uploadProgress", function(data) {
+      if(data == null) { return; }
       if(!(data.id in ipcReceivers)) {
         return;
       }
@@ -195,6 +197,7 @@ var mlgCleanup = function(msg) {
 
     // Finished uploading.
     mlgRealtime.subscribe("uploadedFile", function(data) {
+      if(data == null) { return; }
       if(!(data.id in ipcReceivers)) {
         return;
       }
@@ -202,12 +205,14 @@ var mlgCleanup = function(msg) {
       ipcReceivers[data.id].defer.resolve({
         name: data.name,
         user: data.user,
+        url: data.url,
       });
       ipcReceivers[data.id].complete();
     });
 
     // Upload Error!
     mlgRealtime.subscribe("uploadError", function(data) {
+      if(data == null) { return; }
       if(!(data.id in ipcReceivers)) {
         return;
       }
