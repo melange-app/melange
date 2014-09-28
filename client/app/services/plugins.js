@@ -5,7 +5,23 @@
   var endsWith = function(str, suffix) {
       return str.indexOf(suffix, str.length - suffix.length) !== -1;
   };
-  var cleanup = mlgCleanup;
+  var cleanup = function(msg) {
+    var msg = mlgCleanup(msg);
+
+    if("components" in msg) {
+      msg = {
+        components: msg.components,
+        context: msg.context,
+        date: msg.date,
+        from: msg.from,
+        name: msg.name,
+        public: msg.public,
+        self: msg.self,
+        to: msg.to,
+      }
+    }
+    return msg
+  }
 
   var mlgStatus = {
     id: "00000",
@@ -316,7 +332,7 @@
           return
         }
 
-        mlgApi.getMessage(data.alias, data.name).$promise.then(
+        mlgApi.getMessage(data.alias, data.id).then(
           function(msg) {
             cleanup(msg);
             callback({
