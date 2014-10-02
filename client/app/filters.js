@@ -27,3 +27,9 @@ melangeFilters.filter('objectsHave', function() {
     return newObj;
   }
 })
+
+melangeFilters.filter('escapeBackground', function() {
+  return function(val) {
+    return val.replace("'", "%27")
+  }
+})

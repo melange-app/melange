@@ -15,7 +15,7 @@
   <div class="panel panel-default">
     <div class="panel-body">
       <div class="message-title" ng-class="{'no-margin': templateType == 'profile'}">
-        <div class="square-window" ng-style="{'background-image':'url({{ data.from.avatar }})'}"></div>
+        <div class="square-window" ng-style="{'background-image':'url({{ data.from.avatar | escapeBackground }})'}"></div>
         <!-- <div class="square-window">
           <img ng-src="{{ data.from.avatar }}" class="img-responsive"/>
         </div> -->

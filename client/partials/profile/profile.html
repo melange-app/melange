@@ -1,5 +1,5 @@
 <div ng-if="!newProfile">
-  <div ng-if="profile.image" class="square-window" style="width: 150px; height: 150px;" ng-style="{'background-image':'url({{ profile.image }})'}"></div>
+  <div ng-if="profile.image" class="square-window" style="width: 150px; height: 150px;" ng-style="{'background-image': 'url({{ profile.image | escapeBackground }})'}"></div>
   <h1>{{ profile.name }} <small>Profile</small></h1>
   <p>{{ profile.description }}</p>
   <p ng-if="me"><a href="#/profile/edit">Edit your Profile</a></p>
