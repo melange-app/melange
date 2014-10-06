@@ -124,17 +124,6 @@
         $scope.hasPlugins = Object.keys(data).length > 0;
       });
 
-      $scope.install = function(plugin) {
-        plugin.Installing = true;
-        mlgPlugins.install({
-          "Repository": plugin.Repository,
-        }).then(function(data) {
-          plugin.Installing = false;
-          console.log("Installed " + plugin.Id + " successfully.");
-          plugin.Installed = true;
-        })
-      }
-
       $scope.uninstall = function(plugin) {
         var id = plugin.id;
         mlgPlugins.uninstall({

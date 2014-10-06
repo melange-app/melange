@@ -52,6 +52,14 @@ melangeApp.config(['$routeProvider',
         templateUrl: 'partials/plugin/loader.html',
         controller: 'PluginCtrl'
       })
+      .when('/market', {
+        templateUrl: 'partials/market/index.html',
+        controller: 'MarketCtrl',
+      })
+      .when('/market/:action', {
+        templateUrl: 'partials/market/index.html',
+        controller: 'MarketCtrl',
+      })
       // Settings Routes
       .when('/settings', {
         templateUrl: 'partials/settings/index.html',
