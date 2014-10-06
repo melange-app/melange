@@ -107,9 +107,14 @@ app.on('ready', function() {
       title += (": " + args.title);
     }
 
-    dialog.showOpenDialog({
+    var options = {
       title: title,
-    }, function(data) {
+    }
+    if("options" in args) {
+      options = args.options;
+    }
+
+    dialog.showOpenDialog(options, function(data) {
       e.sender.send("got-file", {
         data: data,
         id: args.id,

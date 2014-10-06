@@ -78,6 +78,18 @@ melangeApp.config(['$routeProvider',
         templateUrl: 'partials/settings/plugins.html',
         controller: 'PluginSettingsCtrl'
       })
+      .when('/settings/developer', {
+        templateUrl: 'partials/settings/developer.html',
+        controller: 'SettingsCtrl',
+      })
+      .when('/settings/developer/add', {
+        templateUrl: 'partials/settings/developerAdd.html',
+        controller: 'DeveloperSettingsCtrl',
+      })
+      .when('/settings/developer/view/:app', {
+        templateUrl: 'partials/settings/developerView.html',
+        controller: 'SettingsCtrl',
+      })
       .when('/settings/advanced', {
         templateUrl: 'partials/settings/advanced.html',
         controller: 'SettingsCtrl'

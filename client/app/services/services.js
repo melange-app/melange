@@ -222,6 +222,34 @@ var mlgCleanup = function(msg) {
     });
 
     return {
+      choose: function(options) {
+          var defer = $q.defer();
+
+          if(useIPC) {
+              var id = (new Date()) + " - " + Math.random();
+
+              ipcReceivers[id] = {
+                  callback: function(data) {
+                      delete ipcReceivers[id];
+                      if(data == undefined) {
+                          defer.reject();
+                          return;
+                      }
+
+                      console.log(data);
+                      defer.resolve(data[0]);
+                  }
+              }
+
+
+              ipc.send("start-upload", {
+                  id: id,
+                  options: options,
+              });
+          }
+
+          return defer.promise;
+      },
       upload: function(prefix, to, type) {
         var defer = $q.defer();
 
@@ -235,7 +263,10 @@ var mlgCleanup = function(msg) {
             },
             callback: function(data) {
               // This shouldn't really happen...
-              if(data == undefined) { return; }
+              if(data == undefined) {
+                  defer.reject();
+                  return;
+              }
 
               console.log(data);
               mlgRealtime.send("uploadFile", {

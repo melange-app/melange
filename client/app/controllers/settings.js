@@ -94,15 +94,44 @@
 
     }]);
 
+  melangeControllers.controller('DeveloperSettingsCtrl', ['$scope', 'mlgFile',
+    function($scope, mlgFile) {
+      $scope.app = {};
+      $scope.addApplication = function() {
+          console.log("Hello, world.");
+      };
+
+      $scope.addPermission = function() {
+          console.log("Pushed");
+          $scope.app.permissions = [{
+              name: "test",
+              value: "hello",
+          }]
+      };
+
+      $scope.chooseFolder = function() {
+          mlgFile.choose({
+              title: "Choose Plugin Source",
+              properties: ["openDirectory"],
+          }).then(function(data) {
+             $scope.app.src = data;
+          });
+      }
+
+      $scope.chooseImage = function() {
+          mlgFile.choose({
+              title: "Choose Plugin Image",
+              filters: [
+                  {name: "Images", extensions: ["png", "jpg", "jpeg", "gif"]}
+              ]
+          }).then(function(data) {
+            $scope.app.image = data;
+          })
+      }
+    }]);
+
   melangeControllers.controller('PluginSettingsCtrl', ['$scope', 'mlgPlugins',
     function($scope, mlgPlugins) {
-
-      $scope.loadingStore = true;
-      mlgPlugins.allFromStore().then(function(data) {
-        $scope.loadingStore = false;
-        $scope.store = data;
-      });
-
       $scope.loadingUpdates = true;
       mlgPlugins.allUpdates().then(function(data) {
         $scope.loadingUpdates = false;
@@ -148,7 +177,7 @@
           $scope.$emit("mlgRefreshApp");
           $location.path("/settings/identity");
         }, function(err) {
-          alert("Cannot save new identity.");
+          console.log("Cannot save new identity.");
         });
       }
     }]);
