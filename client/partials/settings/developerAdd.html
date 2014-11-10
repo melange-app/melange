@@ -24,44 +24,12 @@
       </div>
       <div class="col-sm-6">
         <div class="form-group">
-          <label for="perms">
-            Permissions
-            <a ng-click="addPermission()" href=""><i class="text-success fa fa-plus-circle"></i></a>
-          </label>
-          <table class="table table-bordered table-striped">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr ng-repeat="perm in app.permissions">
-                <td>{{ perm.name }}</td>
-                <td>{{ perm.value }}</td>
-              </tr>
-              <tr ng-if="app.permissions.length == 0 || !app.permissions">
-                <td colspan="2" class="text-danger">No permissions yet.</td>
-              </tr>
-            </tbody>
-          </table>
+          <label for="folder">Source Folder</label>
+          <div class="input-group">
+            <input ng-model="app.src" type="text" class="form-control" id="folder">
+            <a ng-click="chooseFolder()" href="" class="input-group-addon btn btn-primary">Browse</a>
+          </div>
         </div>
-      </div>
-    </div>
-    <hr/>
-    <div class="more-actions">
-      <p><small>Extras</small></p>
-      <p>
-        <a href="" class="btn btn-sm btn-info"><i class="fa fa-plus"></i> Add a Viewer</a>
-        <a href="" class="btn btn-sm btn-info"><i class="fa fa-plus"></i> Add a Tile</a>
-      </p>
-    </div>
-    <hr/>
-    <div class="form-group">
-      <label for="folder">Source Folder</label>
-      <div class="input-group">
-        <input ng-model="app.src" type="text" class="form-control" id="folder">
-        <a ng-click="chooseFolder()" href="" class="input-group-addon btn btn-primary">Browse</a>
       </div>
     </div>
     <hr/>

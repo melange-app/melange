@@ -3,15 +3,15 @@
 <div class="container-fluid settings">
   <h3><i class="fa fa-gears"></i> Settings <small>General</small></h3>
   <hr/>
-  <h4>Security</h4>
-  <form role="form">
-    <div class="checkbox">
-      <label>
-        <input type="checkbox" checked> Encrypt Private Keys on Exit
-      </label>
-    </div>
-  </form>
-  <br/>
+  <!-- <h4>Security</h4> -->
+  <!-- <form role="form"> -->
+  <!--   <div class="checkbox"> -->
+  <!--     <label> -->
+  <!--       <input type="checkbox" checked> Encrypt Private Keys on Exit -->
+  <!--     </label> -->
+  <!--   </div> -->
+  <!-- </form> -->
+  <!-- <br/> -->
   <div ng-if="canUpdate">
     <h4>Updates</h4>
     <p><a href="" ng-click="checkForUpdates()" class="btn btn-sm" ng-class="btnType"><i class="fa fa-fw fa-refresh" ng-class="{'fa-spin': working}"></i> {{ updateStatus }}</a></p>

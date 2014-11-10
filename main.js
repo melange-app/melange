@@ -176,14 +176,13 @@ app.on('will-finish-launching', function() {
           "MLGAPP": applicationDirectory(),
           "MLGPLATFORM": platform(),
           "MLGVERSION": VERSION,
+          "MLGDEBUG": "1",
         },
       });
       logSpawn(go, "SERVER");
     } else {
       go = spawn(__dirname + "/bin/server", [], {
         env: {
-          "GOPATH": __dirname + '/go',
-          "GOROOT": process.env["GOROOT"],
           "PATH": process.env["PATH"],
           "CWD": process.cwd,
           "MLGBASE": __dirname,
@@ -197,7 +196,20 @@ app.on('will-finish-launching', function() {
         logSpawn(go, "SERVER");
     }
   });
+
+
+  var protocol = require('protocol');
+  protocol.registerProtocol("melange", function(request) {
+    console.log(request);
+    // var url = request.url.substr(7)
+    // return new protocol.RequestFileJob(path.normalize(__dirname + '/' + url));
+  });
 });
+
+app.on('open-url', function(url) {
+  console.log("Opened URL!")
+  console.log(url);
+})
 
 app.on('will-quit', function() {
   console.log("Will Quit Fired");

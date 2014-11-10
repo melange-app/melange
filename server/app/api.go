@@ -338,7 +338,12 @@ type ServerLists struct {
 
 // Handle will decodeProviders from getmelange.com then return them in JSON.
 func (s *ServerLists) Handle(req *http.Request) framework.View {
-	packages, err := s.Packager.DecodeProviders(s.Packager.API + s.URL)
+	extra := s.URL
+	if os.Getenv("MLGDEBUG") != "" {
+		extra += "?debug=true"
+	}
+
+	packages, err := s.Packager.DecodeProviders(s.Packager.API + extra)
 	if err != nil {
 		fmt.Println(err)
 		return framework.Error500

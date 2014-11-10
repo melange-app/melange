@@ -94,40 +94,79 @@
 
     }]);
 
-  melangeControllers.controller('DeveloperSettingsCtrl', ['$scope', 'mlgFile',
-    function($scope, mlgFile) {
+  melangeControllers.controller('DeveloperSettingsCtrl', ['$scope', 'mlgFile', 'mlgApi',
+    function($scope, mlgFile, mlgApi) {
       $scope.app = {};
       $scope.addApplication = function() {
-          console.log("Hello, world.");
+          console.log("Publishing Plugin.")
+          if($scope.app.name == "") {
+              return
+          }
+
+          mlgApi.publishMessage({
+              to: [],
+              name: "plugins/" + $scope.app.name,
+              data: (new Date()).toISODate(),
+              public: true,
+              components: {
+                  "getmelange.com/plugins/name": $scope.app.name,
+                  "getmelange.com/plugins/image": $scope.app.image,
+                  "getmelange.com/plugins/description": $scope.app.description,
+              },
+          })
       };
 
+        $scope.chooseFolder = function() {
+            mlgFile.choose({
+                title: "Choose Plugin Source",
+                properties: ["openDirectory"],
+            }).then(function(data) {
+                $scope.app.src = data;
+            });
+        }
+
+        $scope.chooseImage = function() {
+            mlgFile.choose({
+                title: "Choose Plugin Image",
+                filters: [
+                    {name: "Images", extensions: ["png", "jpg", "jpeg", "gif"]}
+                ]
+            }).then(function(data) {
+                $scope.app.image = data;
+            })
+        }
+
+      $scope.app.permissions = [];
+      $scope.newPermission = {};
       $scope.addPermission = function() {
           console.log("Pushed");
-          $scope.app.permissions = [{
-              name: "test",
-              value: "hello",
-          }]
+
+          $scope.app.permissions.push({
+              name: $scope.newPermission.key,
+              value: $scope.newPermission.value,
+          })
+
+          $scope.newPermission = {key: "", value: ""}
+
+          $scope.showPermissions = false;
       };
 
-      $scope.chooseFolder = function() {
-          mlgFile.choose({
-              title: "Choose Plugin Source",
-              properties: ["openDirectory"],
-          }).then(function(data) {
-             $scope.app.src = data;
-          });
-      }
+        $scope.addTile = function() {
+            $scope.showTile = false;
+        }
 
-      $scope.chooseImage = function() {
-          mlgFile.choose({
-              title: "Choose Plugin Image",
-              filters: [
-                  {name: "Images", extensions: ["png", "jpg", "jpeg", "gif"]}
-              ]
-          }).then(function(data) {
-            $scope.app.image = data;
-          })
-      }
+        $scope.addViewer = function() {
+            $scope.showViewer = false;
+        }
+
+        $scope.saveUpdate = function() {
+
+        }
+
+        $scope.publishUpdate = function() {
+
+        }
+
     }]);
 
   melangeControllers.controller('PluginSettingsCtrl', ['$scope', 'mlgPlugins',

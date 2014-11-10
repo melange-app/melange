@@ -41,6 +41,10 @@
         })
 
         return;
+      } else if (msg["type"] == "waitingForSetup") {
+        $rootScope.$apply(function() {
+          mlgCandyBar.stopCandy();
+        });
       }
 
       if(msg["type"] in subscribers) {

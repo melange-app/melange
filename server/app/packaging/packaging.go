@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"airdispat.ch/crypto"
@@ -108,12 +109,16 @@ func (p *Packager) DecodeProviders(url string) ([]*Provider, error) {
 
 // GetServers will download Servers from getmelange.com.
 func (p *Packager) GetServers() ([]*Provider, error) {
-	return p.DecodeProviders(p.API + "/servers")
+	var extra = "/servers"
+
+	return p.DecodeProviders(p.API + extra)
 }
 
 // GetTrackers will download Trackers from getmelange.com.
 func (p *Packager) GetTrackers() ([]*Provider, error) {
-	return p.DecodeProviders(p.API + "/trackers")
+	var extra = "/trackers"
+
+	return p.DecodeProviders(p.API + extra)
 }
 
 func (p *Packager) getFromId(id string, url string) (*Provider, error) {
@@ -133,13 +138,23 @@ func (p *Packager) getFromId(id string, url string) (*Provider, error) {
 // TrackerFromId will return the Provider instance associated with a particular
 // Id.
 func (p *Packager) TrackerFromId(id string) (*Provider, error) {
-	return p.getFromId(id, p.API+"/trackers")
+	extra := "/trackers"
+	if os.Getenv("MLGDEBUG") != "" {
+		extra += "?debug=true"
+	}
+
+	return p.getFromId(id, p.API+extra)
 }
 
 // ServerFromId will return the Provider instance associated with a particular
 // Id.
 func (p *Packager) ServerFromId(id string) (*Provider, error) {
-	return p.getFromId(id, p.API+"/servers")
+	extra := "/servers"
+	if os.Getenv("MLGDEBUG") != "" {
+		extra += "?debug=true"
+	}
+
+	return p.getFromId(id, p.API+extra)
 }
 
 // GetApps will (in the future) return the Applications from getmelange.com

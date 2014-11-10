@@ -136,6 +136,7 @@ func (r *RealtimeHandler) HandleWSRequest(t string, d interface{}) (string, inte
 		m, err := constructManager(r.Store, r.Tables)
 		if err != nil {
 			fmt.Println("Unable to construct WS Message Manager", err)
+			return "waitingForSetup", nil
 		}
 
 		m.GetAllMessages(r.messageChan)

@@ -35,9 +35,11 @@ melangeDirectives.directive("modal", function() {
   return {
     templateUrl: "partials/directives/modal.html",
     restrict: "E",
+    transclude: true,
     scope: {
-      data: "=data",
       name: "=name",
+      enabled: "=enabled",
+      size: "&size",
     },
   }
 });
@@ -69,6 +71,7 @@ melangeDirectives.directive("message", ['mlgPlugins', function(mlgPlugins) {
       scope.$watch("data", function(d) {
         if(typeof d === "string")
           return
+
         mlgPlugins.viewer(d).then(function(v) {
           thePlugin = v[0];
           scope.plugin = thePlugin;

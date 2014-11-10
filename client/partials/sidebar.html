@@ -9,7 +9,10 @@
       ng-repeat="plugin in allPlugins"
       ng-class="{ active: page.indexOf('/plugin/' + plugin.id) === 0 }"
       ng-if="!plugin.hideSidebar">
-        <a ng-href="#/plugin/{{ plugin.id }}/index.html" ng-click="reload()">{{ plugin.name }}</a>
+        <a ng-href="#/plugin/{{ plugin.id }}/index.html" ng-click="reload()">
+          <span ng-if="plugin.dev" class="label label-warning">DEV</span>
+          {{ plugin.name }}
+        </a>
     </li>
     <li class="seperator"></li>
     <li class="header">FAVORITES</li>
@@ -22,9 +25,9 @@
 </div>
 <div class="sidebar-bottom">
   <ul class="nav nav-pills nav-stacked">
-    <li ng-class="{ active: page == '/contacts' }"><a href="#/contacts"><i class="fa fa-fw fa-book"></i> Contacts</a></li>
-    <li ng-class="{ active: page.indexOf('/settings') === 0 }"><a href="#/settings"><i class="fa fa-fw fa-gears"></i> Settings</a></li>
+    <li ng-class="{ active: page == '/contacts' }"><a href="#/contacts"><i class="fa fa-fw fa-book"></i> People</a></li>
     <li ng-class="{ active: page.indexOf('/market') === 0 }"><a href="#/market"><i class="fa fa-shopping-cart"></i> Marketplace</a></li>
+    <li ng-class="{ active: page.indexOf('/settings') === 0 }"><a href="#/settings"><i class="fa fa-fw fa-gears"></i> Settings <!-- <span class="badge">42</span> --></a></li>
   </ul>
 </div>
 <div class="sidebar-resize"></div>

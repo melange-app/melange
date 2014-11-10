@@ -73,7 +73,7 @@ func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if (len(url) != 2 || !(strings.HasPrefix(url[1], ":") || url[1] == r.p.Suffix)) &&
-		(req.URL.Path != "/realtime") {
+		(req.URL.Path != "/realtime") && (url[0] != "data") {
 		framework.WriteView(framework.Error403, res)
 		return
 	}

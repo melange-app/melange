@@ -2,7 +2,7 @@ package dap
 
 import (
 	"bytes"
-	"errors"
+
 	"hash"
 	"io"
 	"net"
@@ -15,6 +15,7 @@ import (
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
 	"code.google.com/p/goprotobuf/proto"
+	"fmt"
 )
 
 const codePrefix = "DAP-"
@@ -118,7 +119,7 @@ func (h *Handler) HandleMessage(typ string, data []byte, head message.Header, co
 		}
 		return h.GetData(unmarsh, head)
 	}
-	return nil, errors.New("Cannot handle type. That shouldn't happen.")
+	return nil, fmt.Errorf("Cannot handle type (%s). That shouldn't happen.", typ)
 }
 
 // Register a User on the Delegate

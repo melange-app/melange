@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"getmelange.com/app/framework"
@@ -215,9 +216,64 @@ func (p *Packager) InstallPlugin(repo string) error {
 	return nil
 }
 
+type semVer string
+
+func (c semVer) after(b semVer) bool {
+	comps0 := strings.Split(string(c), ".")
+	comps1 := strings.Split(string(b), ".")
+
+	if len(comps0) != 3 || len(comps1) != 3 {
+		// You didn't pass in a semantic version.
+		fmt.Println("A SemVer is incorrect c:", c, "b:", b)
+		return false
+	}
+
+	major0, err1 := strconv.Atoi(comps0[0])
+	minor0, err2 := strconv.Atoi(comps0[1])
+	build0, err3 := strconv.Atoi(comps0[2])
+
+	if err1 != nil || err2 != nil || err3 != nil {
+		// SemVer is improperly formatted
+		fmt.Println("Couldn't convert SemVer 1", c)
+		return false
+	}
+
+	major1, err1 := strconv.Atoi(comps1[0])
+	minor1, err2 := strconv.Atoi(comps1[1])
+	build1, err3 := strconv.Atoi(comps1[2])
+
+	if err1 != nil || err2 != nil || err3 != nil {
+		// SemVer is improperly formatted
+		fmt.Println("Couldn't convert SemVer 2", b)
+		return false
+	}
+
+	if major0 > major1 {
+		return true
+	}
+
+	if major0 < major1 {
+		return false
+	}
+
+	if minor0 > minor1 {
+		return true
+	}
+
+	if minor0 < minor1 {
+		return false
+	}
+
+	if build0 > build1 {
+		return true
+	}
+
+	return false
+}
+
 type PluginUpdate struct {
 	Id         string
-	Version    string
+	Version    semVer
 	Changelog  string
 	Repository string
 }
@@ -232,12 +288,15 @@ func (p *Packager) CheckForPluginUpdates() ([]*PluginUpdate, error) {
 	var updates []*PluginUpdate
 	for _, v := range plugins {
 		u, err := p.pluginUpdates(&v)
+
 		if err != nil {
 			fmt.Println("Error checking for updates on plugin", v.Id, err)
 			continue
 		}
 
-		updates = append(updates, u)
+		if u.Version.after(semVer(v.Version)) {
+			updates = append(updates, u)
+		}
 	}
 
 	return updates, nil
@@ -287,7 +346,7 @@ func (p *Packager) pluginUpdates(thePlugin *Plugin) (*PluginUpdate, error) {
 
 	return &PluginUpdate{
 		Id:         newestPlugin.Id,
-		Version:    newestPlugin.Version,
+		Version:    semVer(newestPlugin.Version),
 		Changelog:  changelog,
 		Repository: repository,
 	}, nil
