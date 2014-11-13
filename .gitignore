@@ -32,3 +32,5 @@ test/*
 build/tmp
 server/server/server
 releases
+run.sh
+startup.sh
