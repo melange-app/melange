@@ -56,6 +56,10 @@ melangeApp.config(['$routeProvider',
         templateUrl: 'partials/market/index.html',
         controller: 'MarketCtrl',
       })
+      .when('/market/updates', {
+        templateUrl: 'partials/market/updates.html',
+        controller: 'PluginSettingsCtrl'
+       })
       .when('/market/:action', {
         templateUrl: 'partials/market/index.html',
         controller: 'MarketCtrl',
@@ -73,10 +77,6 @@ melangeApp.config(['$routeProvider',
       .when('/settings/identity/new', {
         templateUrl: 'partials/settings/newIdentity.html',
         controller: 'NewIdentityCtrl'
-      })
-      .when('/settings/plugins', {
-        templateUrl: 'partials/settings/plugins.html',
-        controller: 'PluginSettingsCtrl'
       })
       .when('/settings/developer', {
         templateUrl: 'partials/settings/developer.html',
