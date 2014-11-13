@@ -216,6 +216,11 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 			Tables: tables,
 			Store:  r.Settings,
 		},
+		// Remove Identity
+		"/identity/remove": &controllers.RemoveIdentity{
+			Tables: tables,
+			Store: r.Settings,
+		},
 	}
 
 	// Run through API Handlers

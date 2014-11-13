@@ -16,6 +16,22 @@
           mlgIdentity.setCurrent(id);
       };
 
+      $scope.deleteIdentity = function(id) {
+          mlgIdentity.delete($scope.removingIdentity).then(
+              function(data) {
+                  if(data.error !== false) {
+                      console.log("Could not remove identity.")
+                      return;
+                  }
+                  mlgIdentity.refresh();
+                  $scope.showRemoveDialog = false;
+              });
+      }
+
+      $scope.closeRemoveModal = function() {
+          $scope.showRemoveDialog = false;
+      }
+
       $scope.copy = function(str) {
         if(typeof window.require === "function") {
           var clipboard = require('clipboard');

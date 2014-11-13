@@ -321,6 +321,12 @@ var mlgCleanup = function(msg) {
       list: {
         method: 'GET',
         isArray: true,
+      },
+      remove: {
+        method: 'POST',
+        params: {
+          action: "remove",
+        }
       }
     });
 
@@ -349,14 +355,16 @@ var mlgCleanup = function(msg) {
       }
     }
 
+    var refresh = function() {
+      angular.copy([], identities);
+      angular.copy({}, current);
+      var defer = $q.defer();
+      currentIdentity(defer);
+      return defer.promise;
+    };
+
     return {
-      refresh: function() {
-        angular.copy([], identities);
-        angular.copy({}, current);
-        var defer = $q.defer();
-        currentIdentity(defer);
-        return defer.promise;
-      },
+      refresh: refresh,
       startup: function() {
         var defer = $q.defer();
         resource.current().$promise.then(
@@ -395,6 +403,9 @@ var mlgCleanup = function(msg) {
           defer.resolve(id);
         });
         return defer.promise;
+      },
+      delete: function(id) {
+        return resource.remove(id).$promise;
       },
       profile: {},
       save: function(onsuccess, onerror) {
