@@ -195,6 +195,10 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 			Tables: tables,
 			Store:  r.Settings,
 		},
+		"/contacts/remove": &controllers.RemoveContact{
+			Tables: tables,
+			Store: r.Settings,
+		},
 
 		//
 		// IDENTITY

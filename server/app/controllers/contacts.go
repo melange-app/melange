@@ -10,6 +10,32 @@ import (
 	gdb "github.com/huntaub/go-db"
 )
 
+type RemoveContact struct {
+	Tables map[string]gdb.Table
+	Store *models.Store
+}
+
+func (r *RemoveContact) Handle(req *http.Request) framework.View {
+	out := &models.Contact{}
+	err := DecodeJSONBody(req, out)
+	if err != nil {
+		fmt.Println("Unable to deserialize contact removal", err)
+		return framework.Error500
+	}
+
+	_, err = r.Tables["contact"].Delete(out).Exec(r.Store)
+	if err != nil {
+		fmt.Println("Unable to delete contact", err)
+		return framework.Error500
+	}
+
+	return &framework.JSONView {
+		Content: map[string]interface{} {
+			"error": false,
+		},
+	}
+}
+
 // ListContacts will return a list (in JSON) of all of the contacts stored
 // for an identity.
 type ListContacts struct {

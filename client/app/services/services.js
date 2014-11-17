@@ -458,6 +458,12 @@ var mlgCleanup = function(msg) {
           action: "contacts/update",
         }
       },
+      removeContact: {
+        method: 'POST',
+        params: {
+          action: "contacts/remove",
+        }
+      },
       // Updates
       updateCheck: {
         method: 'GET',
@@ -542,6 +548,9 @@ var mlgCleanup = function(msg) {
       },
       updateContact: function(contact) {
         return apiResource.updateContact(contact).$promise;
+      },
+      removeContact: function(contact) {
+        return apiResource.removeContact(contact).$promise;
       },
       // Message Management
       publishMessage: function(data) {

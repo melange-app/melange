@@ -1,10 +1,84 @@
-<p>
-  <a href="" class="btn btn-danger btn-sm"><i class="fa fa-plus"></i> Add List</a>
-  <a href="" class="btn btn-primary btn-sm" ng-click="newContact()"><i class="fa fa-plus"></i> Add Contact</a>
-  <!-- <a href="" class="btn btn-default btn-sm"><i class="fa fa-file"></i> Import / Export</a> -->
-</p>
+<nav class="navbar navbar-inverse navbar-settings" role="navigation">
+  <div class="container-fluid">
+    <div>
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#/">Friends</a></li>
+        <li><a href="#/">Following</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <a href="" class="btn btn-info btn-xs btn-default navbar-btn" ng-click="addListDialog = true">
+            New List
+          </a>
+        </li>
+        <li>
+          <a href="" class="btn btn-success btn-xs btn-default navbar-btn" ng-click="addContactDialog = true">
+            Add Friend
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
 
-<div class="row">
+<modal name="'Add a List'" enabled="addListDialog">
+  <form ng-submit="createList()">
+    <div class="form-group">
+      <label for="listName">List Name</label>
+      <input id="listName" type="text" class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="listParent">List Parent</label>
+      <select class="form-control">
+        <option>No Parent</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-sm btn-primary">Create List</button>
+    </div>
+  </form>
+</modal>
+
+<modal name="'Add a Contact'" enabled="addContactDialog">
+  <p>
+    Enter the address of the user that you want to add, and select the
+    list to add this new contact to. Their profile will automatically
+    be downloaded and populated.
+  </p>
+  <form ng-submit="createContact()">
+    <div class="form-group">
+      <label for="contactAddress">Address</label>
+      <input id="contactAddress" type="text" class="form-control">
+      <p class="help-block">
+        Remember, only enter addresses of users who also use Melange. This is
+        not the same as an email address.
+      </p>
+    </div>
+    <div class="form-group">
+      <label for="listParent">Add to List</label>
+      <select class="form-control">
+        <option>No List</option>
+      </select>
+    </div>
+    <div class="checkbox">
+      <label>
+        <input type="checkbox" checked> Follow
+      </label>
+      <p class="help-block">
+        By following a contact, you will see his or her public updates in your
+        newsfeed without the messages being addressed directly to you.
+      </p>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-sm btn-primary" ng-disabled="creatingContact">
+        <i ng-show="creatingContact" class="fa fa-circle-o-notch fa-spin"></i>
+        Create Contact
+      </button>
+    </div>
+  </form>
+</modal>
+
+<div class="row" style="padding-top: 45px;">
   <div class="col-sm-5 col-md-3">
     <h5>Contacts</h5>
     <form role="form">
@@ -21,7 +95,7 @@
     <div class="list-group">
       <a href=""
          class="list-group-item"
-         ng-repeat="contact in contacts | filter: {$: search, lists: selectedList}"
+         ng-repeat="contact in contacts | filter: {$: search, lists: selectedList} | orderBy:['-favorite', 'name']"
          ng-class="{active: $parent.selectedContact.id == contact.id}"
          ng-click="selectContact(contact)">
          <i class="fa fa-fw" ng-class="{ 'fa-star': contact.favorite }"></i>
@@ -34,8 +108,10 @@
     <div class="well">
       <img ng-show='!edit' src="http://placehold.it/64" class="pull-left img-circle" style="margin-right: 10px;">
       <p class="pull-right">
+        <!--
         <a href="" ng-click="favorite(selectedContact)" class="btn btn-xs btn-primary"><i class="fa" ng-class="{ 'fa-star': selectedContact.favorite, 'fa-star-o': !selectedContact.favorite }"></i></a>
         <a href="" ng-click="subscribe(selectedContact)" class="btn btn-xs btn-success">{{ selectedContact.subscribed ? 'Unsubscribe' : 'Subscribe' }}</a>
+        !-->
         <a href="" ng-click="saveContacts()" class="btn btn-xs btn-default">{{ edit ? 'Save' : 'Edit' }}</a>
       </p>
       <div ng-switch="edit">
@@ -61,6 +137,8 @@
           <hr/>
           <h4>Identities</h4>
           <p class="text-muted" ng-repeat="identity in selectedContact.addresses">{{ identity.alias }} <small><a href="">copy</a></small></p>
+          <hr/>
+          <p><a class="text-danger" href="" ng-click="removeContact(selectedContact)">Remove from Contacts</a></p>
         </div>
       </div>
     </div>
