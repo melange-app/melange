@@ -1,6 +1,11 @@
 package models
 
-import gdb "github.com/huntaub/go-db"
+import (
+	"airdispat.ch/identity"
+	"airdispat.ch/routing"
+	gdb "github.com/huntaub/go-db"
+)
+
 
 type Contact struct {
 	Id         gdb.PrimaryKey `json:"id"`
@@ -9,6 +14,28 @@ type Contact struct {
 	Notify     bool           `json:"favorite"`
 	Addresses  *gdb.HasMany   `table:"address" on:"contact" json:"-"`
 	Identities []*Address     `db:"-" json:"addresses"`
+}
+
+func (c *Contact) LoadProfile(r routing.Router, from *identity.Identity) error {
+	currentAddress := c.Identities[0]
+
+	fp := currentAddress.Fingerprint
+	if fp == "" {
+		temp, err := r.LookupAlias(currentAddress.Alias, routing.LookupTypeMAIL)
+		if err != nil {
+			return err
+		}
+		fp = temp.String()
+
+	}
+
+	profile, err := translateProfile(r, from, fp, currentAddress.Alias)
+	if err != nil {
+		return err
+	}
+
+	c.Profile = profile
+	return nil
 }
 
 type Address struct {

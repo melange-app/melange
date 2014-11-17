@@ -106,7 +106,8 @@
   <div class="col-sm-7 col-md-9" ng-show="contacts.length != 0">
     <h5>Detail</h5>
     <div class="well">
-      <img ng-show='!edit' src="http://placehold.it/64" class="pull-left img-circle" style="margin-right: 10px;">
+      <div ng-show="!edit" class="square-window" style="width: 64px; height: 64px;" back-img="{{ selectedContact.profile.avatar | escapeBackground }}"></div>
+
       <p class="pull-right">
         <!--
         <a href="" ng-click="favorite(selectedContact)" class="btn btn-xs btn-primary"><i class="fa" ng-class="{ 'fa-star': selectedContact.favorite, 'fa-star-o': !selectedContact.favorite }"></i></a>

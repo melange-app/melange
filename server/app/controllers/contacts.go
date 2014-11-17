@@ -6,13 +6,14 @@ import (
 
 	"getmelange.com/app/framework"
 	"getmelange.com/app/models"
+	"getmelange.com/router"
 
 	gdb "github.com/huntaub/go-db"
 )
 
 type RemoveContact struct {
 	Tables map[string]gdb.Table
-	Store *models.Store
+	Store  *models.Store
 }
 
 func (r *RemoveContact) Handle(req *http.Request) framework.View {
@@ -29,8 +30,8 @@ func (r *RemoveContact) Handle(req *http.Request) framework.View {
 		return framework.Error500
 	}
 
-	return &framework.JSONView {
-		Content: map[string]interface{} {
+	return &framework.JSONView{
+		Content: map[string]interface{}{
 			"error": false,
 		},
 	}
@@ -51,11 +52,36 @@ func (c *ListContacts) Handle(req *http.Request) framework.View {
 		return framework.Error500
 	}
 
+	modelId, frameErr := CurrentIdentityOrError(c.Store, c.Tables["identity"])
+	if frameErr != nil {
+		return frameErr
+	}
+
+	id, err := modelId.ToDispatch(c.Store, "")
+	if err != nil {
+		fmt.Println("Error converting identity", err)
+		return framework.Error500
+	}
+
+
+	router := &router.Router{
+		Origin: id,
+		TrackerList: []string{
+			"localhost:2048",
+		},
+	}
+
+
 	for _, v := range out {
 		v.Identities = make([]*models.Address, 0)
 		err := c.Tables["address"].Get().Where("contact", v.Id).All(c.Store, &v.Identities)
 		if err != nil {
 			fmt.Println("Couldn't get address, got error", err)
+		}
+
+		err = v.LoadProfile(router, id)
+		if err != nil {
+			fmt.Println("Couldn't get profile, got error", err)
 		}
 	}
 
