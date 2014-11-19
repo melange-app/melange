@@ -450,7 +450,7 @@ func (f *Fetcher) ForceFetch(since uint64) {
 }
 
 func (f *Fetcher) LoadCredentials(c *dap.Client, r routing.Router, t map[string]gdb.Table, s gdb.Executor) {
-	f.Stop()
+	// f.Stop()
 	f.Client = c
 	f.Router = r
 	f.Tables = t
@@ -683,11 +683,14 @@ func (m *MessageManager) GetSentMessages(since uint64, withComponents []string) 
 func (m *MessageManager) GetAllMessages(msgChan chan *JSONMessage) {
 	var newData JSONMessageList
 	if majorFetcher.NeedsCredentials() {
+		fmt.Println("Loading Credentials through Force Fetch")
 		m.forceFetch()
 	} else {
+		fmt.Println("Credentials already loaded.")
 		newData = JSONMessageList(append(majorStore.RetrieveAllPublic(), majorStore.RetrieveAllPrivate()...))
 	}
 
+	fmt.Println("Getting sent Messages")
 	data, err := m.GetSentMessages(0, []string{})
 	if err != nil {
 		fmt.Println("Error getting Sent Messages", err)
@@ -702,8 +705,9 @@ func (m *MessageManager) GetAllMessages(msgChan chan *JSONMessage) {
 }
 
 func (m *MessageManager) forceFetch() {
-	fmt.Println("Forcing Fetch")
+	fmt.Println("Loading Credentials")
 	majorFetcher.LoadCredentials(m.Client, m.Router, m.Tables, m.Store)
+	fmt.Println("Forcing Fetch")
 	majorFetcher.ForceFetch(0)
 }
 

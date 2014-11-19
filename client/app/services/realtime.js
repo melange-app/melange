@@ -9,6 +9,7 @@
     var subscribers = {};
 
     var connectCandy = mlgCandyBar.setCandy("<p>Connecting to backend...</p>");
+    var loadingMessageCandy = "<p><i class='fa fa-spin fa-circle-o-notch'></i> Loading Messages...</p>";
 
     // var conn = new WebSocket(wsURL("/messages"))
     var conn = new WebSocket("ws://api.melange.127.0.0.1.xip.io:7776/realtime");
@@ -18,7 +19,7 @@
 
       $rootScope.$apply(function() {
         mlgCandyBar.stopCandy(connectCandy);
-        mlgCandyBar.setCandy("<p><i class='fa fa-spin fa-circle-o-notch'></i> Loading Messages...</p>")
+        mlgCandyBar.setCandy(loadingMessageCandy)
       });
 
       sendData("startup", "ok");
@@ -99,6 +100,11 @@
         }
         subscribers[type].removeAt(id);
       },
+      refresh: function() {
+        mlgMessages.refresh();
+        sendData("startup", "ok");
+        mlgCandyBar.setCandy(loadingMessageCandy);
+      },
     }
   }]);
 
@@ -140,10 +146,14 @@
             subscribers[i].callback(data);
           } catch (e) {
             console.log("Likely that mlgMessages subscriber left.")
-            console.log(e);
+            console.log(e);xo
             delete subscribers[i];
           }
         }
+      },
+      refresh: function() {
+        messages = [];
+        selfMessages = [];
       },
       subscribe: function(callback) {
         subscribers.push({

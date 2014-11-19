@@ -296,7 +296,7 @@ var mlgCleanup = function(msg) {
   }]);
 
   // MLG-IDENTITY
-  melangeServices.factory('mlgIdentity', ['$resource', '$q', function($resource, $q) {
+  melangeServices.factory('mlgIdentity', ['$resource', '$q', 'mlgRealtime', function($resource, $q, mlgRealtime) {
     var resource = $resource('http://' + melangeAPI + '/identity/:action', {
       action: "",
     }, {
@@ -395,6 +395,10 @@ var mlgCleanup = function(msg) {
 
         return resource.setCurrent({
           fingerprint: id.Fingerprint,
+        }).$promise.then(function(data) {
+            // mlgMessages.refresh();
+            mlgRealtime.refresh();
+            return data;
         });
       },
       list: function() {
