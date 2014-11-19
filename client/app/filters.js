@@ -30,6 +30,7 @@ melangeFilters.filter('objectsHave', function() {
 
 melangeFilters.filter('escapeBackground', function() {
   return function(val) {
+    if(val == undefined) { return val; }
     return val.replace("'", "%27")
   }
 })
