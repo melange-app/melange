@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/huntaub/go-db"
+	db "github.com/huntaub/go-db"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )

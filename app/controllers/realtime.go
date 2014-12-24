@@ -17,9 +17,6 @@ import (
 var wsUpgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return r.Header["Origin"][0] == "http://app.melange:7776"
-	},
 }
 var quitChan = make(chan struct{})
 
@@ -28,14 +25,23 @@ type RealtimeHandler struct {
 	Store  *models.Store
 	Tables map[string]gdb.Table
 
+	Suffix string
+
 	messageChan chan *models.JSONMessage
 	dataChan    chan interface{}
+}
+
+func getOriginAllowed(suffix string) func(r *http.Request) bool {
+	return func(r *http.Request) bool {
+		return r.Header["Origin"][0] == fmt.Sprintf("http://app.melange%s", suffix)
+	}
 }
 
 // UpgradeConnection will upgrade a normal HTTP Request to the Websocket
 // protocol.
 func (r *RealtimeHandler) UpgradeConnection(res http.ResponseWriter, req *http.Request) {
 	fmt.Println("Requesting a WebSocket Upgrade")
+	wsUpgrader.CheckOrigin = getOriginAllowed(r.Suffix)
 	conn, err := wsUpgrader.Upgrade(res, req, nil)
 	if err != nil {
 		fmt.Println("WebSocket Upgrade Error", err)
@@ -139,6 +145,7 @@ func (r *RealtimeHandler) HandleWSRequest(t string, d interface{}) (string, inte
 			return "waitingForSetup", nil
 		}
 
+		fmt.Println("Constructing manager...")
 		m.GetAllMessages(r.messageChan)
 		return "initDone", nil
 	} else if t == "uploadFile" {

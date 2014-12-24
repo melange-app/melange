@@ -17,7 +17,7 @@ func mapErrors(err ...error) error {
 
 func CreateTables(conn gdb.Database) (map[string]gdb.Table, error) {
 	tables := make(map[string]gdb.Table)
-	var err1, err2, err3, err4, err5, err6, err7 error
+	var err1, err2, err3, err4, err5, err6, err7, errList, errMembership error
 
 	// identity.go
 	tables["identity"], err1 = gdb.CreateTableFromStruct("identity", conn, false, &Identity{})
@@ -43,6 +43,16 @@ func CreateTables(conn gdb.Database) (map[string]gdb.Table, error) {
 		fmt.Println("err4", err4)
 	}
 
+	// Lists (in contact.go)
+	tables["list"], errList = gdb.CreateTableFromStruct("list", conn, false, &List{})
+	if errList != nil {
+		fmt.Println("errList", errList)
+	}
+	tables["contact_membership"], errMembership = gdb.CreateTableFromStruct("contact_membership", conn, false, &ContactMembership{})
+	if errMembership != nil {
+		fmt.Println("errMembership", errList)
+	}
+
 	// message.go
 	tables["message"], err5 = gdb.CreateTableFromStruct("message", conn, false, &Message{})
 	if err5 != nil {
@@ -53,5 +63,5 @@ func CreateTables(conn gdb.Database) (map[string]gdb.Table, error) {
 		fmt.Println("err6", err6)
 	}
 
-	return tables, mapErrors(err1, err2, err3, err4, err5, err6, err7)
+	return tables, mapErrors(err1, err2, err3, err4, err5, err6, err7, errList, errMembership)
 }

@@ -45,6 +45,7 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 		h := &controllers.RealtimeHandler{
 			Store:  r.Settings,
 			Tables: tables,
+			Suffix: r.Suffix,
 		}
 		h.UpgradeConnection(res, req)
 		return
@@ -197,7 +198,29 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 		},
 		"/contacts/remove": &controllers.RemoveContact{
 			Tables: tables,
-			Store: r.Settings,
+			Store:  r.Settings,
+		},
+		"/contacts/add": &controllers.AddContact{
+			Tables: tables,
+			Store:  r.Settings,
+		},
+
+		//
+		// LISTS
+		//
+
+		// GET /contacts/list
+		"/contacts/list": &controllers.GetLists{
+			Tables: tables,
+			Store:  r.Settings,
+		},
+		"/contacts/list/add": &controllers.AddList{
+			Tables: tables,
+			Store:  r.Settings,
+		},
+		"/contacts/list/remove": &controllers.RemoveList{
+			Tables: tables,
+			Store:  r.Settings,
 		},
 
 		//
@@ -223,7 +246,7 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 		// Remove Identity
 		"/identity/remove": &controllers.RemoveIdentity{
 			Tables: tables,
-			Store: r.Settings,
+			Store:  r.Settings,
 		},
 	}
 

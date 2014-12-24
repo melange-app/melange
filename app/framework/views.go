@@ -11,8 +11,11 @@ import (
 func WriteView(view View, res http.ResponseWriter) {
 	// Set Headers
 	res.Header().Add("Content-Type", view.ContentType())
+
 	contentLength := strconv.Itoa(view.ContentLength())
-	res.Header().Add("Content-Length", contentLength)
+	if view.ContentLength() >= 0 {
+		res.Header().Add("Content-Length", contentLength)
+	}
 
 	if view.Code() == 200 {
 		res.Header().Add("Connection", "keep-alive")

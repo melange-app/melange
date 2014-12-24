@@ -1,42 +1,16 @@
+// +build !android
+
 package framework
 
 import (
 	"fmt"
-	"io"
-	"mime"
 	"os"
 	"path/filepath"
 	"strings"
 	"syscall"
 )
 
-// File View Will Render a File to the Http Response
-type FileView struct {
-	File *os.File
-}
-
-func (f *FileView) Write(w io.Writer) {
-	io.Copy(w, f.File)
-	f.File.Close()
-}
-
-func (b *FileView) ContentLength() int {
-	info, _ := b.File.Stat()
-	return int(info.Size())
-}
-
-func (b *FileView) ContentType() string {
-	return mime.TypeByExtension(filepath.Ext(b.File.Name()))
-}
-
-func (b *FileView) Code() int {
-	return 200
-}
-
-func (h *FileView) Headers() Headers { return nil }
-
-// Blatantly stolen from robfig's Revel Framework
-func ServeFile(prefix string, request string) View {
+func GetFile(prefix string, request string) (*FileView, error) {
 	var path string
 
 	// Check if Prefix is Absolute, if not prepend the cwd
@@ -51,7 +25,7 @@ func ServeFile(prefix string, request string) View {
 	fname := filepath.Join(basePathPrefix, filepath.FromSlash(request))
 
 	if !strings.HasPrefix(fname, basePathPrefix) {
-		return Error404
+		return nil, errNoFile
 	}
 
 	// Get information on the file
@@ -59,22 +33,22 @@ func ServeFile(prefix string, request string) View {
 	if err != nil {
 		// If the file isn't found, return a 404.
 		if os.IsNotExist(err) || err.(*os.PathError).Err == syscall.ENOTDIR {
-			return Error404
+			return nil, errNoFile
 		}
 		fmt.Println("Error checking file:", err)
-		return Error500
+		return nil, err
 	}
 
 	// Check if it is a directory listing
 	if finfo.Mode().IsDir() {
-		return Error404
+		return nil, errNoFile
 	}
 
 	// Ensure that we aren't symlinked somewhere terrible
 	fqn, err := filepath.EvalSymlinks(fname)
 	if err != nil {
 		fmt.Println("Error evaling symlinks:", err)
-		return Error500
+		return nil, err
 	}
 
 	// Open the file for reading
@@ -82,9 +56,16 @@ func ServeFile(prefix string, request string) View {
 	if err != nil {
 		// Check again for existence
 		if os.IsNotExist(err) {
-			return Error404
+			return nil, errNoFile
 		}
-		return Error500
+		return nil, err
 	}
-	return &FileView{file}
+
+	info, _ := file.Stat()
+
+	return &FileView{
+		File: file,
+		Name: file.Name(),
+		Size: int(info.Size()),
+	}, nil
 }
