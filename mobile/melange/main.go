@@ -20,7 +20,6 @@ type melange struct {
 
 func Run(port int, dataDir string, version string, platform string) error {
 	defer func() {
-		fmt.Println("Hello, world!")
 		if r := recover(); r != nil {
 			fmt.Println("Golang Panic:", r)
 		}
@@ -54,6 +53,11 @@ func Run(port int, dataDir string, version string, platform string) error {
 		// Tracker:    m.Tracker,
 		// Settings
 		Settings: settings,
+
+		// Logging Information
+		DataDirectory: dataDir,
+		Platform:      platform,
+		Version:       version,
 	}
 
 	fmt.Println("Melange Starting up.", port)

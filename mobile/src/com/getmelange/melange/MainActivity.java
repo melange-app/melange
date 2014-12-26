@@ -55,13 +55,13 @@ public class MainActivity extends Activity {
             try {
                 Melange.Run(7776, getFilesDir().getAbsolutePath(), "0.1", "android");
             } catch (Exception e) {
-                Log.d("Melange/Server", "Something terrible happened.");
+                Log.e("Melange/Server", "Something terrible happened." + e.getMessage());
             }
 
             Log.d("Melange", "Melange Running...");
         }
 
-        webContent.loadUrl("http://app.melange.127.0.0.1.xip.io:7776/Index.html");
+        webContent.loadUrl("http://app.melange.127.0.0.1.xip.io:7776/Index.html#startup");
     }
 
     @Override
