@@ -164,13 +164,13 @@ app.on('will-finish-launching', function() {
     console.log("opened application server on %j", server.address())
     // Launch Go Server
     if(debug) {
-      go = spawn("go", ["run", __dirname + "/go/src/getmelange.com/server/server.go"], {
+      go = spawn("go", ["run", __dirname + "/../server/server.go"], {
         env: {
-          "GOPATH": __dirname + '/go',
+          "GOPATH": process.env["GOPATH"],
           "GOROOT": process.env["GOROOT"],
           "PATH": process.env["PATH"],
           "CWD": process.cwd,
-          "MLGBASE": __dirname,
+          "MLGBASE": __dirname + "/../",
           "MLGDATA": dataDirectory(),
           "MLGPORT": server.address().port,
           "MLGAPP": applicationDirectory(),
