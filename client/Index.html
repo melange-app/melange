@@ -54,8 +54,11 @@
     <div
       ng-show="page.indexOf('/startup') !== 0 && page.indexOf('/setup') !== 0"
       class="sidebar"
+      ng-class="isShowing"
       ng-include="'partials/sidebar.html'">
     </div>
+
+    <div class="sidebarCloseHitbox" ng-class="isShowing" ng-click="closeSidebar()"></div>
 
     <!-- Container for Page -->
     <div ng-class="outerClass(page)" class="full-height">

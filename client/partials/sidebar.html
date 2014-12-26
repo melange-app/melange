@@ -1,8 +1,14 @@
 <div class="sidebar-top">
-  <ul class="nav nav-pills nav-stacked">
-    <li ng-class="{ active: page == '/dashboard' }"><a href="#/dashboard"><i class="fa fa-fw fa-home"></i> Dashboard</a></li>
-    <li ng-class="{ active: page == '/all' }"><a href="#/all"><i class="fa fa-fw fa-envelope"></i> All</a></li>
-    <li ng-class="{ active: page.indexOf('/profile') === 0 }"><a href="#/profile"><i class="fa fa-fw fa-user"></i> My Profile</a></li>
+  <ul class="nav nav-pills nav-stacked" ng-click="closeSidebar()">
+    <li ng-class="{ active: page == '/dashboard' }">
+      <a href="#/dashboard"><i class="fa fa-fw fa-home"></i> Dashboard</a>
+    </li>
+    <li ng-class="{ active: page == '/all' }">
+      <a href="#/all"><i class="fa fa-fw fa-envelope"></i> All</a>
+    </li>
+    <li ng-class="{ active: page.indexOf('/profile') === 0 }">
+      <a href="#/profile"><i class="fa fa-fw fa-user"></i> My Profile</a>
+    </li>
     <li class="seperator"></li>
     <li class="header">APPS</li>
     <li
@@ -24,7 +30,7 @@
   </ul>
 </div>
 <div class="sidebar-bottom">
-  <ul class="nav nav-pills nav-stacked">
+  <ul class="nav nav-pills nav-stacked" ng-click="closeSidebar()">
     <li ng-class="{ active: page == '/contacts' }"><a href="#/contacts"><i class="fa fa-fw fa-book"></i> People</a></li>
     <li ng-class="{ active: page.indexOf('/market') === 0 }"><a href="#/market"><i class="fa fa-shopping-cart"></i> Marketplace</a></li>
     <li ng-class="{ active: page.indexOf('/settings') === 0 }"><a href="#/settings"><i class="fa fa-fw fa-gears"></i> Settings <!-- <span class="badge">42</span> --></a></li>

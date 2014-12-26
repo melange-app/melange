@@ -1,0 +1,95 @@
+@media (max-width: 768px) {
+    .close-buttons-mac {
+        display: none;
+    }
+
+    .navbar-header {
+        float: left;
+    }
+
+    .navbar-settings {
+        left: 0px;
+        position: static;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    .container-fluid.settings {
+        padding-top: 0;
+    }
+
+    #mlg-navbar .nav {
+        float: right;
+        margin: 0;
+    }
+
+    #mlg-navbar .navbar-nav li {
+        float: left;
+    }
+
+    #mlg-navbar .navbar-nav>li>a {
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    .sidebar, .sidebar-top, .sidebar-bottom {
+        left: -150px;
+        z-index: 50;
+    }
+
+    .sidebarCloseHitbox.not-showing {
+        visibility: hidden;
+        transition: background-color 0.5s ease;
+        background-color: rgba(0, 0, 0, 0);
+    }
+    .sidebarCloseHitbox.showing {
+        position: fixed;
+        top: 45px;
+        left: 0px;
+        bottom: 0px;
+        right: 0px;
+
+        transition: background-color 0.5s ease;
+
+        background-color: rgba(0, 0, 0, .4);
+        z-index: 30;
+    }
+
+    .sidebar.showing,
+    .sidebar.showing .sidebar-top,
+    .sidebar.showing .sidebar-bottom {
+        transition: left 0.5s ease;
+        left: 0px;
+    }
+
+    .sidebar.not-showing,
+    .sidebar.not-showing .sidebar-top, 
+    .sidebar.not-showing .sidebar-bottom, {
+        transition: left 0.5s ease;
+        left: -150px;
+    }
+
+    .sidebar-button {
+        display: inline;
+        margin-top: 6px;
+        margin-right: -6px;
+        margin-left: 25px;
+        float: left;
+        font-size: 22px;
+        cursor: pointer;
+
+        a {
+            color: white;
+        }
+    }
+
+    .main {
+        left: 0;
+    }
+}
+
+@media (min-width: 769px) {
+    .sidebar-button {
+        display: none;
+    }
+}

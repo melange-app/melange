@@ -90,6 +90,23 @@
         }
       }
 
+      // Mobile Sidebar Toggling
+      $scope.isShowing = "not-showing";
+      $scope.sidebarButtonIcon = "fa-bars";
+      $scope.toggleSidebar = function() {
+          if ($scope.isShowing == "not-showing") {
+              $scope.isShowing = "showing";
+              $scope.sidebarButtonIcon = "fa-arrow-left";
+          } else {
+              $scope.isShowing = "not-showing";
+              $scope.sidebarButtonIcon = "fa-bars";
+          }
+      }
+      $scope.closeSidebar = function() {
+          $scope.isShowing = "not-showing";
+          $scope.sidebarButtonIcon = "fa-bars";
+      }
+
     }]);
 
   melangeControllers.controller('StartupCtrl', ['mlgIdentity', '$location',
