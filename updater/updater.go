@@ -17,18 +17,6 @@ type Update struct {
 	Download  string
 }
 
-// Environmental Variables Required
-//
-// MLGUPDATEDIR - the Directory where the Update was Downloaded
-// func main() {
-// 	updateDir := os.Getenv("MLGUPDATEDIR")
-// 	if updateDir == "" {
-// 		return
-// 	}
-// 	err := installUpdate(updateDir)
-// 	fmt.Println(err)
-// }
-
 type updateStatus struct {
 	Msg      string
 	NoUpdate bool

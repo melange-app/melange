@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
 	"airdispat.ch/crypto"
@@ -63,6 +62,7 @@ func (p *Provider) LoadDefaults() error {
 type Packager struct {
 	API    string
 	Plugin string
+	Debug  bool
 	cache  map[string]map[string]*Provider
 }
 
@@ -139,7 +139,7 @@ func (p *Packager) getFromId(id string, url string) (*Provider, error) {
 // Id.
 func (p *Packager) TrackerFromId(id string) (*Provider, error) {
 	extra := "/trackers"
-	if os.Getenv("MLGDEBUG") != "" {
+	if p.Debug {
 		extra += "?debug=true"
 	}
 
@@ -150,7 +150,7 @@ func (p *Packager) TrackerFromId(id string) (*Provider, error) {
 // Id.
 func (p *Packager) ServerFromId(id string) (*Provider, error) {
 	extra := "/servers"
-	if os.Getenv("MLGDEBUG") != "" {
+	if p.Debug {
 		extra += "?debug=true"
 	}
 

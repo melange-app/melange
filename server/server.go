@@ -43,11 +43,16 @@ func (m *Melange) Run(port int) error {
 		Tracker:    m.Tracker,
 		// Settings
 		Settings: settings,
+
+		// Logging Information
+		DataDirectory:  dataDir,
+		ControllerPort: os.Getenv("MLGPORT"),
+		Debug:          os.Getenv("MLGDEBUG") != "",
 	}
 
 	fmt.Println("Starting up.")
 	go func() {
-		port := os.Getenv("MLGPORT")
+		port := m.App.ControllerPort
 		if port != "" {
 			resp, err := http.Get(fmt.Sprintf("http://localhost:%s/startup", port))
 			if err != nil || resp.StatusCode != 200 {

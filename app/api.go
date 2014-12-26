@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 
 	"getmelange.com/app/controllers"
@@ -53,13 +52,14 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 
 	packager := &packaging.Packager{
 		API:    "http://www.getmelange.com/api",
-		Plugin: filepath.Join(os.Getenv("MLGDATA"), "plugins"),
+		Plugin: filepath.Join(r.DataDirectory, "plugins"),
+		Debug:  r.Debug,
 	}
 	packager.CreatePluginDirectory()
 
-	version := os.Getenv("MLGVERSION")
-	platform := os.Getenv("MLGPLATFORM")
-	appLocation := os.Getenv("MLGAPP")
+	version := r.Version
+	platform := r.Platform
+	appLocation := r.AppLocation
 
 	// Create Simple Handler Map
 	handlers := map[string]Handler{
@@ -371,7 +371,7 @@ type ServerLists struct {
 // Handle will decodeProviders from getmelange.com then return them in JSON.
 func (s *ServerLists) Handle(req *http.Request) framework.View {
 	extra := s.URL
-	if os.Getenv("MLGDEBUG") != "" {
+	if s.Packager.Debug {
 		extra += "?debug=true"
 	}
 

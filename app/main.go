@@ -25,6 +25,16 @@ type Server struct {
 	Tracker    *tracker.Tracker
 	// Settings Module
 	Settings *models.Store
+
+	// Logging Information
+	DataDirectory string
+	Debug         bool
+
+	// Melange Information
+	Platform       string
+	Version        string
+	AppLocation    string
+	ControllerPort string
 }
 
 func (p *Server) CommonURL() string {
