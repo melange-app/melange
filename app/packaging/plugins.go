@@ -175,7 +175,7 @@ func (p *Packager) InstallPlugin(repo string) error {
 	}
 
 	// Download the Zipball
-	file, err := ioutil.TempFile("", "melange_plugin_download_")
+	file, err := p.getTempFile()
 	if err != nil {
 		return err
 	}

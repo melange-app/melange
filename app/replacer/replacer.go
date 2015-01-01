@@ -3,7 +3,6 @@ package replacer
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"regexp"
 	"strings"
@@ -92,19 +91,6 @@ func (r *Replacer) Close() error {
 }
 
 func (r *Replacer) Read(data []byte) (int, error) {
-	fmt.Println(
-		"Starting read with request",
-		len(data),
-		"have",
-		r.processedData.Len(),
-		"and (unprocessed)",
-		r.unprocessedData.Len(),
-	)
-
-	defer func() {
-		fmt.Println("Ending read request.")
-	}()
-
 	// If we have enough processed data, just return that
 	if r.processedData.Len() >= len(data) {
 		return r.processedData.Read(data)

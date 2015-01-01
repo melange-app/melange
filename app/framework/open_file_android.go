@@ -5,6 +5,7 @@ package framework
 import (
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 
 	"getmelange.com/app/replacer"
@@ -50,6 +51,37 @@ func GetFile(prefix, request string) (*FileView, error) {
 		}, nil
 	} else if prefix == "plugins" {
 		// Pretty much every other
+	} else {
+		// This should be an absolute path
+		file, err := os.Open(filepath.Join(prefix, request))
+		if err != nil {
+			return nil, errNoFile
+		}
+
+		info, _ := file.Stat()
+
+		var fileReader io.ReadCloser = file
+		contentLength := info.Size()
+
+		switch filepath.Ext(request) {
+		case ".html":
+			fallthrough
+		case ".js":
+			fmt.Println("Replacing with the File Reader", request)
+			contentLength = -1
+			fileReader = replacer.CreateReplacer(
+				fileReader,
+				`http://([a-z\.]*).melange(:7776)?`,
+				`http://$1.melange.127.0.0.1.xip.io:7776`,
+				`[^a-z\.]`,
+			)
+		}
+
+		return &FileView{
+			File: fileReader,
+			Name: file.Name(),
+			Size: int(contentLength),
+		}, nil
 	}
 
 	return nil, errNoFile

@@ -2,7 +2,6 @@ package framework
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"mime"
 	"path/filepath"
@@ -41,8 +40,6 @@ var (
 // Blatantly stolen from robfig's Revel Framework
 func ServeFile(prefix string, request string) View {
 	view, err := GetFile(prefix, request)
-
-	fmt.Println("Returning file", view, err)
 
 	if err == errNoFile {
 		return Error404
