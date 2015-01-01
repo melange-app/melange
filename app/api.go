@@ -41,11 +41,12 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if req.URL.Path == "/realtime" {
-		h := &controllers.RealtimeHandler{
-			Store:  r.Settings,
-			Tables: tables,
-			Suffix: r.Suffix,
-		}
+		h := controllers.CreateRealtimeHandler(
+			r.Settings,
+			tables,
+			r.Suffix,
+		)
+
 		h.UpgradeConnection(res, req)
 		return
 	}

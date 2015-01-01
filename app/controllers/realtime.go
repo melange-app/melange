@@ -10,6 +10,8 @@ import (
 	"getmelange.com/app/framework"
 	"getmelange.com/app/models"
 
+	"sync"
+
 	"github.com/gorilla/websocket"
 	gdb "github.com/huntaub/go-db"
 )
@@ -27,8 +29,20 @@ type RealtimeHandler struct {
 
 	Suffix string
 
+	requests     map[string]*linkRequest
+	requestsLock *sync.RWMutex
+
 	messageChan chan *models.JSONMessage
 	dataChan    chan interface{}
+}
+
+func CreateRealtimeHandler(s *models.Store, t map[string]gdb.Table, suffix string) *RealtimeHandler {
+	return &RealtimeHandler{
+		Store:        s,
+		Tables:       t,
+		Suffix:       suffix,
+		requestsLock: &sync.RWMutex{},
+	}
 }
 
 func getOriginAllowed(suffix string) func(r *http.Request) bool {
@@ -56,6 +70,7 @@ func (r *RealtimeHandler) UpgradeConnection(res http.ResponseWriter, req *http.R
 		return
 	}
 
+	// This seems like the wrong place to do this
 	r.dataChan = make(chan interface{})
 	r.messageChan = make(chan *models.JSONMessage)
 
@@ -149,40 +164,50 @@ func (r *RealtimeHandler) HandleWSRequest(t string, d interface{}) (string, inte
 		m.GetAllMessages(r.messageChan)
 		return "initDone", nil
 	} else if t == "uploadFile" {
-		// Asynchronously perform the upload.
-		obj, ok := d.(map[string]interface{})
-		if !ok {
-			return "uploadError", nil
-		}
-
-		id, ok := obj["id"].(string)
-		if !ok {
-			return "uploadError", nil
-		}
-
-		go func() {
-			err := (&UploadController{
-				Store:  r.Store,
-				Tables: r.Tables,
-			}).HandleWSRequest(obj, r.dataChan, id)
-
-			if err != nil {
-				fmt.Println("Unable to upload file.", err)
-				r.dataChan <- map[string]interface{}{
-					"type": "uploadError",
-					"data": map[string]interface{}{
-						"id":    id,
-						"error": err.Error(),
-					},
-				}
-			}
-		}()
-
-		return "uploadingFile", map[string]interface{}{
-			"id": id,
-		}
+		return r.uploadFile(d)
+	} else if t == "startLink" {
+		return r.RequestLink(d)
+	} else if t == "requestLink" {
+		return r.StartLink(d)
+	} else if t == "acceptLink" {
+		return r.AcceptLink(d)
 	}
 
 	fmt.Println("Got message", t, "from ws.")
 	return "gotIt", nil
+}
+
+func (r *RealtimeHandler) uploadFile(d interface{}) (string, map[string]interface{}) {
+	// Asynchronously perform the upload.
+	obj, ok := d.(map[string]interface{})
+	if !ok {
+		return "uploadError", nil
+	}
+
+	id, ok := obj["id"].(string)
+	if !ok {
+		return "uploadError", nil
+	}
+
+	go func() {
+		err := (&UploadController{
+			Store:  r.Store,
+			Tables: r.Tables,
+		}).HandleWSRequest(obj, r.dataChan, id)
+
+		if err != nil {
+			fmt.Println("Unable to upload file.", err)
+			r.dataChan <- map[string]interface{}{
+				"type": "uploadError",
+				"data": map[string]interface{}{
+					"id":    id,
+					"error": err.Error(),
+				},
+			}
+		}
+	}()
+
+	return "uploadingFile", map[string]interface{}{
+		"id": id,
+	}
 }
