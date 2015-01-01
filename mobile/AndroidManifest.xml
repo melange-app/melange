@@ -13,6 +13,9 @@ license that can be found in the LICENSE file.
     <supports-screens android:xlargeScreens="true"
                       android:largeScreens="true"/>
 
+    <uses-sdk android:minSdkVersion="11"
+              android:targetSdkVersion="19" />
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -24,12 +27,12 @@ license that can be found in the LICENSE file.
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
 	<application android:label="Melange"
-                     android:hardwareAccelerated="true"
                      android:debuggable="true"
                      android:icon="@drawable/ic_launcher">
 		<activity android:name="com.getmelange.melange.MainActivity"
 			android:label="Melange"
                         android:theme="@android:style/Theme.Holo.NoActionBar"
+                        android:configChanges="orientation|screenSize|keyboardHidden"
 			android:exported="true">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />

@@ -16,6 +16,8 @@ import android.content.pm.ApplicationInfo;
 
 import android.util.Log;
 
+import android.view.Menu;
+
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebSettings;
@@ -29,6 +31,7 @@ import android.webkit.WebSettings;
  * See example/libhello/README for details.
  */
 public class MainActivity extends Activity {
+    WebView webContent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,12 +43,17 @@ public class MainActivity extends Activity {
             { WebView.setWebContentsDebuggingEnabled(true); }
         }
 
-        WebView webContent = new WebView(this);
+        webContent = new WebView(this);
 
         WebSettings webSettings = webContent.getSettings();
         webSettings.setJavaScriptEnabled(true);
 
-        webContent.setWebViewClient(new WebViewClient());
+        webContent.setWebViewClient(new WebViewClient() {
+                @Override
+                public void onPageFinished(WebView view, String url) {
+                    Log.d("Melange/GoStdio", "Page is finished loading!");
+                }
+            });
 
         setContentView(webContent);
 
@@ -59,9 +67,21 @@ public class MainActivity extends Activity {
             }
 
             Log.d("Melange", "Melange Running...");
-        }
 
-        webContent.loadUrl("http://app.melange.127.0.0.1.xip.io:7776/Index.html#startup");
+            webContent.loadUrl("http://app.melange.127.0.0.1.xip.io:7776/Index.html#startup");
+        } else {
+            webContent.restoreState(savedInstanceState);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        webContent.saveState(outState);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return false;
     }
 
     @Override
