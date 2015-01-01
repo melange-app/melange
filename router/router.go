@@ -71,7 +71,7 @@ func (a *Router) lookupAliasHelper(from string, name routing.LookupType) (*ident
 		return nil, errors.New("Can't use lookup router without tracker address.")
 	}
 
-	url := tracker.GetTrackingServerLocationFromURL(comp[1])
+	url := getTrackerURL(comp[1])
 
 	t := &tracker.Router{
 		URL:        url,
@@ -124,7 +124,8 @@ func (a *Router) Register(key *identity.Identity, alias string, redirect map[str
 	success := 0
 
 	for _, v := range a.TrackerList {
-		url := tracker.GetTrackingServerLocationFromURL(v)
+		url := getTrackerURL(v)
+
 		newErr := (&tracker.Router{
 			Origin: a.Origin,
 			URL:    url,
