@@ -49,6 +49,7 @@ func (c *Client) createHeader(to ...*identity.Address) message.Header {
 
 func (c *Client) sendAndGetResponse(msg message.Message) (*Response, error) {
 	data, typ, head, err := message.SendMessageAndReceiveWithTimestamp(msg, c.Key, c.Server)
+
 	if err != nil {
 		return nil, err
 	} else if adErr := c.checkForError(data, typ, head); adErr != nil {
@@ -305,7 +306,10 @@ func (c *Client) UpdateMessage(enc *message.Mail, to []*identity.Address, name s
 // AD Data
 // ----
 
-func (c *Client) PublishDataMessage(r io.ReadSeeker, to []*identity.Address, typ, prefix, file string) (string, error) {
+func (c *Client) PublishDataMessage(
+	r io.ReadSeeker,
+	to []*identity.Address,
+	typ, prefix, file string) (string, error) {
 	// Hash the Plaintext
 	hasher := sha256.New()
 

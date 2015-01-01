@@ -2,20 +2,24 @@ package dap
 
 import (
 	"bytes"
+	"errors"
+	"time"
 
 	"hash"
 	"io"
 	"net"
 	"strings"
+	"sync"
 
 	"getmelange.com/dap/wire"
 
 	"crypto/sha256"
 
+	"fmt"
+
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
 	"code.google.com/p/goprotobuf/proto"
-	"fmt"
 )
 
 const codePrefix = "DAP-"
@@ -33,6 +37,7 @@ type Delegate interface {
 	// Data
 	GetData(owner string, key string) ([]byte, error)
 	SetData(owner string, key string, data []byte) error
+	// Account Link Requests
 }
 
 type ReadVerifier interface {
@@ -118,8 +123,153 @@ func (h *Handler) HandleMessage(typ string, data []byte, head message.Header, co
 			return nil, err
 		}
 		return h.GetData(unmarsh, head)
+
+	// I don't trust servers to not delete the requested information
+	// so we will just handle everything in memory (yay!).
+	// Should be fine so long as millions of people don't try to link
+	// at the same time... Haha.
+	case wire.EnableLinkCode:
+		return h.EnableLink(head)
+	case wire.LinkRequestCode:
+		unmarsh := &wire.LinkData{}
+		err := proto.Unmarshal(data, unmarsh)
+		if err != nil {
+			return nil, err
+		}
+
+		return h.LinkRequest(unmarsh, head)
+	case wire.LinkKeyCode:
+		unmarsh := &wire.LinkData{}
+		err := proto.Unmarshal(data, unmarsh)
+		if err != nil {
+			return nil, err
+		}
+
+		return h.LinkKey(unmarsh, head)
+	case wire.LinkTransferCode:
+		unmarsh := &wire.LinkTransfer{}
+		err := proto.Unmarshal(data, unmarsh)
+		if err != nil {
+			return nil, err
+		}
+
+		return h.LinkTransfer(unmarsh, head)
 	}
 	return nil, fmt.Errorf("Cannot handle type (%s). That shouldn't happen.", typ)
+}
+
+var theLinkManager = &LinkManager{
+	EnabledAccounts: make(map[string]time.Time),
+	EnabledLock:     &sync.RWMutex{},
+
+	Requests:     make(map[string][]byte),
+	RequestsLock: &sync.RWMutex{},
+
+	KeyTransfers:  make(map[string][]byte),
+	TransfersLock: &sync.RWMutex{},
+}
+
+type LinkManager struct {
+	// Track which accounts are accepting link
+	// requests at the current moment.
+	// map: requestee -> time enabled
+	EnabledAccounts map[string]time.Time
+	EnabledLock     *sync.RWMutex
+
+	// Track the link requests
+	// map: requestee -> request payload
+	Requests     map[string][]byte
+	RequestsLock *sync.RWMutex
+
+	// Track the Transfers
+	// map: requester -> key payload
+	KeyTransfers  map[string][]byte
+	TransfersLock *sync.RWMutex
+}
+
+func (h *Handler) EnableLink(head message.Header) ([]message.Message, error) {
+	theLinkManager.EnabledLock.Lock()
+	defer theLinkManager.EnabledLock.Unlock()
+
+	theLinkManager.EnabledAccounts[head.From.String()] = time.Now().Add(5 * time.Minute)
+
+	return CreateResponse(0, "OK", h.Key.Address, head.From), nil
+}
+
+func (h *Handler) LinkKey(msg *wire.LinkData, head message.Header) ([]message.Message, error) {
+	theLinkManager.TransfersLock.Lock()
+	defer theLinkManager.TransfersLock.Unlock()
+
+	theLinkManager.KeyTransfers[*msg.For] = msg.Payload
+
+	return CreateResponse(0, "OK", h.Key.Address, head.From), nil
+}
+
+func (h *Handler) LinkRequest(msg *wire.LinkData, head message.Header) ([]message.Message, error) {
+	theLinkManager.RequestsLock.Lock()
+	defer theLinkManager.RequestsLock.Unlock()
+
+	theLinkManager.EnabledLock.RLock()
+	defer theLinkManager.EnabledLock.RUnlock()
+	if t, ok := theLinkManager.EnabledAccounts[*msg.For]; !ok || time.Now().After(t) {
+		return nil, errors.New("Account not enabled for linking.")
+	}
+
+	theLinkManager.Requests[*msg.For] = msg.Payload
+
+	return CreateResponse(0, "OK", h.Key.Address, head.From), nil
+}
+
+func (h *Handler) LinkTransfer(msg *wire.LinkTransfer, head message.Header) ([]message.Message, error) {
+	if msg.Request != nil {
+		theLinkManager.RequestsLock.RLock()
+		defer theLinkManager.RequestsLock.RUnlock()
+
+		r, ok := theLinkManager.Requests[head.From.String()]
+		if !ok {
+			return CreateResponse(
+				12,
+				"No request for that address",
+				h.Key.Address,
+				head.From,
+			), nil
+		}
+		defer delete(theLinkManager.Requests, head.From.String())
+
+		// Send the Response
+		return CreateDataResponse(
+			10,
+			"Request Found",
+			h.Key.Address,
+			head.From,
+			r,
+		), nil
+	} else if msg.Approved != nil {
+		theLinkManager.TransfersLock.RLock()
+		defer theLinkManager.TransfersLock.RUnlock()
+
+		r, ok := theLinkManager.KeyTransfers[head.From.String()]
+		if !ok {
+			return CreateResponse(
+				12,
+				"No key transfer for that address",
+				h.Key.Address,
+				head.From,
+			), nil
+		}
+		defer delete(theLinkManager.KeyTransfers, head.From.String())
+
+		// Send the Response
+		return CreateDataResponse(
+			10,
+			"Key Transfer Found",
+			h.Key.Address,
+			head.From,
+			r,
+		), nil
+	}
+
+	return CreateResponse(11, "No type of transfer specified.", h.Key.Address, head.From), nil
 }
 
 // Register a User on the Delegate

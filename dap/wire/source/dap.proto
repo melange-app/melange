@@ -16,8 +16,56 @@ message Unregister {
 	repeated Data keys = 1;
 }
 
-// TODO: Add the ability to link and unlink devices not
-// originally connected to the account.
+// Enable Link informs a DAP server to allow link requests
+// for a specific account.
+message EnableLink {}
+
+// Link Request starts a link request for an account on the
+// DAP server
+message LinkData {
+    // payload is encrypted with the public key of the link
+    // requestee in order to hide the verification details
+    // from a Chess Grandmaster attacker
+
+    // The payload should be an AirDispatch Message encrypted
+    // for the requestee
+    required bytes payload = 1;
+
+    optional string for    = 2;
+}
+
+// Link Rqeust Payload is the encrypted portion of the 
+// "Link Request".
+message LinkRequestPayload {
+    // key is the public key of the link requester
+    // the private key of the link requestee will be
+    // encrypted with this
+    required bytes  encrypting   = 1;
+    required bytes  signing      = 2;        
+
+    // verification is a string of 6 numerals (0-9)
+    // that are displayed to the user on both devices
+    // in order to confirm device identity
+    required string verification = 3;
+}
+
+// Link Key Payload is the encrypted portion of LinkData
+// that contains the identity of the transfering party.
+message LinkKeyPayload {
+    required bytes identity = 1;
+}
+
+// Link Transfer is a request to the server to transfer a 
+// particular piece of data.
+message LinkTransfer {
+    // If request is true, then the server must transfer the
+    // LinkRequestPayload sent to the account of the "From" address
+    optional bool request  = 1;
+
+    // If approved is true, then the server must transfer the 
+    // LinkKeyPayload sent to the account of the "From" address
+    optional bool approved = 2;
+}
 
 // -------
 // Message Management

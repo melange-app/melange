@@ -45,6 +45,110 @@ func (m *Unregister) GetKeys() []*Data {
 	return nil
 }
 
+type EnableLink struct {
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (m *EnableLink) Reset()         { *m = EnableLink{} }
+func (m *EnableLink) String() string { return proto.CompactTextString(m) }
+func (*EnableLink) ProtoMessage()    {}
+
+type LinkData struct {
+	Payload          []byte  `protobuf:"bytes,1,req,name=payload" json:"payload,omitempty"`
+	For              *string `protobuf:"bytes,2,opt,name=for" json:"for,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *LinkData) Reset()         { *m = LinkData{} }
+func (m *LinkData) String() string { return proto.CompactTextString(m) }
+func (*LinkData) ProtoMessage()    {}
+
+func (m *LinkData) GetPayload() []byte {
+	if m != nil {
+		return m.Payload
+	}
+	return nil
+}
+
+func (m *LinkData) GetFor() string {
+	if m != nil && m.For != nil {
+		return *m.For
+	}
+	return ""
+}
+
+type LinkRequestPayload struct {
+	Encrypting       []byte  `protobuf:"bytes,1,req,name=encrypting" json:"encrypting,omitempty"`
+	Signing          []byte  `protobuf:"bytes,2,req,name=signing" json:"signing,omitempty"`
+	Verification     *string `protobuf:"bytes,3,req,name=verification" json:"verification,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *LinkRequestPayload) Reset()         { *m = LinkRequestPayload{} }
+func (m *LinkRequestPayload) String() string { return proto.CompactTextString(m) }
+func (*LinkRequestPayload) ProtoMessage()    {}
+
+func (m *LinkRequestPayload) GetEncrypting() []byte {
+	if m != nil {
+		return m.Encrypting
+	}
+	return nil
+}
+
+func (m *LinkRequestPayload) GetSigning() []byte {
+	if m != nil {
+		return m.Signing
+	}
+	return nil
+}
+
+func (m *LinkRequestPayload) GetVerification() string {
+	if m != nil && m.Verification != nil {
+		return *m.Verification
+	}
+	return ""
+}
+
+type LinkKeyPayload struct {
+	Identity         []byte `protobuf:"bytes,1,req,name=identity" json:"identity,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (m *LinkKeyPayload) Reset()         { *m = LinkKeyPayload{} }
+func (m *LinkKeyPayload) String() string { return proto.CompactTextString(m) }
+func (*LinkKeyPayload) ProtoMessage()    {}
+
+func (m *LinkKeyPayload) GetIdentity() []byte {
+	if m != nil {
+		return m.Identity
+	}
+	return nil
+}
+
+type LinkTransfer struct {
+	Request          *bool  `protobuf:"varint,1,opt,name=request" json:"request,omitempty"`
+	Approved         *bool  `protobuf:"varint,2,opt,name=approved" json:"approved,omitempty"`
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (m *LinkTransfer) Reset()         { *m = LinkTransfer{} }
+func (m *LinkTransfer) String() string { return proto.CompactTextString(m) }
+func (*LinkTransfer) ProtoMessage()    {}
+
+func (m *LinkTransfer) GetRequest() bool {
+	if m != nil && m.Request != nil {
+		return *m.Request
+	}
+	return false
+}
+
+func (m *LinkTransfer) GetApproved() bool {
+	if m != nil && m.Approved != nil {
+		return *m.Approved
+	}
+	return false
+}
+
 type DownloadMessages struct {
 	Since            *uint64 `protobuf:"varint,1,opt,name=since" json:"since,omitempty"`
 	Context          *bool   `protobuf:"varint,2,opt,name=context" json:"context,omitempty"`

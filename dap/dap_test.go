@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -230,7 +231,14 @@ func TestPublishDataMessage(t *testing.T) {
 
 	data := bytes.NewReader([]byte("hello-world"))
 
-	err := client.PublishDataMessage(data, []*identity.Address{scene.Receiver.Address}, "airdispat.ch/data", "helloData")
+	_, err := client.PublishDataMessage(
+		data,
+		[]*identity.Address{scene.Receiver.Address},
+		"airdispat.ch/data",
+		"helloData",
+		"helloData.txt",
+	)
+
 	if err != nil {
 		t.Error(err.Error())
 		return
@@ -275,6 +283,58 @@ func TestSetData(t *testing.T) {
 	result := <-results
 	if result != nil {
 		t.Error(result.Error())
+	}
+}
+
+func TestLinking(t *testing.T) {
+	quit, _, scene, client := testingSetup(t)
+	defer func() { quit <- true }()
+
+	lc, err := CreateLinkClient(scene.Sender.Address, scene.Server.Address)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	err = client.EnableLink()
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	vc, err := lc.GetVerificationCode()
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	err = lc.LinkRequest(vc)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	request, err := client.GetLinkRequest()
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if request.From.String() != lc.Client.Key.Address.String() {
+		t.Error("Identity mismatch.")
+	}
+
+	if request.Verification != string(vc) {
+		t.Error("Verification mismatch.")
+	}
+
+	err = client.LinkAcceptRequest(request)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	recvId, err := lc.LinkGetIdentity()
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if recvId.Address.String() != scene.Sender.Address.String() {
+		t.Error("Final id mismatch.")
 	}
 }
 
@@ -447,7 +507,7 @@ func (t *TestingDelegate) PublishDataMessage(name string, to []string, author st
 		return nil
 	}
 
-	if name != "helloData" {
+	if !strings.HasPrefix(name, "helloData") {
 		t.Results <- &TestingResult{"Publish Data Message", "Checking that name is correct."}
 		return nil
 	}

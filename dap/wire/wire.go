@@ -16,4 +16,9 @@ const (
 	// Responses
 	ResponseCode        = "DAP-RES"
 	ResponseMessageCode = "DAP-RMS"
+	// Link Requests
+	EnableLinkCode   = "DAP-LKU"
+	LinkRequestCode  = "DAP-LKR"
+	LinkKeyCode      = "DAP-LKK"
+	LinkTransferCode = "DAP-LKX"
 )
