@@ -3,6 +3,13 @@
   <h1>{{ profile.name }} <small>Profile</small></h1>
   <p>{{ profile.description }}</p>
   <p ng-if="me"><a href="#/profile/edit">Edit your Profile</a></p>
+  <div ng-if="!me">
+    <a href="#/" ng-if="!isFollowing" class="btn btn-xs btn-primary">Follow</a>
+    <a href="#/" ng-if="!inContacts" class="btn btn-xs btn-primary"><i class="fa fa-plus"></i> Contact</a>
+    <p ng-if="inContacts" class="text-muted"><small>
+        This person is already in your contacts.
+    </small></p>
+  </div>
   <div class="clear"></div>
 </div>
 <div ng-if="newProfile" class="text-center text-muted">
