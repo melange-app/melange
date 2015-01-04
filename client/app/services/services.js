@@ -462,11 +462,36 @@ var mlgCleanup = function(msg) {
           action: "contacts/update",
         }
       },
+      addContact: {
+        method: 'POST',  
+        params: {
+          action: "contacts/add",
+        }
+      },
       removeContact: {
         method: 'POST',
         params: {
           action: "contacts/remove",
         }
+      },
+      // Lists
+      addList: {
+          method: 'POST',
+          params: {
+              action: "contacts/list/new",
+          }
+      },
+      removeList: {
+          method: 'POST',
+          params: {
+              action: "contacts/list/remove",
+          }
+      },
+      getLists: {
+          method: 'GET',
+          params: {
+              action: "contacts/list",
+          }
       },
       // Updates
       updateCheck: {
@@ -552,6 +577,9 @@ var mlgCleanup = function(msg) {
       },
       updateContact: function(contact) {
         return apiResource.updateContact(contact).$promise;
+      },
+      addContact: function(contact) {
+        return apiResource.addContact(contact).$promise;
       },
       removeContact: function(contact) {
         return apiResource.removeContact(contact).$promise;

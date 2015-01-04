@@ -117,6 +117,12 @@
       name: $routeParams.alias
     }
 
+    $scope.inContacts = $scope.contacts.reduce(function(acc, val, i, a) {
+        if(val.profile.alias == $routeParams.alias)
+            $scope.isFollowing = val.subscribed;
+        return acc || (val.profile.alias == $routeParams.alias);
+    }, false)
+
     mlgApi.getMessage($routeParams.alias, "profile").then(function(profile) {
       console.log(profile)
 

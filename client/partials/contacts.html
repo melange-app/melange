@@ -48,7 +48,7 @@
   <form ng-submit="createContact()">
     <div class="form-group">
       <label for="contactAddress">Address</label>
-      <input id="contactAddress" type="text" class="form-control">
+      <input ng-model="newContactAddress" id="contactAddress" type="text" class="form-control">
       <p class="help-block">
         Remember, only enter addresses of users who also use Melange. This is
         not the same as an email address.
@@ -56,13 +56,13 @@
     </div>
     <div class="form-group">
       <label for="listParent">Add to List</label>
-      <select class="form-control">
+      <select ng-model="newContactList" class="form-control">
         <option>No List</option>
       </select>
     </div>
     <div class="checkbox">
       <label>
-        <input type="checkbox" checked> Follow
+        <input ng-model="newContactFollow" type="checkbox" checked> Follow
       </label>
       <p class="help-block">
         By following a contact, you will see his or her public updates in your
@@ -99,7 +99,7 @@
          ng-class="{active: $parent.selectedContact.id == contact.id}"
          ng-click="selectContact(contact)">
          <i class="fa fa-fw" ng-class="{ 'fa-star': contact.favorite }"></i>
-         {{ contact.name }}
+         {{ contact.name == "" ? contact.profile.name : contact.name }}
        </a>
     </div>
   </div>
@@ -118,6 +118,15 @@
       <div ng-switch="edit">
         <div ng-switch-when="true">
           <!-- Edit Controls -->
+          <div>
+            <a href="" ng-click="favorite(selectedContact)" class="btn btn-xs btn-primary">
+              <i class="fa" ng-class="{ 'fa-star': selectedContact.favorite, 'fa-star-o': !selectedContact.favorite }"></i>
+              {{ selectedContact.favorite ? 'Unfavorite' : 'Favorite' }}
+            </a>
+            <a href="" ng-click="subscribe(selectedContact)" class="btn btn-xs btn-success">
+              {{ selectedContact.subscribed ? 'Unfollow' : 'Follow' }}
+            </a>
+          </div>
           <div class="form-group">
             <input ng-model="selectedContact.name" class="form-control" placeholder="Full Name">
           </div>
@@ -129,17 +138,24 @@
             <input ng-model="identity.alias" class="form-control" placeholder="john@example.com">
           </div>
           <p class="text-muted">Changes will not be saved until you click save.</p>
+          <hr/>
+          <p><a class="text-danger" href="" ng-click="removeContact(selectedContact)">Remove from Contacts</a></p>
         </div>
         <div ng-switch-when="false">
           <!-- Display Controls -->
-          <h3 style="margin: 0 0 5px 0;">{{ selectedContact.name }}</h3>
-          <p class="text-muted">Family</p>
+          <h3 style="margin: 0 0 5px 0;">
+            <a href="#/user/{{ selectedContact.addresses[0].alias }}">
+              {{ selectedContact.name }}
+            </a>
+          </h3>
+          <p class="text-muted">
+            <i class="fa fa-star" ng-if="selectedContact.favorite"></i>
+            {{ selectedContact.subscribed ? 'Following' : '' }}
+          </p>
           <div class="clear"></div>
           <hr/>
           <h4>Identities</h4>
           <p class="text-muted" ng-repeat="identity in selectedContact.addresses">{{ identity.alias }} <small><a href="">copy</a></small></p>
-          <hr/>
-          <p><a class="text-danger" href="" ng-click="removeContact(selectedContact)">Remove from Contacts</a></p>
         </div>
       </div>
     </div>

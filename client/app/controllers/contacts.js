@@ -1,9 +1,5 @@
 'use strict';
 
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
-}
-
 (function() {/* Controllers */
   var melangeControllers = angular.module('melangeControllers');
 
@@ -36,7 +32,7 @@ function getRandomInt(min, max) {
           for(var k in $scope.contacts) {
             if($scope.contacts[k].id == editedContacts[i]) {
               mlgApi.updateContact($scope.contacts[k]);
-              break;
+                break;
             }
           }
         }
@@ -71,22 +67,15 @@ function getRandomInt(min, max) {
 
       $scope.createContact = function() {
           $scope.creatingContact = true;
-          $timeout(function() {
+
+          mlgApi.addContact({
+              alias: $scope.newContactAddress,
+              follow: $scope.newContactFollow,
+              list: $scope.newContactList,
+          }).then(function(data) {
               $scope.creatingContact = false;
               $scope.addContactDialog = false;
-          }, 500)
-      }
-
-      $scope.newContact = function() {
-        $scope.edit = true;
-        var newContact = {
-          id: getRandomInt(-10000000, 0),
-          addresses: [{
-              alias: "",
-          }],
-        };
-        $scope.contacts.push(newContact);
-        $scope.selectContact(newContact);
+          });
       }
 
         $scope.removeContact = function(contact) {
@@ -100,6 +89,7 @@ function getRandomInt(min, max) {
                     } else {
                         $scope.selectContact({});
                     }
+                    $scope.edit = false;
                 }
             })
         }
