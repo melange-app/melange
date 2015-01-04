@@ -29,6 +29,7 @@ test/
 test/*
 
 # Ignore Special Builds Paths
+build
 build/tmp
 server/server/server
 releases

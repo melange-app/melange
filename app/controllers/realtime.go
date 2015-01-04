@@ -42,6 +42,7 @@ func CreateRealtimeHandler(s *models.Store, t map[string]gdb.Table, suffix strin
 		Tables:       t,
 		Suffix:       suffix,
 		requestsLock: &sync.RWMutex{},
+		requests:     make(map[string]*linkRequest),
 	}
 }
 
@@ -165,9 +166,9 @@ func (r *RealtimeHandler) HandleWSRequest(t string, d interface{}) (string, inte
 		return "initDone", nil
 	} else if t == "uploadFile" {
 		return r.uploadFile(d)
-	} else if t == "startLink" {
-		return r.RequestLink(d)
 	} else if t == "requestLink" {
+		return r.RequestLink(d)
+	} else if t == "startLink" {
 		return r.StartLink(d)
 	} else if t == "acceptLink" {
 		return r.AcceptLink(d)

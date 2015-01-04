@@ -116,6 +116,10 @@ melangeApp.config(['$routeProvider',
         templateUrl: 'partials/setup/link.html',
         controller: 'SetupCtrl'
       })
+      .when('/setup/link/wait', {
+        templateUrl: 'partials/setup/link_wait.html',
+        controller: 'SetupCtrl'
+      })
       // New Account Routes
       .when('/setup/new', {
         templateUrl: 'partials/setup/new.html',

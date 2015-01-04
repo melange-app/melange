@@ -1,12 +1,41 @@
-<div class="text-center" style="padding: 20px; padding-top: 80px;">
-  <h1>Link an Existing Account</h1>
-  <br/>
-  <p>This looks like it is your first time launching Melange. Let's walk you through getting your account setup. Please select if you already have an account or not.<p>
-  <br/>
-  <p>
-    <a href="#setup/new" class="btn btn-lg btn-primary btn-space">New Account</a>
-    <a href="#setup/link" class="btn btn-lg btn-success btn-space">Link Existing Account</a>
-  </p>
-  <br/>
-  <p class="text-muted">or <a href="#">Start a Server</a></p>
+<div class="toolbar">
+  <p><a href="#setup" class="btn btn-danger"><i class="fa fa-arrow-left"></i> Back</a></p>
 </div>
+<h1>Link Account <small>Step 1 of 2</small></h1>
+
+<div class="container">
+  <p>
+    To begin, you need to go to a computer that has access to your current
+    account. Open Melange, and navigate to Settings. Then click the Identity
+    tab at the top of the screen.
+  </p>
+
+  <p>
+    Finally, click the identity that you wish to link, then click the
+    "Start Link" button. A screen will open that will inform you it is waiting
+    for a link initiation. Once that has occurred, enter your current address below.
+  </p>
+</div>
+
+<hr/>
+<form class="form">
+  <div class="row">
+    <div class="col-sm-6 col-sm-offset-3">
+      <div class="form-group">
+        <label for="address">Current Account Address</label>
+        <input type="text" 
+               id="address" 
+               ng-model="address" 
+               name="address" 
+               class="form-control">
+      </div>
+    </div>
+  </div>
+  <hr/>
+  <div class="form-actions text-right">
+    <a href="" ng-click="linkRequest()" class="btn btn-primary" ng-disabled="isLinking">
+      Continue
+      <i class="fa fa-arrow-right" ng-class="{'fa-arrow-right': !isLinking, 'fa-spin fa-circle-o-notch': isLinking}"></i>
+    </a>
+  </div>
+</form>

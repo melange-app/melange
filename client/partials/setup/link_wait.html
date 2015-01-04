@@ -1,0 +1,19 @@
+<div class="toolbar">
+  <p><a href="#setup/link" class="btn btn-danger"><i class="fa fa-arrow-left"></i> Back</a></p>
+</div>
+<h1>Link Account <small>Step 2 of 2</small></h1>
+<p>
+  Ensure that the numbers below match those on your other device, then confirm the
+  link request on that other device.
+</p>
+
+<div class="link-numbers text-center">
+    <span ng-repeat="c in linkCode track by $index">{{ c }}</span>
+</div>
+
+<div class="text-right">
+    <a href="#setup/link/wait" class="btn btn-primary" disabled>
+      Waiting on Confirmation
+      <i class="fa fa-circle-o-notch fa-spin"></i>
+    </a>
+</div>

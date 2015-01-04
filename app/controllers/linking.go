@@ -109,16 +109,18 @@ func (r *RealtimeHandler) RequestLink(d interface{}) (string, map[string]interfa
 		// This is probably related to the other side not being enabled in time...
 		fmt.Println("Error sending link request", err)
 		return "requestedLink", map[string]interface{}{
-			"erorr": err.Error(),
+			"error": err.Error(),
 		}
 	}
 
 	go func() {
 		ticker := time.NewTicker(10 * time.Second)
-		stop := time.After(5 * time.Minute)
+		stop := time.NewTimer(5 * time.Minute)
 		for {
 			select {
 			case <-ticker.C:
+				stop.Stop()
+
 				recvId, err := lc.LinkGetIdentity()
 				if err == nil {
 					// Great success!
@@ -146,7 +148,7 @@ func (r *RealtimeHandler) RequestLink(d interface{}) (string, map[string]interfa
 
 					modelId.Nickname = fmt.Sprintf(
 						"Imported %s",
-						time.Now().Format("3:14PM Jan 2, 2006"),
+						time.Now().Format("3:04PM Jan 2, 2006"),
 					)
 
 					// TODO: srv.Alias is likely to be the empty string
@@ -184,9 +186,10 @@ func (r *RealtimeHandler) RequestLink(d interface{}) (string, map[string]interfa
 						"type": "linkedIdentity",
 						"data": map[string]interface{}{},
 					}
+
 					return
 				}
-			case <-stop:
+			case <-stop.C:
 				fmt.Println("Timed out of Receive Identity")
 				ticker.Stop()
 
@@ -226,7 +229,7 @@ func (r *RealtimeHandler) StartLink(d interface{}) (string, map[string]interface
 	// Cast to map[string]interface{}
 	data, ok := d.(map[string]interface{})
 	if !ok {
-		return "linkRequested", map[string]interface{}{
+		return "startedLink", map[string]interface{}{
 			"error": "malformed request, requires map",
 		}
 	}
@@ -234,14 +237,14 @@ func (r *RealtimeHandler) StartLink(d interface{}) (string, map[string]interface
 	// Load the Correct Address
 	id, ok := data["fingerprint"]
 	if !ok {
-		return "linkRequested", map[string]interface{}{
+		return "startedLink", map[string]interface{}{
 			"error": "malformed request, requires fingerprint",
 		}
 	}
 
 	idStr, ok := id.(string)
 	if !ok {
-		return "linkRequested", map[string]interface{}{
+		return "startedLink", map[string]interface{}{
 			"error": "malformed request, fingerprint must be string",
 		}
 	}
@@ -249,7 +252,7 @@ func (r *RealtimeHandler) StartLink(d interface{}) (string, map[string]interface
 	modelId, err := r.getIdentityWithFingerprint(idStr)
 	if err != nil {
 		fmt.Println("Got error getting identity", err)
-		return "linkRequested", map[string]interface{}{
+		return "startedLink", map[string]interface{}{
 			"error": err.Error(),
 		}
 	}
@@ -258,7 +261,15 @@ func (r *RealtimeHandler) StartLink(d interface{}) (string, map[string]interface
 	client, err := DAPClientFromID(modelId, r.Store)
 	if err != nil {
 		fmt.Println("Got error getting DAP Client", err)
-		return "linkRequested", map[string]interface{}{
+		return "startedLink", map[string]interface{}{
+			"error": err.Error(),
+		}
+	}
+
+	err = client.EnableLink()
+	if err != nil {
+		fmt.Println("Got error enabling link", err)
+		return "startedLink", map[string]interface{}{
 			"error": err.Error(),
 		}
 	}
@@ -268,7 +279,7 @@ func (r *RealtimeHandler) StartLink(d interface{}) (string, map[string]interface
 		if err != nil {
 			fmt.Println("Got error waiting for request", err)
 			r.dataChan <- map[string]interface{}{
-				"type": "linkRequested",
+				"type": "startedLink",
 				"data": map[string]interface{}{
 					"error": err.Error(),
 				},
@@ -278,7 +289,7 @@ func (r *RealtimeHandler) StartLink(d interface{}) (string, map[string]interface
 		id := uuid.New()
 
 		r.dataChan <- map[string]interface{}{
-			"type": "linkRequested",
+			"type": "startedLink",
 			"data": map[string]interface{}{
 				"code": string(request.Verification),
 				"uuid": id,

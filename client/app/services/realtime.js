@@ -46,6 +46,8 @@
         $rootScope.$apply(function() {
           mlgCandyBar.stopCandy();
         });
+
+        return;
       }
 
       if(msg["type"] in subscribers) {
@@ -53,17 +55,23 @@
         var toRemove = [];
         for(var i in receivers) {
           try {
-            receivers[i].callback(msg["data"])
+            var r = receivers[i].callback(msg["data"]);
+
+            if (r === true) {
+                toRemove.push(i);
+            }
           } catch (err) {
-            console.log("Couldn't get to callback.")
+            console.log("Couldn't get to callback (" + i + ") for " + msg["type"] + ".");
             console.log(err)
-            toRemove.push(i)
+            console.log(subscribers);
+            toRemove.push(i);
           }
         }
 
         for (var i in toRemove) {
           delete receivers[toRemove[i]];
         }
+
         subscribers[msg["type"]] = receivers;
       } else {
         console.log("Got unknown message with type " + msg["type"])
@@ -107,6 +115,100 @@
       },
     }
   }]);
+
+    melangeServices.factory('mlgLink', ['mlgRealtime', '$q', function(mlgRealtime, $q) {
+        return {
+            enableLink: function(fp) {
+                var defer = $q.defer();
+
+                // startLink [fingerprint] -> startedLink (err) -> waitingForLinkRequest
+                mlgRealtime.subscribe("startedLink", function(msg) {
+                    if('error' in msg) {
+                        // This is an error message.
+                        defer.reject(msg["error"]);
+                        return true;
+                    }
+
+                    // Should include code (vc) and uuid
+                    defer.resolve(msg);
+
+                    return true;
+                });
+
+                mlgRealtime.subscribe("waitingForLinkRequest", function(msg) {
+                    // Literally, we do nothing here. This is just a successful
+                    // message return. Yay!                
+                    return true;
+                });
+
+                mlgRealtime.send("startLink", {
+                    fingerprint: fp,
+                });
+
+                return defer.promise;
+            },
+            linkRequest: function(address) {
+                var defer = $q.defer();
+
+                // requestLink [address] -> requestedLink (err?) -> linkVerification -> linkedIdentity (err?)
+                mlgRealtime.subscribe("requestedLink", function(msg) {
+                    if ("error" in msg) {
+                        defer.reject(msg["error"]);
+                    }
+
+                    return true;
+                });
+
+                mlgRealtime.subscribe("linkVerification", function(msg) {
+                    defer.notify(msg["code"]);
+                    
+                    mlgRealtime.subscribe("linkedIdentity", function(msg) {
+                        if ("error" in msg) {
+                            // Unable to complete linking
+                            defer.reject(msg["error"]);
+                            return true;
+                        }
+
+                        // We have successfully linked up.
+                        defer.resolve();
+
+                        return true;
+                    });
+
+                    return true;
+                });
+
+                mlgRealtime.send("requestLink", {
+                   address: address, 
+                });
+
+                return defer.promise;
+            },
+            code: "",
+            acceptRequest: function(uuid) {
+                var defer = $q.defer();
+
+                // acceptLink [uuid] -> acceptedLink
+                mlgRealtime.subscribe("acceptedLink", function(msg) {
+                    if ("error" in msg) {
+                        defer.reject(msg["error"]);
+                    } else {
+                        // Nothing to do here, we successfully got the 
+                        // identity and stored it in the database.
+                        defer.resolve();
+                    }
+
+                    return true;
+                });
+
+                mlgRealtime.send("acceptLink", {
+                    uuid: uuid,
+                });
+
+                return defer.promise;
+            },
+        }
+    }]);
 
   melangeServices.factory('mlgMessages', [function() {
     var messages = [];

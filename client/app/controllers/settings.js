@@ -5,8 +5,13 @@
   var melangeControllers = angular.module('melangeControllers');
 
 
-  melangeControllers.controller('SettingsCtrl', ['$scope', '$interval', '$sce', 'mlgApi', 'mlgIdentity', 'mlgHelper', '$rootScope',
-    function($scope, $interval, $sce, mlgApi, mlgIdentity, mlgHelper, $rootScope) {
+  melangeControllers.controller('SettingsCtrl', ['$scope', '$interval', '$sce', 'mlgApi', 'mlgIdentity', 'mlgHelper', '$rootScope', 'mlgLink',
+    function($scope, $interval, $sce, mlgApi, mlgIdentity, mlgHelper, $rootScope, mlgLink) {
+
+      // --------
+      // IDENTITY
+      // --------
+
       mlgIdentity.list().then(function(data) {
         $scope.identities = data;
       })
@@ -28,6 +33,57 @@
               });
       }
 
+      var linkError = function(msg) {
+          $scope.identityTemplate = "linkIdentityError";
+          $scope.linkIdentityMsg = msg;
+      }
+
+      $scope.enableLink = function() {
+          $scope.linkIdentityDialog = true;
+          $scope.identityTemplate = "linkIdentityWait";
+          // then change to "linkIdentityConfirm"
+
+          mlgLink.enableLink(
+              $scope.identities[$scope.selectedId].Fingerprint
+          ).then(
+              // Success.
+              function(msg) {
+                  $scope.identityTemplate= "linkIdentityConfirm";
+                  $scope.linkCode = msg.code;
+                  $scope.linkUUID = msg.uuid;
+              },
+              // Error
+              function(msg) {
+                  linkError("Enable: " + msg);
+                  console.log("Error enabling link: " + msg);
+              }
+          );
+      }
+
+      $scope.acceptRequest = function() {
+          $scope.linkIdentityDialog = false;
+
+          mlgLink.acceptRequest($scope.linkUUID).then(
+              // Success
+              function() {
+                  $scope.identityTemplate = "linkIdentitySuccess";
+              },
+              // Error
+              function(msg) {
+                  linkError("Accept: " + msg);
+                  console.log("Error accepting request: " + msg);
+              }
+          );
+      }
+
+      $scope.closeLinkModal = function() {
+          $scope.linkIdentityDialog = false;
+      }
+
+      // ----
+      // MISC
+      // ----
+
       $scope.closeRemoveModal = function() {
           $scope.showRemoveDialog = false;
       }
@@ -38,6 +94,10 @@
           clipboard.writeText(str);
         }
       }
+
+      // -------
+      // UPDATES
+      // -------
 
       $scope.working = false;
       $scope.updateStatus = "Check for Updates"
