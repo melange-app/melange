@@ -207,9 +207,10 @@ func (c *Client) DownloadMessages(since uint64, context bool) ([]*ResponseMessag
 	data, typ, head, err := c.decryptAndVerify(responseContainer, true)
 	if err != nil {
 		return nil, err
-	}
-	if typ != wire.ResponseCode {
-		return nil, errors.New("Unexpected message type.")
+	} else if adErr := c.checkForError(data, typ, head); adErr != nil {
+		return nil, adErr
+	} else if typ != wire.ResponseCode {
+		return nil, errors.New("Unexpected response type:" + typ + " expected " + wire.ResponseCode)
 	}
 
 	response, err := CreateResponseFromBytes(data, head)
@@ -232,9 +233,10 @@ func (c *Client) DownloadMessages(since uint64, context bool) ([]*ResponseMessag
 		data, typ, head, err := c.decryptAndVerify(responseContainer, true)
 		if err != nil {
 			return nil, err
-		}
-		if typ != wire.ResponseMessageCode {
-			return nil, errors.New("Unexpected message type.")
+		} else if adErr := c.checkForError(data, typ, head); adErr != nil {
+			return nil, adErr
+		} else if typ != wire.ResponseMessageCode {
+			return nil, errors.New("Unexpected response type:" + typ + " expected " + wire.ResponseMessageCode)
 		}
 
 		rspMsg, err := CreateResponseMessageFromBytes(data, head)

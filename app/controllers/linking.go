@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"time"
 
 	"airdispat.ch/identity"
@@ -142,7 +143,7 @@ func (r *RealtimeHandler) RequestLink(d interface{}) (string, map[string]interfa
 					modelId.ServerFingerprint = srv.String()
 					modelId.ServerKey = hex.EncodeToString(
 						crypto.RSAToBytes(
-							recvId.Address.EncryptionKey,
+							srv.EncryptionKey,
 						),
 					)
 
@@ -165,11 +166,21 @@ func (r *RealtimeHandler) RequestLink(d interface{}) (string, map[string]interfa
 						}
 					}
 
+					addrComponents := strings.Split(addr, "@")
+					location := ""
+					username := ""
+					if len(addrComponents) == 2 {
+						location = addrComponents[1]
+						username = addrComponents[0]
+					} else {
+						fmt.Println(addr, "isn't in the correct form for linking.")
+					}
+
 					_, err = r.Tables["alias"].Insert(
 						&models.Alias{
 							Identity: gdb.ForeignKey(modelId),
-							Location: "",
-							Username: "",
+							Location: location,
+							Username: username,
 						},
 					).Exec(r.Store)
 					if err != nil {
