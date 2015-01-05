@@ -53,7 +53,12 @@
       $scope.containerClass = function(page) {
         if (page === undefined) { return }
 
-        if (page.indexOf('/plugin') === 0 || page.indexOf('/settings') === 0) {
+        if (
+            page.indexOf('/plugin') === 0 ||
+            page.indexOf('/settings') === 0 ||
+            page.indexOf('/market') === 0 ||
+            page.indexOf('/contacts') === 0
+        ) {
           return ['main']
         }
 

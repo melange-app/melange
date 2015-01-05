@@ -78,8 +78,9 @@ app.on('ready', function() {
     "height": 600,
     "title": "Melange",
     "frame": false,
-    "min-width": 769,
-    "min-height": 600,
+    "min-width": 320,
+    // "min-width": 769,
+    "min-height": 500,
   });
   // and load the index.html of the app.
   if (!readyToLaunch) {
