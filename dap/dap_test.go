@@ -390,6 +390,11 @@ func (t *TestingDelegate) Unregister(addr string, keys map[string][]byte) error 
 	return nil
 }
 
+func (t *TestingDelegate) GetSentMessages(since uint64, owner string, context bool) ([]*ResponseMessage, error) {
+	panic("Shouldn't be calling GetSentMessages.")
+	return nil, nil
+}
+
 // Mock GetMessages
 func (t *TestingDelegate) GetMessages(since uint64, owner string, context bool) ([]*ResponseMessage, error) {
 	if owner != t.Scenario.Sender.Address.String() {

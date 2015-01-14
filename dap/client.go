@@ -178,11 +178,20 @@ func (c *Client) signAndEncryptMessage(msg message.Message, to ...*identity.Addr
 }
 
 // Download Messages from Server
+func (c *Client) DownloadSentMessages(since uint64, context bool) ([]*ResponseMessage, error) {
+	return c.downloadMessages(since, context, true)
+}
+
 func (c *Client) DownloadMessages(since uint64, context bool) ([]*ResponseMessage, error) {
+	return c.downloadMessages(since, context, false)
+}
+
+func (c *Client) downloadMessages(since uint64, context bool, sent bool) ([]*ResponseMessage, error) {
 	msg := &RawMessage{
 		Message: &wire.DownloadMessages{
 			Since:   &since,
 			Context: &context,
+			Sent:    &sent,
 		},
 		Code: wire.DownloadMessagesCode,
 		Head: c.createHeader(c.Server),
@@ -232,7 +241,12 @@ func (c *Client) DownloadMessages(since uint64, context bool) ([]*ResponseMessag
 
 		data, typ, head, err := c.decryptAndVerify(responseContainer, true)
 		if err != nil {
-			return nil, err
+			if sent {
+				fmt.Println("Downloaded a message that does not container sender decryption.")
+				continue
+			} else {
+				return nil, err
+			}
 		} else if adErr := c.checkForError(data, typ, head); adErr != nil {
 			return nil, adErr
 		} else if typ != wire.ResponseMessageCode {
@@ -251,7 +265,9 @@ func (c *Client) DownloadMessages(since uint64, context bool) ([]*ResponseMessag
 
 // Publish Message on Server
 func (c *Client) PublishMessage(enc *message.Mail, to []*identity.Address, name string, alert bool) (string, error) {
-	bytes, err := c.signAndEncrypt(enc, to...)
+	// Add the sender to the recipient list so that they can decrypt it
+	// later during downloading of messages.
+	bytes, err := c.signAndEncrypt(enc, append(to, c.Key.Address)...)
 	if err != nil {
 		return "", err
 	}

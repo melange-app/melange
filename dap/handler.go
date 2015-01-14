@@ -32,6 +32,8 @@ type Delegate interface {
 	GetMessages(since uint64, owner string, context bool) ([]*ResponseMessage, error)
 	PublishMessage(name string, to []string, author string, message *message.EncryptedMessage, alerted bool) error
 	UpdateMessage(name string, author string, message *message.EncryptedMessage) error
+	// Sent Messages
+	GetSentMessages(since uint64, owner string, context bool) ([]*ResponseMessage, error)
 	// AD Data
 	PublishDataMessage(name string, to []string, author string, message *message.EncryptedMessage, length uint64, r ReadVerifier) error
 	// Data
@@ -300,9 +302,22 @@ func (h *Handler) Unregister(r *wire.Unregister, head message.Header) ([]message
 
 // Return all Messages received after `since` in sequence.
 func (h *Handler) DownloadMessages(r *wire.DownloadMessages, head message.Header) ([]message.Message, error) {
-	responses, err := h.Delegate.GetMessages(r.GetSince(), head.From.String(), r.GetContext())
-	if err != nil {
-		return nil, err
+	var (
+		responses []*ResponseMessage
+		err       error
+	)
+
+	// If the 'GetSent' flag is set, then we want to retrieve all sent messages.
+	if r.GetSent() {
+		responses, err = h.Delegate.GetSentMessages(r.GetSince(), head.From.String(), r.GetContext())
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		responses, err = h.Delegate.GetMessages(r.GetSince(), head.From.String(), r.GetContext())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	out := make([]message.Message, len(responses))
