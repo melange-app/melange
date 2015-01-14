@@ -135,6 +135,25 @@ type Message struct {
 const QueryOutgoingNamed = "select * from " + TableNameMessage + " o where o.Owner = :owner and o.Name = :name and ((o.To like :recv and o.Type = 1) or (o.To = '' and o.Type = 0))"
 const QueryAnyNamed = "select * from " + TableNameMessage + " o where o.Owner = :owner and o.Name = :name"
 const QueryOutgoingPublic = "select * from " + TableNameMessage + " o where o.Owner = :owner and (o.To like :recv or o.To = '') and o.Received > :time and o.Type = 0"
+const QueryOutgoing = "select * from " + TableNameMessage + " o where o.Owner = :owner and (o.Type = 0 or o.Type = 1) and o.Received > :time"
+
+func (m *Server) GetOutgoingMessagesFor(since uint64, owner string) ([]*Message, error) {
+	user, err := m.UserForIdentity(owner)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*Message
+
+	// Create the Query
+	_, err = m.dbmap.Select(&results, QueryOutgoing,
+		map[string]interface{}{
+			"owner": user.Id,
+			"time":  since,
+		})
+
+	return results, err
+}
 
 func (m *Server) GetAnyMessageWithName(name string, owner string) (*Message, error) {
 	user, err := m.UserForIdentity(owner)

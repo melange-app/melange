@@ -20,6 +20,27 @@ import (
 	"github.com/mitchellh/goamz/s3"
 )
 
+// get sent messages from server
+func (m *Server) GetSentMessages(since uint64, owner string, context bool) ([]*dap.ResponseMessage, error) {
+	msg, err := m.GetOutgoingMessagesFor(since, owner)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]*dap.ResponseMessage, len(msg))
+	for i, v := range msg {
+		data, err := v.ToDispatch(owner)
+		if err != nil {
+			m.HandleError(createError("(GetSentMessages:DAP) Marshalling message", err))
+			continue
+		}
+
+		out[i] = dap.CreateResponseMessage(data, m.Key.Address, identity.CreateAddressFromString(v.To))
+	}
+
+	return out, nil
+}
+
 // New Name for DAP Handler
 func (m *Server) GetMessages(since uint64, owner string, context bool) ([]*dap.ResponseMessage, error) {
 	msg, err := m.GetIncomingMessagesSince(since, owner)
