@@ -242,7 +242,7 @@ func (c *Client) downloadMessages(since uint64, context bool, sent bool) ([]*Res
 		data, typ, head, err := c.decryptAndVerify(responseContainer, true)
 		if err != nil {
 			if sent {
-				fmt.Println("Downloaded a message that does not container sender decryption.")
+				fmt.Println("Downloaded a message that does not container sender decryption.", err)
 				continue
 			} else {
 				return nil, err
@@ -264,10 +264,30 @@ func (c *Client) downloadMessages(since uint64, context bool, sent bool) ([]*Res
 }
 
 // Publish Message on Server
-func (c *Client) PublishMessage(enc *message.Mail, to []*identity.Address, name string, alert bool) (string, error) {
+func (c *Client) PublishMessage(
+	enc *message.Mail,
+	to []*identity.Address,
+	name string,
+	alert bool,
+) (string, error) {
 	// Add the sender to the recipient list so that they can decrypt it
 	// later during downloading of messages.
-	bytes, err := c.signAndEncrypt(enc, append(to, c.Key.Address)...)
+	bytes, err := c.signAndEncryptMessage(enc, append(to, c.Key.Address)...)
+	if err != nil {
+		return "", err
+	}
+
+	return c.PublishEncryptedMessage(bytes, to, name, alert)
+}
+
+func (c *Client) PublishEncryptedMessage(
+	enc *message.EncryptedMessage,
+	to []*identity.Address,
+	name string,
+	alert bool,
+) (string, error) {
+	// Convert the encrypted message to bytes
+	bytes, err := enc.ToBytes()
 	if err != nil {
 		return "", err
 	}
