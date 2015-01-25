@@ -6,10 +6,13 @@
 
 package com.getmelange.melange;
 
-import go.Go;
-import go.melange.Melange;
+import com.getmelange.melange.MelangeService;
+
 import android.app.Activity;
 import android.os.Bundle;
+import android.content.Context;
+
+import android.content.Intent;
 
 import android.os.Build;
 import android.content.pm.ApplicationInfo;
@@ -21,6 +24,7 @@ import android.view.Menu;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebSettings;
+
 
 /*
  * MainActivity is the entry point for the melange app.
@@ -58,15 +62,8 @@ public class MainActivity extends Activity {
         setContentView(webContent);
 
         if (savedInstanceState == null) {
-            // Launch Golang Application Server
-            Go.init(getApplicationContext());
-            try {
-                Melange.Run(7776, getFilesDir().getAbsolutePath(), "0.1", "android");
-            } catch (Exception e) {
-                Log.e("Melange/Server", "Something terrible happened." + e.getMessage());
-            }
-
-            Log.d("Melange", "Melange Running...");
+            Intent intent = new Intent(this, MelangeService.class);
+            startService(intent);
 
             webContent.loadUrl("http://app.melange.127.0.0.1.xip.io:7776/Index.html#startup");
         } else {

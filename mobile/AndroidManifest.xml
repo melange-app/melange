@@ -29,6 +29,9 @@ license that can be found in the LICENSE file.
 	<application android:label="Melange"
                      android:debuggable="true"
                      android:icon="@drawable/ic_launcher">
+                <service android:name="com.getmelange.melange.MelangeService"
+                         android:exported="false">
+                </service>
 		<activity android:name="com.getmelange.melange.MainActivity"
 			android:label="Melange"
                         android:theme="@android:style/Theme.Holo.NoActionBar"
