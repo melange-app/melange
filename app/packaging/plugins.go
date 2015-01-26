@@ -382,7 +382,7 @@ func (p *Packager) AllPlugins() ([]Plugin, error) {
 		if _, err := os.Stat(filepath.Join(p.Plugin, v.Name(), "package.json")); err == nil && v.IsDir() {
 			packageJSON, err := os.Open(filepath.Join(p.Plugin, v.Name(), "package.json"))
 			if err != nil {
-				fmt.Println(err)
+				fmt.Println(v.Name(), "package.json file open error:", err)
 				continue
 			}
 
@@ -390,7 +390,7 @@ func (p *Packager) AllPlugins() ([]Plugin, error) {
 			decoder := json.NewDecoder(packageJSON)
 			err = decoder.Decode(&plugin)
 			if err != nil {
-				fmt.Println(err)
+				fmt.Println(v.Name(), "package.json parse error:", err)
 				continue
 			}
 
