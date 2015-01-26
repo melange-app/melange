@@ -8,6 +8,7 @@ import (
 	"getmelange.com/app/framework"
 	"getmelange.com/app/messages"
 	"getmelange.com/app/models"
+	"getmelange.com/app/packaging"
 	"getmelange.com/router"
 	gdb "github.com/huntaub/go-db"
 )
@@ -15,12 +16,13 @@ import (
 // Messages Controller will download messages from the server and subscribed
 // sources (with caching), and send them to the client in JSON.
 type Messages struct {
-	Store  *models.Store
-	Tables map[string]gdb.Table
+	Packager *packaging.Packager
+	Store    *models.Store
+	Tables   map[string]gdb.Table
 }
 
 func (m *Messages) retrieveMessages(self, public, received bool) ([]*models.JSONMessage, error) {
-	manager, err := constructManager(m.Store, m.Tables)
+	manager, err := constructManager(m.Store, m.Tables, m.Packager)
 	if err != nil {
 		return nil, err
 	}
@@ -280,8 +282,9 @@ func (m *UpdateMessage) Handle(req *http.Request) framework.View {
 // NewMessage will create and send a new message either with or without
 // an alert.
 type NewMessage struct {
-	Store  *models.Store
-	Tables map[string]gdb.Table
+	Store    *models.Store
+	Tables   map[string]gdb.Table
+	Packager *packaging.Packager
 }
 
 // Handle will publish the message on the server, then alert the other party.
@@ -293,7 +296,7 @@ func (m *NewMessage) Handle(req *http.Request) framework.View {
 		return framework.Error500
 	}
 
-	manager, err := constructManager(m.Store, m.Tables)
+	manager, err := constructManager(m.Store, m.Tables, m.Packager)
 	if err != nil {
 		fmt.Println("Error creating manager", err)
 		return framework.Error500

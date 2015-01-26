@@ -9,6 +9,7 @@ import (
 	"getmelange.com/app/framework"
 	"getmelange.com/app/messages"
 	"getmelange.com/app/models"
+	"getmelange.com/app/packaging"
 	"getmelange.com/dap"
 	"getmelange.com/router"
 
@@ -83,7 +84,11 @@ func DAPClientFromID(id *models.Identity, store *models.Store) (*dap.Client, err
 }
 
 // ConstructManager will use the Store and Tables to create a *models.MessageManager.
-func constructManager(store *models.Store, tables map[string]gdb.Table) (*messages.MessageManager, error) {
+func constructManager(
+	store *models.Store,
+	tables map[string]gdb.Table,
+	p *packaging.Packager,
+) (*messages.MessageManager, error) {
 	id, err := CurrentIdentityOrError(store, tables["identity"])
 	if err != nil {
 		return nil, errors.New("Couldn't get current Identity.")
@@ -107,6 +112,7 @@ func constructManager(store *models.Store, tables map[string]gdb.Table) (*messag
 		Client:   client,
 		Identity: id,
 		Router:   router,
+		Packager: p,
 	}, nil
 
 }

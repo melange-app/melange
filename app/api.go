@@ -40,23 +40,24 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if req.URL.Path == "/realtime" {
-		h := controllers.CreateRealtimeHandler(
-			r.Settings,
-			tables,
-			r.Suffix,
-		)
-
-		h.UpgradeConnection(res, req)
-		return
-	}
-
 	packager := &packaging.Packager{
 		API:    "http://www.getmelange.com/api",
 		Plugin: filepath.Join(r.DataDirectory, "plugins"),
 		Debug:  r.Debug,
 	}
 	packager.CreatePluginDirectory()
+
+	if req.URL.Path == "/realtime" {
+		h := controllers.CreateRealtimeHandler(
+			r.Settings,
+			tables,
+			packager,
+			r.Suffix,
+		)
+
+		h.UpgradeConnection(res, req)
+		return
+	}
 
 	version := r.Version
 	platform := r.Platform
@@ -150,8 +151,9 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 
 		// POST /messages
 		"/messages": &controllers.Messages{
-			Store:  r.Settings,
-			Tables: tables,
+			Store:    r.Settings,
+			Tables:   tables,
+			Packager: packager,
 		},
 		// POST /messages
 		"/messages/get": &controllers.GetMessage{
@@ -165,8 +167,9 @@ func (r *Server) HandleAPI(res http.ResponseWriter, req *http.Request) {
 		},
 		// POST /messages/new
 		"/messages/new": &controllers.NewMessage{
-			Store:  r.Settings,
-			Tables: tables,
+			Store:    r.Settings,
+			Tables:   tables,
+			Packager: packager,
 		},
 		// POST /messages/update
 		"/messages/update": &controllers.UpdateMessage{

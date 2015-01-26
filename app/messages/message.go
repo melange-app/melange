@@ -464,12 +464,19 @@ func (f *Fetcher) ForceFetch(since uint64) {
 	f.fetchPrivate(since)
 }
 
-func (f *Fetcher) LoadCredentials(c *dap.Client, r routing.Router, t map[string]gdb.Table, s gdb.Executor) {
+func (f *Fetcher) LoadCredentials(
+	c *dap.Client,
+	r routing.Router,
+	t map[string]gdb.Table,
+	s gdb.Executor,
+	p *packaging.Packager,
+) {
 	// f.Stop()
 	f.Client = c
 	f.Router = r
 	f.Tables = t
 	f.Store = s
+	f.Packager = p
 	go f.startFetch()
 }
 
@@ -510,6 +517,7 @@ type MessageManager struct {
 	Client   *dap.Client
 	Router   routing.Router
 	Identity *models.Identity
+	Packager *packaging.Packager
 }
 
 func (m *MessageManager) PublishMessage(msg *models.JSONMessage) error {
@@ -696,7 +704,7 @@ func (m *MessageManager) GetAllMessages(msgChan chan *models.JSONMessage) {
 
 func (m *MessageManager) forceFetch() {
 	fmt.Println("Loading Credentials")
-	majorFetcher.LoadCredentials(m.Client, m.Router, m.Tables, m.Store)
+	majorFetcher.LoadCredentials(m.Client, m.Router, m.Tables, m.Store, m.Packager)
 	fmt.Println("Forcing Fetch")
 	majorFetcher.ForceFetch(0)
 }

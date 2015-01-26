@@ -10,6 +10,7 @@ import (
 	"getmelange.com/app/framework"
 	"getmelange.com/app/messages"
 	"getmelange.com/app/models"
+	"getmelange.com/app/packaging"
 
 	"sync"
 
@@ -28,6 +29,8 @@ type RealtimeHandler struct {
 	Store  *models.Store
 	Tables map[string]gdb.Table
 
+	Packager *packaging.Packager
+
 	Suffix string
 
 	requests     map[string]*linkRequest
@@ -37,11 +40,17 @@ type RealtimeHandler struct {
 	dataChan    chan interface{}
 }
 
-func CreateRealtimeHandler(s *models.Store, t map[string]gdb.Table, suffix string) *RealtimeHandler {
+func CreateRealtimeHandler(
+	s *models.Store,
+	t map[string]gdb.Table,
+	p *packaging.Packager,
+	suffix string,
+) *RealtimeHandler {
 	return &RealtimeHandler{
 		Store:        s,
 		Tables:       t,
 		Suffix:       suffix,
+		Packager:     p,
 		requestsLock: &sync.RWMutex{},
 		requests:     make(map[string]*linkRequest),
 	}
@@ -156,7 +165,7 @@ func (r *RealtimeHandler) UpgradeConnection(res http.ResponseWriter, req *http.R
 func (r *RealtimeHandler) HandleWSRequest(t string, d interface{}) (string, interface{}) {
 	if t == "startup" {
 		// We need to send all current messages to the client. Initiate transfer.
-		m, err := constructManager(r.Store, r.Tables)
+		m, err := constructManager(r.Store, r.Tables, r.Packager)
 		if err != nil {
 			fmt.Println("Unable to construct WS Message Manager", err)
 			return "waitingForSetup", nil
