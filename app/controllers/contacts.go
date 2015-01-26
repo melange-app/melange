@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"getmelange.com/app/framework"
+	"getmelange.com/app/messages"
 	"getmelange.com/app/models"
 	"getmelange.com/router"
 
@@ -178,7 +179,7 @@ func (c *AddContact) Handle(req *http.Request) framework.View {
 		return frameErr
 	}
 
-	err = contact.LoadProfile(retriever.router, retriever.id)
+	err = messages.LoadContactProfile(retriever.router, contact, retriever.id)
 	if err != nil {
 		fmt.Println("Unable to load profile", err)
 		return framework.Error500
@@ -243,7 +244,7 @@ func (c *ListContacts) Handle(req *http.Request) framework.View {
 			continue
 		}
 
-		err = v.LoadProfile(retriever.router, retriever.id)
+		err = messages.LoadContactProfile(retriever.router, v, retriever.id)
 		if err != nil {
 			fmt.Println("Couldn't get profile, got error", err)
 		}

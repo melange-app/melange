@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"getmelange.com/app/framework"
+	"getmelange.com/app/messages"
 	"getmelange.com/app/models"
 
 	gdb "github.com/huntaub/go-db"
@@ -42,7 +43,7 @@ func (i *CurrentIdentity) Handle(req *http.Request) framework.View {
 			return framework.Error500
 		}
 
-		models.InvalidateCaches()
+		messages.InvalidateCaches()
 
 		return &framework.JSONView{
 			Content: map[string]interface{}{

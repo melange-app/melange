@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"getmelange.com/app/framework"
+	"getmelange.com/app/messages"
 	"getmelange.com/app/models"
 	"getmelange.com/router"
 	gdb "github.com/huntaub/go-db"
@@ -120,7 +121,7 @@ func (m *GetAllMessagesAt) Handle(req *http.Request) framework.View {
 		},
 	}
 
-	manager := &models.MessageManager{
+	manager := &messages.MessageManager{
 		Router:   router,
 		Client:   client,
 		Tables:   m.Tables,
@@ -176,7 +177,7 @@ func (m *GetMessage) Handle(req *http.Request) framework.View {
 		},
 	}
 
-	manager := &models.MessageManager{
+	manager := &messages.MessageManager{
 		Router:   router,
 		Client:   client,
 		Tables:   m.Tables,

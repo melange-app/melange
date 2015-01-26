@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"getmelange.com/app/framework"
+	"getmelange.com/app/messages"
 	"getmelange.com/app/models"
 
 	"sync"
@@ -76,7 +77,7 @@ func (r *RealtimeHandler) UpgradeConnection(res http.ResponseWriter, req *http.R
 	r.messageChan = make(chan *models.JSONMessage)
 
 	// Attach the websocket to the fetcher.
-	models.AddFetchWatcher(r.messageChan)
+	messages.AddFetchWatcher(r.messageChan)
 
 	go func(mes <-chan *models.JSONMessage, data <-chan interface{}, quit <-chan struct{}) {
 		for {

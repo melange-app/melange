@@ -67,16 +67,22 @@ func (p *Packager) DecodeStore() ([]*SimplePlugin, error) {
 }
 
 type Plugin struct {
-	Id          string              `json:"id"`
-	Name        string              `json:"name"`
-	Version     string              `json:"version"`
-	Description string              `json:"description"`
-	Permissions map[string][]string `json:"permissions"`
-	Author      Author              `json:"author"`
-	Homepage    string              `json:"homepage"`
-	HideSidebar bool                `json:"hideSidebar"`
-	Tiles       map[string]Tile     `json:"tiles"`
-	Viewers     map[string]Viewer   `json:"viewers"`
+	Id            string                   `json:"id"`
+	Name          string                   `json:"name"`
+	Version       string                   `json:"version"`
+	Description   string                   `json:"description"`
+	Permissions   map[string][]string      `json:"permissions"`
+	Notifications map[string]*Notification `json:"notifications"`
+	Author        Author                   `json:"author"`
+	Homepage      string                   `json:"homepage"`
+	HideSidebar   bool                     `json:"hideSidebar"`
+	Tiles         map[string]Tile          `json:"tiles"`
+	Viewers       map[string]Viewer        `json:"viewers"`
+}
+
+type Notification struct {
+	Title string `json:"title"`
+	Body  string `json:"body"`
 }
 
 type Viewer struct {
