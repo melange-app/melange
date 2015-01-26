@@ -380,17 +380,23 @@ func (f *Fetcher) fetchPrivate(since uint64) {
 		}
 
 		fetch := func() (*models.JSONMessage, error) {
-			return f.fetchSpecificMessage(desc.Name, h.From.String(), desc.Location, v.Context)
+			json, err := f.fetchSpecificMessage(desc.Name, h.From.String(), desc.Location, v.Context)
+			if err != nil {
+				fmt.Println(desc.Name, h.From.String(), desc.Location, v.Context)
+			}
+			return json, err
 		}
 		json, realErr := fetch()
 
 		if realErr == nil {
 			majorStore.AddMessage(json, fetch)
 
-			if f.Packager != nil {
+			// Only Display Notifications if we have the ability and if this is not a
+			// fetch from 0.
+			if f.Packager != nil && since > 0 {
 				msg, err := notifications.CheckMessageForNotification(f.Packager, json)
 				if err != nil {
-					fmt.Println("Error checking for message.", err)
+					fmt.Println("Notification Error:", err)
 				} else if msg != nil {
 					msg.Display()
 				}
