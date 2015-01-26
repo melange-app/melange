@@ -34,25 +34,16 @@ func CheckMessageForNotification(
 	for _, v := range plugs {
 		for key, n := range v.Notifications {
 			if _, ok := msg.Components[key]; ok {
-				t, err := template.New("notificationTemplate").Parse(n.Body)
+				body, err := getTemplate(msg, n.Body)
 				if err != nil {
 					return nil, err
 				}
 
-				b := &bytes.Buffer{}
-				if err := t.Funcs(map[string]interface{}{
-					"component": func(name string) string {
-						v, ok := msg.Components[name]
-						if !ok {
-							return ""
-						}
-						return v.String
-					},
-				}).Execute(b, nil); err != nil {
+				title, err := getTemplate(msg, n.Title)
+				if err != nil {
 					return nil, err
 				}
 
-				title := n.Title
 				if title == "" {
 					title = fmt.Sprintf(
 						"Notification From Melange: %s",
@@ -62,7 +53,7 @@ func CheckMessageForNotification(
 
 				return &activeNotification{
 					Title:            title,
-					Text:             string(b.Bytes()),
+					Text:             body,
 					Time:             time.Now(),
 					From:             msg.From,
 					generatingPlugin: v,
@@ -72,4 +63,34 @@ func CheckMessageForNotification(
 	}
 
 	return nil, nil
+}
+
+func getTemplate(msg *models.JSONMessage, temp string) (string, error) {
+	if temp == "" {
+		return "", nil
+	}
+
+	t, err := template.New("notificationTemplate").Funcs(
+		template.FuncMap{
+			"component": func(name string) string {
+				v, ok := msg.Components[name]
+				if !ok {
+					return ""
+				}
+				return v.String
+			},
+			"from": func() string {
+				return msg.From.Name
+			},
+		}).Parse(temp)
+	if err != nil {
+		return "", err
+	}
+
+	b := &bytes.Buffer{}
+	if err := t.Execute(b, nil); err != nil {
+		return "", err
+	}
+
+	return string(b.Bytes()), nil
 }
