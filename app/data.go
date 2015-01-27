@@ -14,6 +14,7 @@ import (
 
 	"getmelange.com/app/controllers"
 	"getmelange.com/app/framework"
+	"getmelange.com/app/messages"
 	"getmelange.com/app/models"
 	"getmelange.com/router"
 )
@@ -60,7 +61,7 @@ func (p *Server) HandleData(res http.ResponseWriter, req *http.Request) {
 	user := components[0]
 	name := strings.Join(components[1:], "/")
 
-	srv, auth, err := models.GetAddresses(r, &models.Address{
+	srv, auth, err := messages.GetAddresses(r, &models.Address{
 		Alias: user,
 	})
 	if err != nil {
