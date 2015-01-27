@@ -33,11 +33,11 @@ void createNotification(char* title, char* body, char* id) {
     // Get Java Strings
     jvalue jArgs[3];
     // Title
-    jArgs[0] = (*env)->NewStringUTF(env, title);
+    jArgs[0] = (jvalue) (*env)->NewStringUTF(env, title);
     // Body
-    jArgs[1] = (*env)->NewStringUTF(env, body);
+    jArgs[1] = (jvalue) (*env)->NewStringUTF(env, body);
     // ID
-    jArgs[2] = (*env)->NewStringUTF(env, id);
+    jArgs[2] = (jvalue) (*env)->NewStringUTF(env, id);
 
     (*env)->CallVoidMethodA(env, melange_service, mid, jArgs);
 }
