@@ -112,6 +112,10 @@ melangeApp.config(['$routeProvider',
         controller: 'SetupCtrl'
       })
       // Exisiting Account Routes
+      .when('/setup/link/error', {
+          templateUrl: 'partials/setup/linkError.html',
+          controller: 'SetupCtrl'
+      })
       .when('/setup/link', {
         templateUrl: 'partials/setup/link.html',
         controller: 'SetupCtrl'

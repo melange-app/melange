@@ -24,6 +24,9 @@
             // Error has code
             function(msg) {
                 console.log("Error requesting link: " + msg);
+                console.dir(msg);
+                $scope.linkError = msg;
+                $location.path("/setup/link/error");
             },
             function(code) {
                 mlgLink.code = code;
