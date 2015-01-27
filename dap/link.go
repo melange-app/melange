@@ -55,7 +55,7 @@ func (c *Client) EnableLink() error {
 // WaitForLinkRequeset will loop, querying the dispatcher
 // every 10 seconds for a LinkRequest. It will error out after 5 minutes.
 func (c *Client) WaitForLinkRequest() (*PendingLinkRequest, error) {
-	queryTicker := time.NewTicker(10 * time.Second)
+	queryTicker := time.NewTicker(5 * time.Second)
 	stopChannel := time.After(5 * time.Minute)
 
 	for {
@@ -309,5 +309,12 @@ func (l *LinkClient) LinkGetIdentity() (*identity.Identity, error) {
 		return nil, err
 	}
 
-	return identity.GobDecodeKey(bytes.NewBuffer(unmarsh.Identity))
+	id, err := identity.GobDecodeKey(bytes.NewBuffer(unmarsh.Identity))
+	if err != nil {
+		return nil, err
+	}
+
+	// Populate the new Identity with the correct alias
+	id.Address.Alias = header.Alias
+	return id, nil
 }

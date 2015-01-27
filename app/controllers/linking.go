@@ -115,7 +115,7 @@ func (r *RealtimeHandler) RequestLink(d interface{}) (string, map[string]interfa
 	}
 
 	go func() {
-		ticker := time.NewTicker(10 * time.Second)
+		ticker := time.NewTicker(5 * time.Second)
 		stop := time.NewTimer(5 * time.Minute)
 		for {
 			select {
@@ -153,6 +153,11 @@ func (r *RealtimeHandler) RequestLink(d interface{}) (string, map[string]interfa
 					)
 
 					// TODO: srv.Alias is likely to be the empty string
+					if srv.Alias == "" {
+						// Let's get the server alias!
+						fmt.Println("The linked server has no alias.")
+					}
+
 					modelId.ServerAlias = srv.Alias
 
 					_, err = r.Tables["identity"].Insert(modelId).Exec(r.Store)
