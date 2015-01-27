@@ -11,24 +11,7 @@ import "C"
 import (
 	"fmt"
 	"runtime"
-	"time"
-
-	"getmelange.com/app/packaging"
 )
-
-func init() {
-	go func() {
-		<-time.After(10 * time.Second)
-		fmt.Println("Displaying Notification")
-		(&activeNotification{
-			Title: "Hello, Go Notifications",
-			Text:  "Blah blah",
-			generatingPlugin: packaging.Plugin{
-				Id: "testPlugin",
-			},
-		}).Display()
-	}()
-}
 
 var notificationChannel = make(chan *activeNotification)
 
