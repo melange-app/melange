@@ -340,6 +340,7 @@ var mlgCleanup = function(msg) {
             defer.resolve(current);
           }
         }
+        defer.resolve(undefined);
       });
     };
     var getIdentities = function(callback) {

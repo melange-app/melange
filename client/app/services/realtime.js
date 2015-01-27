@@ -116,7 +116,7 @@
     }
   }]);
 
-    melangeServices.factory('mlgLink', ['mlgRealtime', '$q', function(mlgRealtime, $q) {
+    melangeServices.factory('mlgLink', ['mlgRealtime', 'mlgIdentity', '$q', function(mlgRealtime, mlgIdentity, $q) {
         return {
             enableLink: function(fp) {
                 var defer = $q.defer();
@@ -169,9 +169,33 @@
                             return true;
                         }
 
-                        // We have successfully linked up.
-                        defer.resolve();
+                        // We have successfully linked up. Set the current identity.
+                        mlgIdentity.refresh().then(function(data) {
+                            mlgIdentity.list().then(function(ids) {
+                                var currentId;
+                                for(var i in ids) {
+                                    if(ids[i].Fingerprint === msg["fingerprint"]) {
+                                        currentId = ids[i];
+                                        break;
+                                    }
+                                }
 
+                                if(currentId == undefined) {
+                                    defer.reject("Couldn't find the new identity.");
+                                }
+
+                                mlgIdentity.setCurrent(currentId).then(function(data) {
+                                    defer.resolve();
+                                }, function(err) {
+                                    defer.reject(err); 
+                                });  
+                            }, function(err) {
+                                defer.reject(err);
+                            });
+                        }, function(err) {
+                            defer.reject(err);
+                        });
+                        
                         return true;
                     });
 

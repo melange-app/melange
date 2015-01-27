@@ -200,7 +200,9 @@ func (r *RealtimeHandler) RequestLink(d interface{}) (string, map[string]interfa
 
 					r.dataChan <- map[string]interface{}{
 						"type": "linkedIdentity",
-						"data": map[string]interface{}{},
+						"data": map[string]interface{}{
+							"fingerprint": modelId.Fingerprint,
+						},
 					}
 
 					return
