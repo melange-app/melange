@@ -3,6 +3,7 @@ package messages
 import (
 	"errors"
 	"fmt"
+	"runtime"
 	"strings"
 	"time"
 
@@ -213,7 +214,11 @@ func translateProfile(
 
 		// This is an AirDispatch image.
 		if strings.Contains(avatar, "@") {
-			avatar = fmt.Sprintf("http://data.melange:7776/%s", avatar)
+			dataURL := "http://data.melange:7776"
+			if runtime.GOOS == "android" {
+				dataURL = "http://data.melange.127.0.0.1.xip.io:7776"
+			}
+			avatar = fmt.Sprintf("%s/%s", dataURL, avatar)
 		}
 
 		p := &models.JSONProfile{
