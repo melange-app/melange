@@ -16,6 +16,8 @@ import android.util.Log;
 import android.app.Notification;
 import android.app.NotificationManager;
 
+import java.lang.Thread;
+
 public class MelangeService extends Service {
     boolean isRunning = false;
     NotificationManager mNotificationManager;
@@ -40,6 +42,13 @@ public class MelangeService extends Service {
         // Launch Golang Application Server
         Go.init(getApplicationContext());
         try {
+            new Thread(new Runnable() {
+                    public void run() {
+                        loadNotificationManager();
+                        Log.d("MelangeService", "Finished with Notification Manager.");
+                    }
+                }).start();
+
             Melange.Run(7776, getFilesDir().getAbsolutePath(), "0.1", "android");
         } catch (Exception e) {
             Log.e("MelangeService", "Something terrible happened." + e.getMessage());
@@ -50,8 +59,7 @@ public class MelangeService extends Service {
         return Service.START_NOT_STICKY;
     }
 
-    protected void createNotification(String title, String body, String id) {
-        Log.d("MelangeService", "Creating Notification");
+    public void createNotification(String title, String body, String id) {
         Notification theNote = new Notification.Builder(getApplicationContext())
             .setContentTitle(title)
             .setContentText(body)
@@ -70,4 +78,6 @@ public class MelangeService extends Service {
         isRunning = false;
         Log.d("GoStdio", "Destroying Service");
     }
+
+    private native void loadNotificationManager();
 }
