@@ -56,6 +56,7 @@ public class MelangeService extends Service {
 
         Log.d("MelangeService", "Melange Running...");
 
+        // Perhaps we should start it sticky? Then it will always be running...
         return Service.START_NOT_STICKY;
     }
 
