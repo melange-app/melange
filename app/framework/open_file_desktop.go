@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 )
@@ -14,7 +15,7 @@ func GetFile(prefix string, request string) (*FileView, error) {
 	var path string
 
 	// Check if Prefix is Absolute, if not prepend the cwd
-	if !filepath.IsAbs(prefix) {
+	if !filepath.IsAbs(prefix) && runtime.GOARCH != "arm" {
 		path = os.Getenv("MLGBASE")
 	}
 
@@ -24,7 +25,10 @@ func GetFile(prefix string, request string) (*FileView, error) {
 	basePathPrefix := filepath.Join(path, filepath.FromSlash(prefix))
 	fname := filepath.Join(basePathPrefix, filepath.FromSlash(request))
 
+	fmt.Println("Opening File", fname)
+
 	if !strings.HasPrefix(fname, basePathPrefix) {
+		fmt.Println("File has incorrect prefix", basePathPrefix)
 		return nil, errNoFile
 	}
 
@@ -33,6 +37,7 @@ func GetFile(prefix string, request string) (*FileView, error) {
 	if err != nil {
 		// If the file isn't found, return a 404.
 		if os.IsNotExist(err) || err.(*os.PathError).Err == syscall.ENOTDIR {
+			fmt.Println("Got an error getting the file", err)
 			return nil, errNoFile
 		}
 		fmt.Println("Error checking file:", err)
@@ -41,6 +46,7 @@ func GetFile(prefix string, request string) (*FileView, error) {
 
 	// Check if it is a directory listing
 	if finfo.Mode().IsDir() {
+		fmt.Println("Turns out it's a directory!")
 		return nil, errNoFile
 	}
 

@@ -27,8 +27,9 @@ type Server struct {
 	Settings *models.Store
 
 	// Logging Information
-	DataDirectory string
-	Debug         bool
+	DataDirectory  string
+	AssetDirectory string
+	Debug          bool
 
 	// Melange Information
 	Platform       string

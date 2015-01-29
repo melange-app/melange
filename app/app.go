@@ -3,13 +3,15 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 
 	"getmelange.com/app/framework"
 )
 
 func (r *Server) HandleApp(res http.ResponseWriter, req *http.Request) {
 	// Serve Application Files
-	view := framework.ServeFile("client", req.URL.Path)
+	clientBase := filepath.Join(r.AssetDirectory, "client")
+	view := framework.ServeFile(clientBase, req.URL.Path)
 	framework.WriteView(&framework.CSPWrapper{
 		CSP: fmt.Sprintf("default-src 'self' %[1]s;"+
 			"img-src *;"+
