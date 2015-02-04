@@ -40,3 +40,5 @@ mobile/.idea
 desktop/shell
 mobile/android/assets
 mobile/ios/Melange.app
+*.keystore
+local.properties
