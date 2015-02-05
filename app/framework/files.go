@@ -2,6 +2,7 @@ package framework
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"mime"
 	"path/filepath"
@@ -15,8 +16,15 @@ type FileView struct {
 }
 
 func (f *FileView) Write(w io.Writer) {
-	io.Copy(w, f.File)
-	f.File.Close()
+	_, err := io.Copy(w, f.File)
+	if err != nil {
+		fmt.Println("Got an error copying the file", err)
+	}
+
+	err = f.File.Close()
+	if err != nil {
+		fmt.Println("Got an error closing file", err)
+	}
 }
 
 func (b *FileView) ContentLength() int {
@@ -44,6 +52,7 @@ func ServeFile(prefix string, request string) View {
 	if err == errNoFile {
 		return Error404
 	} else if err != nil {
+		fmt.Println("Unexpected Error Serving File", err)
 		return Error500
 	}
 
