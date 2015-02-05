@@ -22,4 +22,4 @@ ANDROID_APP=$PWD
 CGO_ENABLED=1 GOOS=android GOARCH=arm GOARM=7 \
 	go build -o="libmelange" -ldflags="-shared" .
 mv -f libmelange libs/armeabi-v7a/libgojni.so
-ant debug
+ant release

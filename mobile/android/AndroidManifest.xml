@@ -27,7 +27,6 @@ license that can be found in the LICENSE file.
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
 	<application android:label="Melange"
-                     android:debuggable="true"
                      android:icon="@drawable/ic_launcher">
                 <service android:name="com.getmelange.melange.MelangeService"
                          android:exported="false">

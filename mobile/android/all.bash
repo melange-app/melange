@@ -9,9 +9,7 @@ set -e
 
 # ./make.bash
 
-adb uninstall com.getmelange.melange
-
-adb install -r bin/Melange-debug.apk
+adb install -r bin/Melange-release.apk
 
 adb shell am start -a android.intent.action.MAIN \
 	-n com.getmelange.melange/com.getmelange.melange.MainActivity
