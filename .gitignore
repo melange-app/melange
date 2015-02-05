@@ -42,3 +42,7 @@ mobile/android/assets
 *.keystore
 local.properties
 mobile/ios/melange_app_backup.app
+embedded.mobileprovision
+Melange
+mobile/ios/Melange.app/_CodeSignature
+mobile/ios/Melange.app/Assets
