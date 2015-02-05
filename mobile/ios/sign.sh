@@ -1,6 +1,6 @@
 set -e
 
-if [ ! -f run.sh ] ; then
+if [ ! -f sign.sh ] ; then
     echo 'can only be run from getmelange.com/mobile/ios'
     exit 1
 fi
@@ -11,6 +11,9 @@ if [ -f Melange.app/Assets/client/ ] ; then
 fi
 
 cp -r ../../client Melange.app/Assets/
+
+lessc --clean-css Melange.app/Assets/client/css/melange.less > Melange.app/Assets/client/css/melange.css
+rm Melange.app/Assets/client/css/*.less
 
 if [ -f Melange.app/Assets/lib/ ] ; then
     rm -rf Melange.app/Assets/lib/

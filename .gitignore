@@ -33,7 +33,6 @@ build
 build/tmp
 server/server/server
 releases
-run.sh
 startup.sh
 mobile/assets
 mobile/.idea
