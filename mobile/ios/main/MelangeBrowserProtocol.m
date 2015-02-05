@@ -28,11 +28,13 @@
             host = @"common.melange";
         }
 
-        if([host isEqualToString:@"common.melange"]) {
+        NSString* path = [[r URL] path];
+        if([host isEqualToString:@"common.melange"] && [path hasSuffix:@".woff"]) {
             // Remove any ending extension...
+            path = [path substringToIndex:[path length] - [@".woff" length]];
         }
 
-        NSString *newURLString = [NSString stringWithFormat:@"%@://%@%@", [[r URL] scheme], @"localhost:7776", [[r URL] path]];
+        NSString *newURLString = [NSString stringWithFormat:@"%@://%@%@", [[r URL] scheme], @"localhost:7776", path];
         NSURL *newURL = [NSURL URLWithString:newURLString];
         [mutURL setURL:newURL];
         [mutURL setValue:host forHTTPHeaderField:@"Host"];
