@@ -25,7 +25,7 @@
     [webView  loadRequest:
                 [NSURLRequest requestWithURL:
                                 [NSURL URLWithString:
-                                    @"http://app.melange:7776/Index.html"]]];
+                                    @"http://app.melange:7776/Index.html#startup"]]];
     webView.delegate = self;
     [self createActivityIndicator];
 }
