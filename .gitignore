@@ -39,6 +39,6 @@ mobile/assets
 mobile/.idea
 desktop/shell
 mobile/android/assets
-mobile/ios/Melange.app
 *.keystore
 local.properties
+mobile/ios/melange_app_backup.app
