@@ -17,17 +17,29 @@
 
 + (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)r
 {
-    NSLog(@"Getting Canonical for: %@", [r URL]);
+    // NSLog(@"Getting Canonical for: %@", [r URL]);
     NSMutableURLRequest *mutURL = [r mutableCopy];
     
     // Check for Melange
     NSString *host =[[r URL] host];
-    if([host hasSuffix:@".melange"]) {
+    if([host hasSuffix:@".melange"] || [host isEqualToString:@"localhost"]) {
+        // We should set localhost requests to common...
+        if([host isEqualToString:@"localhost"]) {
+            host = @"common.melange";
+        }
+
+        if([host isEqualToString:@"common.melange"]) {
+            // Remove any ending extension...
+        }
+
         NSString *newURLString = [NSString stringWithFormat:@"%@://%@%@", [[r URL] scheme], @"localhost:7776", [[r URL] path]];
         NSURL *newURL = [NSURL URLWithString:newURLString];
         [mutURL setURL:newURL];
         [mutURL setValue:host forHTTPHeaderField:@"Host"];
-        NSLog(@"Changed %@ to %@", host, mutURL);
+        // NSLog(@"Changed %@ to %@", host, mutURL);
+    } else {
+        // We should probably change this to common
+        NSLog(@"No need to change: %@", [r URL]);
     }
     
     [NSURLProtocol setProperty:@YES forKey:@"MelangeHandled" inRequest:mutURL];
@@ -44,7 +56,7 @@
 
 - (void)startLoading
 {
-    NSLog(@"Start loading for %@", [[self.request URL] host]);
+    // NSLog(@"Start loading for %@", [[self.request URL] host]);
     self.connection = [NSURLConnection connectionWithRequest:self.request delegate:self];
 }
 
