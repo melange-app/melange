@@ -1,4 +1,4 @@
-//+build android
+//+build arm
 
 package router
 
