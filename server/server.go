@@ -48,6 +48,10 @@ func (m *Melange) Run(port int) error {
 		DataDirectory:  dataDir,
 		ControllerPort: os.Getenv("MLGPORT"),
 		Debug:          os.Getenv("MLGDEBUG") != "",
+
+		Version:     os.Getenv("MLGVERSION"),
+		Platform:    os.Getenv("MLGPLATFORM"),
+		AppLocation: os.Getenv("MLGAPP"),
 	}
 
 	fmt.Println("Starting up.")
