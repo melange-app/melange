@@ -388,10 +388,15 @@ var mlgCleanup = function(msg) {
         // Reload the view
         if(id.Current) { return }
 
-        for(var i in identities) {
-          identities[i].Current = false;
+        try {
+          for(var i in identities) {
+            identities[i].Current = false;
+          }
+          id.Current = true;
+        } catch(err) {
+          console.log("iOS 8 Safari Bug");
+          console.log(err);
         }
-        id.Current = true;
         angular.copy(id, current);
 
         return resource.setCurrent({

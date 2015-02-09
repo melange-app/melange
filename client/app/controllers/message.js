@@ -70,6 +70,12 @@
     sync();
     $scope.$on("mlgSyncApp", sync)
 
+    $scope.messageLimit = 50;
+    $scope.messageCounter = 0;
+    $scope.$watch("messageCounter", function(val) {
+        console.log("Updated Counter");
+        console.log(val);
+    });
   }]);
 
   melangeControllers.controller('ProfileCtrl', ['$scope', 'mlgApi',

@@ -34,10 +34,16 @@
 <div ng-show="loading" class="message-list-loading">
   <i class="fa fa-circle-o-notch fa-5x fa-spin"></i>
 </div>
-<div ng-show="newsfeed.length == 0 && !loading" class="text-center text-muted">
+<div ng-show="(newsfeed.length == 0 || messageCounter == 0) && !loading"
+     class="text-center text-muted">
   <h2>Your newsfeed is completely empty!</h2>
   <p><a href="#/contacts">Subscribe to some friends</a>, or receive some messages.</p>
 </div>
-<div ng-repeat="message in newsfeed">
-  <message data="message"></message>
+<div ng-repeat="message in newsfeed | limitTo: messageLimit">
+  <message data="message" counter="$parent.messageCounter"></message>
+</div>
+<div ng-if="newsfeed.length > messageLimit && (newsfeed.length > 0) && !loading">
+  <p>
+    <a href="" ng-click="$parent.messageLimit = $parent.messageLimit + 50">Read More...</a>
+  </p>
 </div>

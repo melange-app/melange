@@ -63,6 +63,7 @@ melangeDirectives.directive("message", ['mlgPlugins', function(mlgPlugins) {
     scope: {
       data: "=data",
       all: "=all",
+      showCounter: "=counter",
     },
     link: function(scope, elem, attrs) {
       var thePlugin = undefined;
@@ -91,10 +92,17 @@ melangeDirectives.directive("message", ['mlgPlugins', function(mlgPlugins) {
           scope.url = "http://" + v[0].id + melangePluginSuffix + "/" + v[0].viewers[v[1]].view;
           scope.hidden = v[0].viewers[v[1]].hidden;
 
+          if((scope.all || !scope.hidden) && scope.showCounter !== undefined) { 
+              scope.showCounter += 1;
+          }
+
           if(scope.hidden && scope.all) {
             scope.templateType = "default";
           }
         }, function() {
+          if(scope.showCounter !== undefined)
+              scope.showCounter += 1;
+
           if('airdispat.ch/profile/name' in scope.data.components) {
             scope.templateType = "profile";
             return
