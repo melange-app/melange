@@ -15,6 +15,11 @@
     $scope.isLinking = false;
     $scope.linkCode = mlgLink.code;
     $scope.linkRequest = function() {
+        if($scope.address == "") {
+            console.log("Cannot link without an address.");
+            return;
+        }
+
         $scope.isLinking = true;
         mlgLink.linkRequest($scope.address).then(
             // Success is a full linking of the identity.
@@ -33,6 +38,15 @@
                 $location.path("/setup/link/wait");
             }
         );
+    }
+
+    $scope.setServer = function() {
+        if($scope.profile.alias == "") {
+            console.log("Cannot continue without having an alias.")
+            return;
+        }
+
+        $location.path("/setup/confirm");
     }
 
     $scope.finish = function() {
