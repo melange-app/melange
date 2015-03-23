@@ -436,6 +436,20 @@ var mlgCleanup = function(msg) {
     };
   }]);
 
+  melangeServices.factory('mlgFlash', [function() {
+      var storage = {};
+      return {
+          put: function(name, data) {
+              storage[name] = data
+          },
+          get: function(name) {
+              var data = storage[name];
+              delete storage[name];
+              return data;
+          }
+      }
+  }])
+
 
   // MLG-API
   melangeServices.factory('mlgApi', ['$resource', '$q', '$timeout', 'mlgMessages', function($resource, $q, $timeout, mlgMessages) {

@@ -226,6 +226,11 @@
 
     // --- Plugin Communication
     var receivers = {
+      setViewerLink: function(origin, data, callback, obj) {
+        if(obj !== undefined) {
+            obj.callback("setViewerLink", data.link);
+        }
+      },
       viewerUpdate: function(origin, data, callback, obj) {
         // Melange is Loaded
         if(obj !== undefined) {
@@ -444,12 +449,13 @@
     var registeredPlugins = {};
 
     return {
-      registerPlugin: function(plugin, elem, type, context) {
+      registerPlugin: function(plugin, elem, type, context, callback) {
         if(registeredPlugins[plugin.id] === undefined) { registeredPlugins[plugin.id] = []; }
         registeredPlugins[plugin.id].push({
           element: elem,
           type: type,
           context: context,
+          callback: callback,
         })
       },
       unregisterPlugin: function(plugin, elem) {

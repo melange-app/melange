@@ -41,7 +41,8 @@
       </div>
       <ng-include src="templateType" onload="register()"></ng-include>
     </div>
-    <div class="panel-footer" ng-if="templateType == 'remote'">
+    <div class="panel-footer text-right" ng-if="templateType == 'remote'">
+      <p ng-if="link" class="pull-left"><small><a ng-click="link()" href="">See More</a></small></p>
       <p class="text-muted" style="margin: 0;"><small>viewed by <abbr title="{{ plugin.id }}">{{ plugin.name }}</abbr></small></p>
     </div>
   </div>

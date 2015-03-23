@@ -56,7 +56,7 @@ melangeDirectives.directive("modal", function() {
   }
 });
 
-melangeDirectives.directive("message", ['mlgPlugins', function(mlgPlugins) {
+melangeDirectives.directive("message", ['$location', 'mlgFlash', 'mlgPlugins', function($location, mlgFlash, mlgPlugins) {
   return {
     templateUrl: "partials/directives/messageViewer.html",
     restrict: "E",
@@ -77,7 +77,17 @@ melangeDirectives.directive("message", ['mlgPlugins', function(mlgPlugins) {
         var frame = $(elem).find("iframe");
         if(frame.length === 1) {
           theFrame = frame[0];
-          mlgPlugins.registerPlugin(thePlugin, theFrame, "viewer", scope.data);
+          mlgPlugins.registerPlugin(thePlugin, theFrame, "viewer", scope.data, function(typ, data) {
+              scope.$apply(function() {
+                  console.log("Handling", typ);
+                  if(typ == "setViewerLink") {
+                      scope.link = function() {
+                          mlgFlash.put("pluginLocation", data);
+                          $location.path("/plugin/" + scope.plugin.id + "/index.html");
+                      }
+                  }
+              });
+          });
         }
       }
 

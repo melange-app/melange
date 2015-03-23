@@ -3,10 +3,12 @@
 (function() {
   var melangeControllers = angular.module('melangeControllers');
 
-  melangeControllers.controller('PluginCtrl', ['$scope', '$routeParams',
-  function($scope, $routeParams) {
+  melangeControllers.controller('PluginCtrl', ['$scope', '$routeParams', 'mlgFlash',
+  function($scope, $routeParams, mlgFlash) {
     // Load the Plugin, boys!
-    $scope.pluginUrl = "http://" + $routeParams.pluginid + melangePluginSuffix + "/" + $routeParams.action;
+    var location = mlgFlash.get("pluginLocation");
+    if(location === undefined) { location = $routeParams.action; }
+    $scope.pluginUrl = "http://" + $routeParams.pluginid + melangePluginSuffix + "/" + location;
   }]);
 
   melangeControllers.controller('MarketCtrl', ['$scope', 'mlgPlugins',
