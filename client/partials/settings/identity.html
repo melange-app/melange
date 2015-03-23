@@ -141,11 +141,17 @@
         <h4>Profile</h4>
         <p>{{ identities[selectedId].profile }}</p>
         !-->
-        <h4>Aliases</h4>
-        <p class="text-muted"><small>Registered At: {{ identities[selectedId].Server }}</small></p>
+
+        <p class="text-muted"><small>My Server: {{ identities[selectedId].Server }}</small></p>
+
+        <h4>Addresses</h4>
+
         <!-- <p><a href="#">Add Alias</a></p> !-->
+
         <ul class="list-group">
-          <li class="list-group-item" ng-repeat="alias in identities[selectedId].aliases">{{ alias }}</li>
+          <li class="list-group-item" ng-repeat="alias in identities[selectedId].LoadedAliases">
+            {{ alias.Username }}<span ng-if="alias.Location">@{{ alias.Location}}</span>
+          </li>
         </ul>
         
         <p class="pull-right">

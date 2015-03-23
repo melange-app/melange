@@ -12,7 +12,7 @@ import (
 
 type RemoveIdentity struct {
 	Tables map[string]gdb.Table
-	Store *models.Store
+	Store  *models.Store
 }
 
 func (r *RemoveIdentity) Handle(req *http.Request) framework.View {
@@ -25,8 +25,8 @@ func (r *RemoveIdentity) Handle(req *http.Request) framework.View {
 
 	_, err = (&gdb.DeleteStatement{
 		Table: r.Tables["identity"].(*gdb.BasicTable).TableName,
-		Where: &gdb.NamedEquality {
-			Name: "fingerprint",
+		Where: &gdb.NamedEquality{
+			Name:  "fingerprint",
 			Value: request.Fingerprint,
 		},
 	}).Exec(r.Store)
@@ -36,8 +36,8 @@ func (r *RemoveIdentity) Handle(req *http.Request) framework.View {
 	}
 
 	fmt.Println("Removed the identity.", request.Fingerprint)
-	return &framework.JSONView {
-		Content: map[string]interface{} {
+	return &framework.JSONView{
+		Content: map[string]interface{}{
 			"error": false,
 		},
 	}
@@ -65,6 +65,13 @@ func (i *ListIdentity) Handle(req *http.Request) framework.View {
 	}
 
 	for _, v := range results {
+		aliases := make([]*models.Alias, 0)
+		err := i.Tables["alias"].Get().Where("identity", v.Id).All(i.Store, &aliases)
+		if err != nil {
+			fmt.Println("Error loading identity aliases", err)
+		}
+		v.LoadedAliases = aliases
+
 		if v.Fingerprint == fingerprint {
 			v.Current = true
 		}

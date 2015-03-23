@@ -16,18 +16,26 @@ type Identity struct {
 	Id          gdb.PrimaryKey `json:"-"`
 	Nickname    string
 	Fingerprint string
+
 	// Server Information and Tacking
 	Server            string
 	ServerKey         string
 	ServerFingerprint string
 	ServerAlias       string
+
 	// Actual Data
 	Data []byte `json:"-"`
+
 	// Password Protection
 	Protected bool
-	Aliases   *gdb.HasMany `table:"alias" on:"identity"`
+
+	// Alias Support
+	Aliases       *gdb.HasMany `table:"alias" on:"identity" json:"-"`
+	LoadedAliases []*Alias     `db:"-"`
+
 	// Profile
 	Profile *gdb.HasOne `table:"profile"`
+
 	// Transcendence
 	Current bool `db:"-"`
 }
@@ -105,8 +113,8 @@ func (id *Identity) CreateServerFromIdentity() (*identity.Address, error) {
 
 // Alias represent a registered Identity
 type Alias struct {
-	Id       gdb.PrimaryKey
-	Identity *gdb.HasOne `table:"identity"`
+	Id       gdb.PrimaryKey `json:"-"`
+	Identity *gdb.HasOne    `json:"-"`
 	Location string
 	Username string
 }
