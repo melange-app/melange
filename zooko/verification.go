@@ -33,7 +33,7 @@ func ruleError(errorType int, msg string) *verificationError {
 	}
 }
 
-func verifyMerkleBranch(m wire.MerkleBranch, root *wire.ShaHash, check *wire.ShaHash) (*wire.ShaHash, error) {
+func VerifyMerkleBranch(m wire.MerkleBranch, root *wire.ShaHash, check *wire.ShaHash) (*wire.ShaHash, error) {
 	var working *wire.ShaHash = new(wire.ShaHash)
 	*working = *check
 	for i, v := range m.BranchHash {
@@ -138,7 +138,7 @@ func verifiyBlockHeader(previous *wire.BlockHeader, current *wire.BlockHeader) e
 			return err
 		}
 
-		_, err = verifyMerkleBranch(
+		_, err = VerifyMerkleBranch(
 			current.AuxPowHeader.CoinbaseBranch,
 			&current.AuxPowHeader.ParentBlock.MerkleRoot,
 			&coinbaseSha,
@@ -156,7 +156,7 @@ func verifiyBlockHeader(previous *wire.BlockHeader, current *wire.BlockHeader) e
 			return err
 		}
 
-		cbRoot, _ := verifyMerkleBranch(
+		cbRoot, _ := VerifyMerkleBranch(
 			current.AuxPowHeader.BlockchainBranch,
 			nil,
 			&currentSha,
@@ -182,7 +182,7 @@ func verifiyBlockHeader(previous *wire.BlockHeader, current *wire.BlockHeader) e
 			fmt.Println("Merkle Nonce:", mm.MerkleNonce)
 			fmt.Println("Merkle Block Hash", mm.BlockHash.String())
 
-			if _, err := verifyMerkleBranch(
+			if _, err := VerifyMerkleBranch(
 				current.AuxPowHeader.BlockchainBranch,
 				&mm.BlockHash,
 				&currentSha,
