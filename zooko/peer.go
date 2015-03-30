@@ -73,10 +73,11 @@ func sendVersion(conn net.Conn) error {
 }
 
 type peer struct {
-	conn         net.Conn
-	writeChan    chan wire.Message
-	connected    bool
-	chainManager *blockchainManager
+	conn              net.Conn
+	writeChan         chan wire.Message
+	loadedHeadersChan chan struct{}
+	connected         bool
+	chainManager      *blockchainManager
 }
 
 func newPeer(id string, b *blockchainManager) (*peer, error) {
@@ -86,10 +87,11 @@ func newPeer(id string, b *blockchainManager) (*peer, error) {
 	}
 
 	p := &peer{
-		conn:         conn,
-		writeChan:    make(chan wire.Message),
-		connected:    true,
-		chainManager: b,
+		conn:              conn,
+		writeChan:         make(chan wire.Message),
+		loadedHeadersChan: make(chan struct{}),
+		connected:         true,
+		chainManager:      b,
 	}
 
 	go p.readLoop()

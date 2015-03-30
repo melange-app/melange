@@ -2,7 +2,6 @@ package zooko
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/melange-app/nmcd/wire"
 )
@@ -17,12 +16,11 @@ func (p *peer) loadHeaders() error {
 		lastHeight := int32(0)
 
 		for {
+			<-p.loadedHeadersChan
+
 			if !p.connected {
 				return
 			}
-
-			// Hack hack hack
-			time.Sleep(1 * time.Second)
 
 			blck, height := p.chainManager.TopHeader()
 
@@ -87,4 +85,6 @@ func (p *peer) handleMsgHeaders(w *wire.MsgHeaders) {
 		previousBlock = current
 	}
 	p.chainManager.AddHeader(w.Headers...)
+
+	p.loadedHeadersChan <- struct{}{}
 }

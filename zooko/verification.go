@@ -162,8 +162,6 @@ func verifiyBlockHeader(previous *wire.BlockHeader, current *wire.BlockHeader) e
 			&currentSha,
 		)
 
-		fmt.Println("CBRoot", cbRoot.String())
-
 		coinbase := current.AuxPowHeader.CoinbaseTx.TxIn[0]
 		mm, err := readMergedMiningTransaction(coinbase, &currentSha, cbRoot)
 		if err != nil {
@@ -179,9 +177,6 @@ func verifiyBlockHeader(previous *wire.BlockHeader, current *wire.BlockHeader) e
 				)
 			}
 		} else {
-			fmt.Println("Merkle Nonce:", mm.MerkleNonce)
-			fmt.Println("Merkle Block Hash", mm.BlockHash.String())
-
 			if _, err := VerifyMerkleBranch(
 				current.AuxPowHeader.BlockchainBranch,
 				&mm.BlockHash,
@@ -218,26 +213,20 @@ func readMergedMiningTransaction(t *wire.TxIn, blockHash *wire.ShaHash, rootMerk
 	idx := bytes.Index(script, mergedMiningMagicBytes)
 
 	if idx == -1 {
-		// fmt.Printf("Couldn't find magic bytes in %x\n", script)
-
 		blockBytes, _ := hex.DecodeString(blockHash.String())
 		idx = bytes.Index(script, blockBytes)
 
 		if idx == -1 {
-			fmt.Printf("or block hash (%x)...\n", blockBytes)
 			blockBytes, _ := hex.DecodeString(rootMerkleHash.String())
 			idx = bytes.Index(script, blockBytes)
 
 			if idx == -1 {
-				fmt.Printf("or merkle hash (%x)...\n", blockBytes)
 				return nil, errors.New("Couldn't find the magic bytes in the signature script.")
 			}
 
 		}
 
 		idx = idx - len(mergedMiningMagicBytes)
-	} else {
-		fmt.Printf("Found magic bytes in %x\n", script)
 	}
 
 	data := script[idx+len(mergedMiningMagicBytes):]

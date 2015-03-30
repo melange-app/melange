@@ -6,6 +6,8 @@ import (
 	"github.com/melange-app/nmcd/wire"
 )
 
+// This was shamelessly stolen from conformal's btcd client.
+
 var (
 	// bigOne is 1 represented as a big.Int. It is defined here to avoid
 	// the overhead of creating it multiple times.

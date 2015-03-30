@@ -9,7 +9,7 @@ import (
 )
 
 type blockHeader struct {
-	// We can through out all the auxiliary data once
+	// We can throw out all the auxiliary data once
 	// we have verified the block and put it in the chain.
 	MerkleRoot wire.ShaHash
 	Timestamp  time.Time
@@ -18,101 +18,99 @@ type blockHeader struct {
 	// *wire.BlockHeader
 
 	Previous *blockHeader
-	Next     *blockHeader
+	IsBottom bool
 }
 
 type chainBase struct {
 	wire.ShaHash
 	Height int
-	Next   *blockHeader
 }
 
 type blockchain struct {
 	Base *chainBase
 	Top  *blockHeader
 
-	Direct map[string]*blockHeader
+	Direct   map[string]*blockHeader
+	Orphaned map[string]*blockHeader
+
+	SyncedTime time.Time
 
 	Height int
 }
 
+func (b *blockchain) createChainHeader(h *wire.BlockHeader) (*blockHeader, error) {
+	hash, err := h.BlockSha()
+	return &blockHeader{
+		MerkleRoot: h.MerkleRoot,
+		Timestamp:  h.Timestamp,
+		Hash:       hash,
+	}, err
+}
+
 // will only accept headers if they are the "next in the chain"
 func (b *blockchain) addHeader(h *wire.BlockHeader) error {
-	hash, err := h.BlockSha()
+	block, err := b.createChainHeader(h)
 	if err != nil {
 		return err
 	}
 
-	if _, ok := b.Direct[hash.String()]; ok {
+	if _, ok := b.Direct[block.Hash.String()]; ok {
 		return errors.New("We already have this block...")
 	}
 
+	// Add the direct block mapping.
+	b.Direct[block.Hash.String()] = block
+
 	// Is the PreviousBlock Hash already in the Chain?
 	if check, ok := b.Direct[h.PrevBlock.String()]; ok {
-		if check != b.Top {
-			// Since this block is not already in the chain and it isn't
-			// appending, then we have some sort of fork.
-			return fmt.Errorf(
-				"Rejecting Block Header (%s) because of fork at (%d)",
-				hash.String()[:20],
-				check.Height,
-			)
-		}
-	} else if b.Top == nil {
-		// This block could be at the top
-		if !b.Base.IsEqual(&h.PrevBlock) {
-			return fmt.Errorf(
-				"PrevBlcok Hash (%s) does not match top of chain (%s).",
-				h.PrevBlock.String()[:20],
-				b.Base.String()[:20],
-			)
+		block.Height = check.Height + 1
+		block.Previous = check
+
+		if block.Height > b.Height {
+			b.Top = block
+			b.Height = block.Height
+			fmt.Println("ACCEPTED New Top Header", block.Hash.String()[:20], "at height", block.Height)
+		} else {
+			fmt.Println("ACCEPTED Orphaned Header", block.Hash.String()[:20], "at height", block.Height)
 		}
 
-	}
+		if b.SyncedTime.Before(h.Timestamp) {
+			b.SyncedTime = h.Timestamp
+		}
+	} else if b.Top == nil && b.Base.IsEqual(&h.PrevBlock) {
+		// This block is at the top of the chain.
+		block.IsBottom = true
+		block.Height = b.Base.Height + 1
 
-	// Create the Header
-	hdr := &blockHeader{
-		MerkleRoot: h.MerkleRoot,
-		Timestamp:  h.Timestamp,
-		Hash:       hash,
-		Height:     b.Height + b.Base.Height + 1,
-	}
-	b.Direct[hash.String()] = hdr
+		b.Height = block.Height
+		b.Top = block
 
-	if b.Top == nil {
-		// We just add this directly to the chain base.
-		b.Base.Next = hdr
-		b.Top = hdr
+		b.SyncedTime = h.Timestamp
+		fmt.Println("ACCEPTED Base Header", block.Hash.String()[:20], "at height", block.Height)
 	} else {
-		// We will add on to the the top of the chain
-		b.Top.Next = hdr
-		hdr.Previous = b.Top
-		b.Top = hdr
+		// This block is orphaned
+		b.Orphaned[block.Hash.String()] = block
+		fmt.Println("ACCEPTED Orphaned Header", block.Hash.String()[:20], "at height", block.Height)
 	}
-	b.Height++
-
-	fmt.Println("ACCEPTED Header", hash.String()[:20], "at height", b.height())
 
 	return nil
 }
 
-func (b *blockchain) height() int32 {
-	return int32(b.Height) + int32(b.Base.Height)
-}
-
 type blockchainManager struct {
 	acceptChannel chan interface{}
-	chain         *blockchain
+
+	chain *blockchain
 }
 
 func (b *blockchainManager) TopHeader() (*blockHeader, int32) {
-	return b.chain.Top, b.chain.height()
+	return b.chain.Top, int32(b.chain.Height)
 }
 
 func CreateBlockchainManager() *blockchainManager {
 	b := &blockchainManager{
 		acceptChannel: make(chan interface{}),
 		chain: &blockchain{
+			Height: TopResolverHeight,
 			Base: &chainBase{
 				ShaHash: *ResolverLocatorHashes[0],
 				Height:  TopResolverHeight,
