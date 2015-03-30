@@ -20,24 +20,3 @@ func shaHashFromString(str string) *wire.ShaHash {
 }
 
 var nonce uint64
-var quitChan = make(chan bool)
-
-// ConnectToNetwork will attempt to connect to the bootstrapping peers.
-func ConnectToNetwork() error {
-	chainMananger := CreateBlockchainManager()
-
-	for _, v := range BootstrapNodes {
-		p, err := newPeer(v, chainMananger)
-		if err != nil {
-			fmt.Println("Got error connecting to peer", err)
-		}
-
-		if err = p.loadHeaders(); err != nil {
-			fmt.Println("Got error getting headers", err)
-		}
-	}
-
-	fmt.Println("Waiting to Quit")
-	<-quitChan
-	return nil
-}

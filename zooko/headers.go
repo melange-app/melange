@@ -27,6 +27,7 @@ func (p *peer) loadHeaders() error {
 			if lastHeight == height {
 				// We are no longer receiving new headers. We can stop loading.
 				fmt.Println("Synchronization complete.")
+				p.loadedHeadersChan = nil
 				return
 			}
 
@@ -86,5 +87,7 @@ func (p *peer) handleMsgHeaders(w *wire.MsgHeaders) {
 	}
 	p.chainManager.AddHeader(w.Headers...)
 
-	p.loadedHeadersChan <- struct{}{}
+	if p.loadedHeadersChan != nil {
+		p.loadedHeadersChan <- struct{}{}
+	}
 }

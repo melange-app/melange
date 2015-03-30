@@ -69,9 +69,9 @@ func (b *blockchain) addHeader(h *wire.BlockHeader) error {
 		if block.Height > b.Height {
 			b.Top = block
 			b.Height = block.Height
-			fmt.Println("ACCEPTED New Top Header", block.Hash.String()[:20], "at height", block.Height)
+			// fmt.Println("ACCEPTED New Top Header", block.Hash.String()[:20], "at height", block.Height)
 		} else {
-			fmt.Println("ACCEPTED Orphaned Header", block.Hash.String()[:20], "at height", block.Height)
+			// fmt.Println("ACCEPTED Orphaned Header", block.Hash.String()[:20], "at height", block.Height)
 		}
 
 		if b.SyncedTime.Before(h.Timestamp) {
@@ -86,11 +86,11 @@ func (b *blockchain) addHeader(h *wire.BlockHeader) error {
 		b.Top = block
 
 		b.SyncedTime = h.Timestamp
-		fmt.Println("ACCEPTED Base Header", block.Hash.String()[:20], "at height", block.Height)
+		// fmt.Println("ACCEPTED Base Header", block.Hash.String()[:20], "at height", block.Height)
 	} else {
 		// This block is orphaned
 		b.Orphaned[block.Hash.String()] = block
-		fmt.Println("ACCEPTED Orphaned Header", block.Hash.String()[:20], "at height", block.Height)
+		// fmt.Println("ACCEPTED Orphaned Header", block.Hash.String()[:20], "at height", block.Height)
 	}
 
 	return nil
