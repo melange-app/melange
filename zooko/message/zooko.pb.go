@@ -2,7 +2,7 @@
 // source: source/zooko.proto
 // DO NOT EDIT!
 
-package server
+package message
 
 import proto "code.google.com/p/goprotobuf/proto"
 import json "encoding/json"

@@ -1,4 +1,4 @@
-package server;
+package message;
 
 message Transaction {
     required string id                  = 1;

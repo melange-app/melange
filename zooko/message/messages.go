@@ -1,4 +1,4 @@
-package server
+package message
 
 import (
 	"airdispat.ch/message"
@@ -12,18 +12,18 @@ const (
 
 type LookupNameMessage struct {
 	Name string
-	h    message.Header
+	H    message.Header
 }
 
 func CreateLookupNameMessageFromBytes(by []byte, h message.Header) *LookupNameMessage {
 	return &LookupNameMessage{
 		Name: string(by),
-		h:    h,
+		H:    h,
 	}
 }
 
 func (l *LookupNameMessage) Type() string           { return LookupNameCode }
-func (l *LookupNameMessage) Header() message.Header { return l.h }
+func (l *LookupNameMessage) Header() message.Header { return l.H }
 
 func (l *LookupNameMessage) ToBytes() []byte {
 	return []byte(l.Name)
@@ -41,7 +41,7 @@ type NamecoinTransaction struct {
 type ResolvedNameMessage struct {
 	Transactions []NamecoinTransaction
 	Found        bool
-	h            message.Header
+	H            message.Header
 }
 
 func CreateResolvedNameMessageFromBytes(by []byte, h message.Header) (*ResolvedNameMessage, error) {
@@ -71,12 +71,12 @@ func CreateResolvedNameMessageFromBytes(by []byte, h message.Header) (*ResolvedN
 	return &ResolvedNameMessage{
 		Found:        *newMsg.Found,
 		Transactions: intx,
-		h:            h,
+		H:            h,
 	}, nil
 }
 
 func (r *ResolvedNameMessage) Type() string           { return ResolvedNameCode }
-func (r *ResolvedNameMessage) Header() message.Header { return r.h }
+func (r *ResolvedNameMessage) Header() message.Header { return r.H }
 
 func (r *ResolvedNameMessage) ToBytes() []byte {
 	var outtx []*Transaction

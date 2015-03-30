@@ -12,6 +12,7 @@ import (
 	"airdispat.ch/message"
 	"airdispat.ch/routing"
 
+	zmessage "getmelange.com/zooko/message"
 	"github.com/melange-app/nmcd/btcjson"
 )
 
@@ -111,13 +112,14 @@ func (s *ZookoServer) handleClient(conn net.Conn) {
 			return
 		}
 
-		if mesType != LookupNameCode {
+		if mesType != zmessage.LookupNameCode {
 			adErrors.CreateError(adErrors.UnexpectedError, "Incorrect message type.", s.Key.Address).Send(s.Key, conn)
 			return
 		}
 
 		returnMessage, err := s.handleLookup(data, h)
 		if err != nil {
+			s.handleError("Looking up request", err)
 			adErrors.CreateError(adErrors.UnexpectedError, "Unable to handle your lookup request.", s.Key.Address).Send(s.Key, conn)
 			return
 		}
@@ -129,6 +131,7 @@ func (s *ZookoServer) handleClient(conn net.Conn) {
 				adErrors.CreateError(adErrors.UnexpectedError, "No router to lookup your address. Must provide return information.", s.Key.Address).Send(s.Key, conn)
 				return
 			}
+
 			if h.From.Alias != "" {
 				// Lookup by Alias
 				returnAddress, err = s.Router.LookupAlias(h.From.Alias, routing.LookupTypeDEFAULT)
@@ -156,17 +159,17 @@ func (s *ZookoServer) handleClient(conn net.Conn) {
 }
 
 func (r *ZookoServer) handleLookup(data []byte, h message.Header) (message.Message, error) {
-	ln := CreateLookupNameMessageFromBytes(data, h)
+	ln := zmessage.CreateLookupNameMessageFromBytes(data, h)
 
 	tnList, err := r.CreateTransactionListForName(ln.Name, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return &ResolvedNameMessage{
+	return &zmessage.ResolvedNameMessage{
 		Transactions: tnList,
 		Found:        len(tnList) != 0,
-		h:            message.CreateHeader(r.Key.Address, h.From),
+		H:            message.CreateHeader(r.Key.Address, h.From),
 	}, nil
 }
 

@@ -6,11 +6,12 @@ import (
 	"fmt"
 
 	"getmelange.com/zooko"
+	"getmelange.com/zooko/message"
 	"github.com/melange-app/nmcd/btcjson"
 	"github.com/melange-app/nmcd/wire"
 )
 
-func (server *ZookoServer) CreateTransactionListForName(name string, excludeExpired bool) ([]NamecoinTransaction, error) {
+func (server *ZookoServer) CreateTransactionListForName(name string, excludeExpired bool) ([]message.NamecoinTransaction, error) {
 	nhistory, err := btcjson.NewNameHistoryCmd(nil, name)
 	if err != nil {
 		return nil, err
@@ -24,7 +25,7 @@ func (server *ZookoServer) CreateTransactionListForName(name string, excludeExpi
 	result := reply.Result.([]btcjson.NameInfoResult)
 
 	// Go through each history and extract the transaction information.
-	var transactions []NamecoinTransaction
+	var transactions []message.NamecoinTransaction
 	for _, entry := range result {
 		// Get the Raw Transaction Associated with the Name Operation
 		getRaw, err := btcjson.NewGetRawTransactionCmd(nil, entry.TX, 1)
@@ -76,7 +77,7 @@ func (server *ZookoServer) CreateTransactionListForName(name string, excludeExpi
 			outHashes = append(outHashes, v.Bytes())
 		}
 
-		transactions = append(transactions, NamecoinTransaction{
+		transactions = append(transactions, message.NamecoinTransaction{
 			TxId:               transactionResult.Txid,
 			Branch:             branch.BranchSideMask,
 			VerificationHashes: outHashes,
