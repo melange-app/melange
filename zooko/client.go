@@ -13,7 +13,14 @@ import (
 	zmessage "getmelange.com/zooko/message"
 )
 
-func (r *Router) lookupZookoServer(addr string, name routing.LookupType, redirects int) (*identity.Address, error) {
+func (r *Router) lookupAddressZookoServer(addr string, name routing.LookupType, redirects int) (*identity.Address, error) {
+	data, err := r.lookupZookoServer(addr)
+	if err != nil {
+		return nil, err
+	}
+}
+
+func (r *Router) lookupZookoServer(addr string) ([]byte, error) {
 	lookup := &zmessage.LookupNameMessage{
 		Name: addr,
 		H:    message.CreateHeader(r.Key.Address, r.Server),
@@ -37,5 +44,10 @@ func (r *Router) lookupZookoServer(addr string, name routing.LookupType, redirec
 	}
 
 	fmt.Println("Received", len(rn.Transactions), "transactions worth of information.")
+
+	if verify := r.chain.VerifyTransactions(rn.Transactions...); !verify {
+		return nil, errors.New("zooko: returned transactions are not in blokcchain")
+	}
+
 	return nil, nil
 }

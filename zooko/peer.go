@@ -122,6 +122,8 @@ func (p *peer) readLoop() {
 			p.handleMsgHeaders(t)
 		case *wire.MsgInv:
 			p.handleMsgInv(t)
+		case *wire.MsgAddr:
+			p.handleMsgAddr(t)
 		}
 	}
 }

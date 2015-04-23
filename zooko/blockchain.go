@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"getmelange.com/zooko/message"
 	"github.com/melange-app/nmcd/wire"
 )
 
@@ -36,6 +37,41 @@ type blockchain struct {
 	SyncedTime time.Time
 
 	Height int
+}
+
+func (b *blockchain) verifyTransaction(m message.NamecoinTransaction) bool {
+	blck, ok := b.Direct[m.BlockId]
+	if !ok {
+		fmt.Println(m.BlockId, "not in blockchain.")
+		return false
+	}
+
+	var hashes []wire.ShaHash
+	for _, v := range m.VerificationHashes {
+		temp, err := wire.NewShaHash(v)
+		if err != nil {
+			fmt.Println("Unable to create Verification Sha hash", err)
+			return false
+		}
+
+		hashes = append(hashes, *temp)
+	}
+
+	txHash, err := wire.NewShaHashFromStr(m.TxId)
+	if err != nil {
+		fmt.Println("Cannot make TX Sha Hash", err)
+		return false
+	}
+
+	_, err = VerifyMerkleBranch(wire.MerkleBranch{
+		BranchSideMask: m.Branch,
+		BranchHash:     hashes,
+	}, &blck.MerkleRoot, txHash)
+	if err != nil {
+		fmt.Println("Error verifying Merkle Branch", err)
+	}
+
+	return err == nil
 }
 
 func (b *blockchain) createChainHeader(h *wire.BlockHeader) (*blockHeader, error) {
@@ -98,8 +134,38 @@ func (b *blockchain) addHeader(h *wire.BlockHeader) error {
 
 type blockchainManager struct {
 	acceptChannel chan interface{}
+	syncedChannel chan struct{}
 
-	chain *blockchain
+	isSynced bool
+	chain    *blockchain
+}
+
+func (b *blockchainManager) waitForSync() {
+	if b.isSynced {
+		return
+	}
+
+	fmt.Println("Waiting for blockchain sync.")
+	_, done := <-b.syncedChannel
+	fmt.Println("Blockchain has finished syncing.", !done)
+}
+
+func (b *blockchainManager) VerifyTransactions(m ...message.NamecoinTransaction) bool {
+	b.waitForSync()
+
+	for _, v := range m {
+		results := make(chan bool)
+		b.acceptChannel <- transactionVerification{
+			NamecoinTransaction: v,
+			resultChan:          results,
+		}
+
+		if answer := <-results; !answer {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (b *blockchainManager) TopHeader() (*blockHeader, int32) {
@@ -109,6 +175,7 @@ func (b *blockchainManager) TopHeader() (*blockHeader, int32) {
 func CreateBlockchainManager() *blockchainManager {
 	b := &blockchainManager{
 		acceptChannel: make(chan interface{}),
+		syncedChannel: make(chan struct{}),
 		chain: &blockchain{
 			Height: TopResolverHeight,
 			Base: &chainBase{
@@ -123,6 +190,11 @@ func CreateBlockchainManager() *blockchainManager {
 	return b
 }
 
+type transactionVerification struct {
+	message.NamecoinTransaction
+	resultChan chan bool
+}
+
 func (b *blockchainManager) acceptanceLoop() {
 	for {
 		obj := <-b.acceptChannel
@@ -130,6 +202,13 @@ func (b *blockchainManager) acceptanceLoop() {
 		switch t := obj.(type) {
 		case *wire.BlockHeader:
 			b.addHeader(t)
+			if b.chain.SyncedTime.After(time.Now().Add(-1*time.Hour)) && !b.isSynced {
+				close(b.syncedChannel)
+				b.isSynced = true
+			}
+		case transactionVerification:
+			result := b.chain.verifyTransaction(t.NamecoinTransaction)
+			t.resultChan <- result
 		}
 	}
 }
