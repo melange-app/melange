@@ -2,13 +2,13 @@
 
 /* App Module */
 
-var melangeTest = "http://common.melange";
-var melangeSuffix = ".melange:7776";
+var melangeTest = "http://common.local.getmelange.com";
+var melangeSuffix = ".local.getmelange.com:7776";
 
 // If melangeTest does not equal the original, we are
 // live rewriting on android.
 if (melangeTest !== "http://" + "common" + ".melange") {
-    melangeSuffix = ".melange.127.0.0.1.xip.io:7776";
+    melangeSuffix = ".local.getmelange.com:7776";
 }
 
 var melangePluginSuffix=".plugins" + melangeSuffix;

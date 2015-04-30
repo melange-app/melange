@@ -58,7 +58,7 @@ func CreateRealtimeHandler(
 
 func getOriginAllowed(suffix string) func(r *http.Request) bool {
 	return func(r *http.Request) bool {
-		return r.Header["Origin"][0] == fmt.Sprintf("http://app.melange%s", suffix)
+		return r.Header["Origin"][0] == fmt.Sprintf("http://app.local.getmelange.com%s", suffix)
 	}
 }
 

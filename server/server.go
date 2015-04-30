@@ -34,10 +34,10 @@ func (m *Melange) Run(port int) error {
 
 	m.App = &app.Server{
 		Suffix:  ":7776",
-		Common:  "common.melange",
-		Plugins: "*.plugins.melange",
-		API:     "api.melange",
-		App:     "app.melange",
+		Common:  "common.local.getmelange.com",
+		Plugins: "*.plugins.local.getmelange.com",
+		API:     "api.local.getmelange.com",
+		App:     "app.local.getmelange.com",
 		// Other Servers
 		Dispatcher: m.Dispatcher,
 		Tracker:    m.Tracker,

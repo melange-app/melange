@@ -87,7 +87,7 @@
 
       var image = data.image;
       if(image.indexOf("@") != -1) {
-        image = "http://data.melange:7776/" + image;
+        image = "http://data.local.getmelange.com:7776/" + image;
       }
 
       $scope.profile = data;
@@ -134,7 +134,7 @@
 
       var image = profile.components["airdispat.ch/profile/avatar"].string;
       if(image.indexOf("@") != -1) {
-        image = "http://data.melange:7776/" + image;
+        image = "http://data.local.getmelange.com:7776/" + image;
       } else if (image == "") {
         image = "http://robohash.org/" + profile.from.fingerprint + ".png?bgset=bg2";
       }

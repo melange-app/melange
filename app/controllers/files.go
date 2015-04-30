@@ -150,7 +150,7 @@ func (m *UploadController) UploadFile(filename string, to []*identity.Address, t
 						"id":   uploadID,
 						"name": name,
 						"user": alias.String(),
-						"url":  fmt.Sprintf("http://data.melange:7776/%s/%s", alias.String(), name),
+						"url":  fmt.Sprintf("http://data.local.getmelange.com:7776/%s/%s", alias.String(), name),
 					},
 				}
 

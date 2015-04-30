@@ -74,20 +74,20 @@ type Router struct {
 
 func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	// Ensure that the Host matches what we expect
-	url := strings.Split(req.Host, ".melange")
+	url := strings.Split(req.Host, ".local.getmelange.com")
 
 	if len(url) > 2 {
 		url = []string{
-			strings.Join(url[:len(url)-1], ".melange"),
+			strings.Join(url[:len(url)-1], ".local.getmelange.com"),
 			url[len(url)-1],
 		}
 	}
 
-	// if (len(url) != 2 || !(strings.HasPrefix(url[1], ":") || url[1] == r.p.Suffix)) &&
-	// 	(req.URL.Path != "/realtime") && (url[0] != "data") {
-	// 	framework.WriteView(framework.Error403, res)
-	// 	return
-	// }
+	if (len(url) != 2 || !(strings.HasPrefix(url[1], ":") || url[1] == r.p.Suffix)) &&
+		(req.URL.Path != "/realtime") && (url[0] != "data") {
+		framework.WriteView(framework.Error403, res)
+		return
+	}
 
 	if req.URL.Path == "/favicon.ico" {
 		framework.WriteView(framework.Error404, res)

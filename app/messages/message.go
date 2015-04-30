@@ -653,7 +653,7 @@ func (m *MessageManager) currentProfile() (*models.Profile, *models.Alias, error
 	}
 
 	if strings.Contains(myProfile.Image, "@") {
-		myProfile.Image = fmt.Sprintf("http://data.melange:7776/%s", myProfile.Image)
+		myProfile.Image = fmt.Sprintf("http://data.local.getmelange.com:7776/%s", myProfile.Image)
 	}
 
 	return myProfile, myAlias, nil

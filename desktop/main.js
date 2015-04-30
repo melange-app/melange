@@ -127,7 +127,7 @@ app.on('ready', function() {
 var launched = false;
 var readyToLaunch = false;
 var continueLaunching = function() {
-  mainWindow.loadUrl('http://app.melange:7776/Index.html#startup');
+  mainWindow.loadUrl('http://app.local.getmelange.com:7776/Index.html#startup');
   launched = true;
 }
 

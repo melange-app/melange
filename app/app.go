@@ -18,7 +18,7 @@ func (r *Server) HandleApp(res http.ResponseWriter, req *http.Request) {
 			"script-src 'self' %[1]s 'unsafe-eval';"+
 			"frame-src 'self' %[2]s;"+
 			"style-src 'self' %[1]s %[5]s 'unsafe-inline';"+
-			"connect-src 'self' %[1]s %[3]s %[4]s ws://api.melange.127.0.0.1.xip.io:7776;"+
+			"connect-src 'self' %[1]s %[3]s %[4]s ws://api.local.getmelange.com:7776;"+
 			"font-src 'self' %[1]s %[5]s;", r.CommonURL(), r.PluginURL(), r.APIURL(), r.APIRealtimeURL(), "localhost:7776"),
 		View: view,
 	}, res)

@@ -12,7 +12,7 @@
     var loadingMessageCandy = "<p><i class='fa fa-spin fa-circle-o-notch'></i> Loading Messages...</p>";
 
     // var conn = new WebSocket(wsURL("/messages"))
-    var conn = new WebSocket("ws://api.melange.127.0.0.1.xip.io:7776/realtime");
+    var conn = new WebSocket("ws://api.local.getmelange.com:7776/realtime");
 
     conn.onopen = function (event) {
       console.log("Opened realtime connection.");
