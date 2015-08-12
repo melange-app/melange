@@ -33,6 +33,6 @@ rm Melange.app/Melange
 mv Melange Melange.app/
 
 # Codesign and Install the Application on the Phone
-codesign -f -s "Hunter Leath" --entitlements Melange.app/Entitlements.plist Melange.app/Melange
+codesign -f -s "4DD423BD901FC0AD320CC073D178ABA99C5CFCBC" --entitlements Melange.app/Entitlements.plist Melange.app/Melange
 ios-deploy --debug --uninstall --bundle Melange.app
 

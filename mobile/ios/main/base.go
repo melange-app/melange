@@ -41,3 +41,8 @@ func startGoServer(dataPath *C.char, assetsPath *C.char) {
 		return
 	}
 }
+
+//export hasNewContent
+func hasNewContent() bool {
+	return false
+}

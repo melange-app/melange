@@ -137,7 +137,7 @@
 
                 mlgRealtime.subscribe("waitingForLinkRequest", function(msg) {
                     // Literally, we do nothing here. This is just a successful
-                    // message return. Yay!                
+                    // message return. Yay!
                     return true;
                 });
 
@@ -161,7 +161,7 @@
 
                 mlgRealtime.subscribe("linkVerification", function(msg) {
                     defer.notify(msg["code"]);
-                    
+
                     mlgRealtime.subscribe("linkedIdentity", function(msg) {
                         if ("error" in msg) {
                             // Unable to complete linking
@@ -187,15 +187,15 @@
                                 mlgIdentity.setCurrent(currentId).then(function(data) {
                                     defer.resolve();
                                 }, function(err) {
-                                    defer.reject(err); 
-                                });  
+                                    defer.reject(err);
+                                });
                             }, function(err) {
                                 defer.reject(err);
                             });
                         }, function(err) {
                             defer.reject(err);
                         });
-                        
+
                         return true;
                     });
 
@@ -203,7 +203,7 @@
                 });
 
                 mlgRealtime.send("requestLink", {
-                   address: address, 
+                   address: address,
                 });
 
                 return defer.promise;
@@ -217,7 +217,7 @@
                     if ("error" in msg) {
                         defer.reject(msg["error"]);
                     } else {
-                        // Nothing to do here, we successfully got the 
+                        // Nothing to do here, we successfully got the
                         // identity and stored it in the database.
                         defer.resolve();
                     }

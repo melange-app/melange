@@ -45,3 +45,5 @@ embedded.mobileprovision
 Melange
 mobile/ios/Melange.app/_CodeSignature
 mobile/ios/Melange.app/Assets
+Melange_App_Store.mobileprovision
+melange.css
