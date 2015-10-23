@@ -28,6 +28,11 @@ data/*
 test/
 test/*
 
+# Ignore Built JS and CSS
+client/.sass-cache
+client/css
+client/js
+
 # Ignore Special Builds Paths
 build
 build/tmp
@@ -49,4 +54,3 @@ Melange_App_Store.mobileprovision
 melange.css
 node_modules
 oldClient
-client/.sass-cache
