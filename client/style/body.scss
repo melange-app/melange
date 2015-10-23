@@ -1,0 +1,73 @@
+$melange-base: #1A8BB0;
+$melange-bright: #1D9BC4;
+$melange-base-text: #fefefe;
+
+// $melange-light-gray: #f6f6f6;
+$melange-light-gray: #eee;
+$melange-dark-gray: #282828;
+
+$melange-toolbar-height: 35px;
+$melange-status-height: 20px;
+
+html {
+    height: 100%;
+}
+
+body {
+    background-color: $melange-dark-gray;
+    height: 100%;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+* {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+    cursor: default;
+}
+
+a {
+    color: $melange-base;
+
+    &:hover {
+        color: lighten($melange-base, 10%);
+    }
+}
+
+.text-melange {
+    color: $melange-base !important;
+}
+
+.muted {
+    color: darken($melange-base-text, 15%);
+}    
+
+.draggable {
+    -webkit-app-region: drag;
+}
+
+.no-drag {
+    -webkit-app-region: no-drag;
+}
+
+.body {
+    position: absolute;
+    top: $melange-toolbar-height;
+    left: 0;
+    right: 0;
+    bottom: $melange-status-height;
+
+    background-color: $melange-light-gray;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    .page {
+        width: 100%;
+        height: 100%;
+    }
+}

@@ -47,3 +47,6 @@ mobile/ios/Melange.app/_CodeSignature
 mobile/ios/Melange.app/Assets
 Melange_App_Store.mobileprovision
 melange.css
+node_modules
+oldClient
+client/.sass-cache

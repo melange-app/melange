@@ -1,0 +1,47 @@
+.error-page {
+    
+    text-align: center;
+    
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+
+    height: 100%;
+    width: 100%;
+
+    .obj {
+        padding: 10px;
+    }
+
+    i.big {
+        font-size: 200px;
+    }
+
+    h1 {
+        margin: 0;
+    }
+
+    h3 {
+        margin: 5px;
+        font-size: 18px;
+    }
+
+    p {
+        color: darken($melange-light-gray, 30%);
+        margin: 0;
+    }
+
+    @media(max-width: 400px) {
+        i.big {
+            font-size: 150px;
+        }
+        
+        h1 {
+            font-size: 24px;
+        }
+
+        h3 {
+            font-size: 14px;
+        }
+    }
+}

@@ -1,77 +1,42 @@
 <!DOCTYPE html>
 <html lang="en" ng-app="melangeApp">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no" />
-    <link rel="shortcut icon" href="/icon.png" type="image/png">
-    <title>Melange</title>
-    <!-- CSS Frameworks -->
-    <link href="http://common.local.getmelange.com:7776/css/bootswatch-yeti/3.1.1" rel="stylesheet" type="text/css">
-    <link href="http://common.local.getmelange.com:7776/css/font-awesome/4.1.0" rel="stylesheet" type="text/css">
-    <!-- Less Styles -->
-    <link href="css/melange.css" rel="stylesheet" type="text/css">
-    <!-- Less Compiler -->
-    <!-- <script src="http://common.melange:7776/js/less/1.7.3"></script> !-->
-    <!-- Load Jquery -->
-    <script src="http://common.local.getmelange.com:7776/js/jquery/1.11.1"></script>
-    <script src="http://common.local.getmelange.com:7776/js/jquery/shim"></script>
-    <script src="http://common.local.getmelange.com:7776/js/bootstrap/3.1.1"></script>
-    <!-- Angular -->
-    <script src="http://common.local.getmelange.com:7776/js/angular/1.2.18"></script>
-    <script src="http://common.local.getmelange.com:7776/js/angular-route/1.2.18"></script>
-    <script src="http://common.local.getmelange.com:7776/js/angular-resource/1.2.18"></script>
-    <!-- UI  -->
-    <script src="http://common.local.getmelange.com:7776/js/ui/jquery-ui"></script>
-    <script src="http://common.local.getmelange.com:7776/js/ui/ng-sortable"></script>
-    <!-- Application -->
-    <script src="app/app.js"></script>
-    <script src="app/filters.js"></script>
-    <script src="app/directives.js"></script>
-    <!-- Angular Services -->
-    <script src="app/services/services.js"></script>
-    <script src="app/services/helper.js"></script>
-    <script src="app/services/plugins.js"></script>
-    <script src="app/services/realtime.js"></script>
-    <!-- Angular Controllers -->
-    <script src="app/controllers/application.js"></script>
-    <script src="app/controllers/contacts.js"></script>
-    <script src="app/controllers/message.js"></script>
-    <script src="app/controllers/plugin.js"></script>
-    <script src="app/controllers/settings.js"></script>
-    <script src="app/controllers/setup.js"></script>
-  </head>
-  <body ng-controller="ApplicationCtrl">
-    <!-- Document Modal -->
-    <!-- <modal data="modal" name="modalName"></modal> -->
-
-    <!-- Navbar Container -->
-    <div
-      ng-show="page.indexOf('/startup') !== 0 && page.indexOf('/setup') !== 0"
-      ng-include="'partials/navbar.html'">
-    </div>
-
-    <!-- Container for Sidebar -->
-    <div
-      ng-show="page.indexOf('/startup') !== 0 && page.indexOf('/setup') !== 0"
-      class="sidebar"
-      ng-class="isShowing"
-      ng-include="'partials/sidebar.html'">
-    </div>
-
-    <div class="sidebarCloseHitbox" ng-class="isShowing" ng-click="closeSidebar()"></div>
-
-    <!-- Container for Page -->
-    <div ng-class="outerClass(page)" class="full-height">
-      <!-- Load Page -->
-      <div
-        ng-class="containerClass(page)"
-        class="ng-view">
-      </div>
-    </div>
-
-    <!-- Container for Candy Bar -->
-    <div class="candy-bar" ng-show="candy.running" ng-bind-html="candy.current">
-    </div>
-
-  </body>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no" />
+        <link rel="shortcut icon" href="/icon.png" type="image/png">
+        <title>Melange</title>
+        <!-- CSS Frameworks -->
+        <link href="http://common.local.getmelange.com:7776/css/bootswatch-yeti/3.3.4" rel="stylesheet" type="text/css">
+        <link href="http://common.local.getmelange.com:7776/css/font-awesome/4.1.0" rel="stylesheet" type="text/css">
+        <!-- Melange CSS -->
+        <link href="/css/melange.css" rel="stylesheet" type="text/css">
+    </head>
+    <body class="draggable">
+        <div id="melange" class="desktop mac"></div>
+        <div id="loader">
+            <img class="logo" src="/img/icon_white.png"/>
+            <h1>Melange <span class="muted">v0.13</span></h1>
+            <div class="spinner">
+                <div class="rect1"></div>
+                <div class="rect2"></div>
+                <div class="rect3"></div>
+                <div class="rect4"></div>
+            </div>
+            <div class="info">
+                <p>Build 0.13.5</p>
+                <p>Melange Desktop (Windows)</p>
+            </div>
+        </div>
+        
+        <!-- JS Libraries -->
+        <script src="http://common.local.getmelange.com:7776/js/react-addons/0.13.1.dev"></script>
+        <script src="http://common.local.getmelange.com:7776/js/redux/3.0.2"></script>
+        <script src="http://common.local.getmelange.com:7776/js/immutable/3.7.5"></script>
+        <script src="http://common.local.getmelange.com:7776/js/moment/2.10.6"></script>
+        <script src="http://common.local.getmelange.com:7776/js/superagent/1.2.0"></script>
+        <script src="http://common.local.getmelange.com:7776/js/q/1.4.1"></script>
+        <!-- App -->
+        <script src="/js/melange.js"></script>
+        <script src="/app/dev.js"></script>
+    </body>
 </html>
