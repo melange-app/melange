@@ -7,17 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	adErrors "airdispat.ch/errors"
-	"airdispat.ch/message"
-	"airdispat.ch/server"
-	"airdispat.ch/wire"
-
-	"getmelange.com/backend/controllers"
 	"getmelange.com/backend/framework"
 	"getmelange.com/backend/info"
-	"getmelange.com/backend/messages"
-	"getmelange.com/backend/models"
-	"getmelange.com/router"
 )
 
 // TODO: Refactor file so that it doesn't handle the fetching of
@@ -34,36 +25,6 @@ func HandleData(
 	req *http.Request,
 	env *info.Environment,
 ) {
-	// Load tables and Store
-	tables, err := models.CreateTables(env.Settings)
-	if err != nil {
-		fmt.Println("Error creating tables", err)
-		framework.WriteView(framework.Error500, res)
-		return
-	}
-	store := env.Settings
-
-	// Get DAP Client
-	id, frameErr := controllers.CurrentIdentityOrError(store, tables["identity"])
-	if frameErr != nil {
-		framework.WriteView(frameErr, res)
-		return
-	}
-
-	adId, err := id.ToDispatch(store, "")
-	if err != nil {
-		fmt.Println("Error getting AdId", err)
-		framework.WriteView(framework.Error500, res)
-		return
-	}
-
-	r := &router.Router{
-		Origin: adId,
-		TrackerList: []string{
-			"localhost:2048",
-		},
-	}
-
 	path := req.URL.Path
 	components := strings.Split(path, "/")[1:]
 
@@ -75,65 +36,11 @@ func HandleData(
 	user := components[0]
 	name := strings.Join(components[1:], "/")
 
-	srv, auth, err := messages.GetAddresses(r, &models.Address{
-		Alias: user,
-	})
+	dataMessage, conn, err := env.Manager.Client.GetDataMessage(name, user)
+	defer conn.Close()
 	if err != nil {
-		fmt.Println("Error getting Author Information", err)
-		framework.WriteView(framework.Error500, res)
-		return
-	}
-
-	conn, err := message.ConnectToServer(srv.Location)
-	if err != nil {
-		fmt.Println("Error connecting to server", err)
-		framework.WriteView(framework.Error500, res)
-		return
-	}
-
-	txMsg := server.CreateTransferMessage(name, adId.Address, srv, auth)
-	txMsg.Data = true
-
-	err = message.SignAndSendToConnection(txMsg, adId, srv, conn)
-	if err != nil {
-		fmt.Println("Error sending to server", err)
-		framework.WriteView(framework.Error500, res)
-		return
-	}
-
-	enc, err := message.ReadMessageFromConnection(conn)
-	if err != nil {
-		fmt.Println("Error reading from server", err)
-		framework.WriteView(framework.Error500, res)
-		return
-	}
-
-	by, typ, h, err := enc.Reconstruct(adId, false)
-	if err != nil {
-		fmt.Println("Error reconstructing message", err)
-		framework.WriteView(framework.Error500, res)
-		return
-	}
-
-	if typ == wire.ErrorCode {
-		fmt.Println(adErrors.CreateErrorFromBytes(by, h))
-		framework.WriteView(framework.Error500, res)
-		return
-	} else if typ != wire.DataCode {
-		fmt.Println("Got wrong type, expecting DAT, got", typ)
-		framework.WriteView(framework.Error500, res)
-		return
-	}
-
-	dataMessage, err := message.CreateDataMessageFromBytes(by, h)
-	if err != nil {
-		fmt.Println("Error creating message from bytes", err)
-		framework.WriteView(framework.Error500, res)
-		return
-	}
-
-	if dataMessage.Name != name {
-		fmt.Println("Name mismatch. Expected", name, "got", dataMessage.Name)
+		fmt.Println("[DATA] Received error getting data message", name, user)
+		fmt.Println("[DATA]", err)
 		framework.WriteView(framework.Error500, res)
 		return
 	}

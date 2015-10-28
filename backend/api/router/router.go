@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	"strings"
 
 	"getmelange.com/backend/framework"
 	"getmelange.com/backend/info"
@@ -31,11 +32,17 @@ func (r *Router) AddRoute(prefix string, handler interface{}) *Router {
 
 	if handlerOk {
 		r.routes[prefix] = handlerInterface
-		return
+
+		return r
 	}
 
 	if getOk || postOk {
+		r.routes[prefix] = &selectionHandler{
+			Get:  getInterface,
+			Post: postInterface,
+		}
 
+		return r
 	}
 
 	panic("Cannot load a route that isn't a router.Handler, router.GetHandler, or router.PostHandler")
@@ -44,7 +51,7 @@ func (r *Router) AddRoute(prefix string, handler interface{}) *Router {
 // Handle performs the actual routing.
 func (r *Router) Handle(req *Request) framework.View {
 	for route, handler := range r.routes {
-		if req.URL.Path.HasPrefix(r.globalPrefix + route) {
+		if strings.HasPrefix(req.URL.Path, r.globalPrefix+route) {
 			return handler.Handle(req)
 		}
 	}

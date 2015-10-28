@@ -6,16 +6,16 @@ import (
 	// Import each of the API submodules in order to delegate
 	// their routes and controllers.
 	"getmelange.com/backend/api/identity"
+	"getmelange.com/backend/api/installer"
 	"getmelange.com/backend/api/marketplace"
 	"getmelange.com/backend/api/messages"
 	"getmelange.com/backend/api/people"
-	"getmelange.com/backend/api/plugins"
+	"getmelange.com/backend/api/realtime"
 	"getmelange.com/backend/api/router"
 	"getmelange.com/backend/api/tiles"
 
 	"getmelange.com/backend/framework"
 	"getmelange.com/backend/info"
-	"getmelange.com/backend/realtime"
 )
 
 var optionsView = &framework.CORSView{
@@ -42,8 +42,8 @@ var routes = router.CreateRouter("").
 	AddRoute("people", people.Router).
 
 	// api/plugins
-	AddRoute("plugins", plugins.Router).
-	AddRoute("update", plugins.UpdateRouter).
+	AddRoute("plugins", installer.Router).
+	AddRoute("update", installer.UpdateRouter).
 
 	// api/tiles
 	AddRoute("tiles", tiles.Router)

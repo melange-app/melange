@@ -2,10 +2,12 @@ package people
 
 import (
 	"fmt"
-	"net/http"
 
+	"getmelange.com/backend/api/router"
 	"getmelange.com/backend/framework"
 	"getmelange.com/backend/models"
+
+	gdb "github.com/huntaub/go-db"
 )
 
 // List Management
@@ -15,24 +17,24 @@ type AddList struct {
 	Store  *models.Store
 }
 
-func (c *AddList) Handle(req *http.Request) framework.View {
+func (c *AddList) Handle(req *router.Request) framework.View {
 	return framework.Error500
 }
 
-type RemoveList struct {
-	Tables map[string]gdb.Table
-	Store  *models.Store
-}
+// RemoveList allows a user to remove a list from the database.
+type RemoveList struct{}
 
-func (c *RemoveList) Handle(req *http.Request) framework.View {
+// Post starts the removal.
+func (c *RemoveList) Post(req *router.Request) framework.View {
 	out := &models.List{}
-	err := DecodeJSONBody(req, out)
+	err := req.JSON(out)
 	if err != nil {
 		fmt.Println("Unable to deserialize list removal", err)
 		return framework.Error500
 	}
 
-	_, err = c.Tables["list"].Delete(out).Exec(c.Store)
+	_, err = req.Environment.Tables.List.Delete(out).
+		Exec(req.Environment.Store)
 	if err != nil {
 		fmt.Println("Unable to delete list", err)
 		return framework.Error500
@@ -45,14 +47,18 @@ func (c *RemoveList) Handle(req *http.Request) framework.View {
 	}
 }
 
+// GetLists returns a list of the lists that users are using to sort
+// their contacts.
 type GetLists struct {
 	Tables map[string]gdb.Table
 	Store  *models.Store
 }
 
-func (c *GetLists) Handle(req *http.Request) framework.View {
+// Get will fetch the list of lists.
+func (c *GetLists) Handle(req *router.Request) framework.View {
 	out := make([]*models.List, 0)
-	err := c.Tables["list"].Get().All(c.Store, &out)
+	err := req.Environment.Tables.List.Get().
+		All(req.Environment.Store, &out)
 	if err != nil {
 		fmt.Println("Error getting contacts", err)
 		return framework.Error500

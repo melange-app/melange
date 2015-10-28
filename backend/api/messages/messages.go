@@ -6,35 +6,35 @@ import (
 
 	"getmelange.com/backend/api/router"
 	"getmelange.com/backend/framework"
-	"getmelange.com/backend/models"
-	"getmelange.com/backend/packaging"
-	gdb "github.com/huntaub/go-db"
+	"getmelange.com/backend/models/messages"
 )
+
+type messageRequest struct {
+	Self     bool `json:"self"`
+	Public   bool `json:"public"`
+	Received bool `json:"received"`
+}
 
 // Messages Controller will download messages from the server and subscribed
 // sources (with caching), and send them to the client in JSON.
-type Messages struct {
-	Packager *packaging.Packager
-	Store    *models.Store
-	Tables   map[string]gdb.Table
-}
+type Messages struct{}
 
-func (m *Messages) retrieveMessages(self, public, received bool) ([]*models.JSONMessage, error) {
-	manager, err := constructManager(m.Store, m.Tables, m.Packager)
-	if err != nil {
-		return nil, err
-	}
-
+func (m *Messages) retrieveMessages(mReq *messageRequest, req *router.Request) ([]*messages.JSONMessage, error) {
 	since := uint64(0)
 
-	var outputMessages models.JSONMessageList
+	var outputMessages messages.JSONMessageList
 
-	if received {
-		outputMessages = append(outputMessages, manager.GetPrivateMessages(since, nil)...)
+	manager := req.Environment.Manager
+
+	if mReq.Received {
+		// TODO: Determine if this method is actually used and
+		// finish it.
+
+		// outputMessages = append(outputMessages, manager.GetPrivateMessages(since, nil)...)
 	}
 
-	if self {
-		msgs, err := manager.GetSentMessages(since, nil)
+	if mReq.Self {
+		msgs, err := manager.GetSentMessages(since)
 		if err != nil {
 			return nil, err
 		}
@@ -43,8 +43,13 @@ func (m *Messages) retrieveMessages(self, public, received bool) ([]*models.JSON
 	}
 
 	// Download Public Messages
-	if public {
-		outputMessages = append(outputMessages, manager.GetPublicMessages(since, nil)...)
+	if mReq.Public {
+		msgs, err := manager.GetPublic(since, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		outputMessages = append(outputMessages, msgs...)
 	}
 
 	sort.Sort(outputMessages)
@@ -55,22 +60,30 @@ func (m *Messages) retrieveMessages(self, public, received bool) ([]*models.JSON
 }
 
 func (m *Messages) Get(req *router.Request) framework.View {
-	return m.view(true, true, true)
+	outputMessages, err := m.retrieveMessages(&messageRequest{
+		Self:     true,
+		Public:   true,
+		Received: true,
+	}, req)
+	if err != nil {
+		fmt.Println("Error retrieving messages", err)
+		return framework.Error500
+	}
+
+	return &framework.JSONView{
+		Content: outputMessages,
+	}
 }
 
 func (m *Messages) Post(req *router.Request) framework.View {
-	request := make(map[string]bool)
+	request := &messageRequest{}
 	err := req.JSON(&request)
 	if err != nil {
 		fmt.Println("Error decoding body (MSGS)", err)
 		return framework.Error500
 	}
 
-	return m.view(request["self"], request["public"], request["received"])
-}
-
-func (m *Messages) view(self, public, received bool) framework.View {
-	outputMessages, err := m.retrieveMessages(self, public, received)
+	outputMessages, err := m.retrieveMessages(request, req)
 	if err != nil {
 		fmt.Println("Error retrieving messages", err)
 		return framework.Error500

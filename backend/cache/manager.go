@@ -7,7 +7,10 @@ import (
 	"time"
 
 	"airdispat.ch/identity"
+	"airdispat.ch/message"
 
+	"getmelange.com/backend/models"
+	"getmelange.com/backend/models/db"
 	mIdentity "getmelange.com/backend/models/identity"
 	"getmelange.com/backend/models/messages"
 
@@ -25,8 +28,8 @@ const (
 // module. It provides a cached version of messages when requested and
 // adds messages to the cache as they come in.
 type Manager struct {
-	Tables map[string]gdb.Table
-	Store  gdb.Executor
+	Tables *db.Tables
+	Store  *models.Store
 
 	Client *connect.Client
 
@@ -35,26 +38,80 @@ type Manager struct {
 
 	Identity *mIdentity.Identity
 	Packager *packaging.Packager
+
+	HasIdentity bool
 }
 
 // CreateManager will build a fully initialized Manager object (with
 // fully initialized Fetcher and Stores).
-func CreateManager() *Manager {
-	return &Manager{
-		Tables:   nil,
-		Store:    nil,
+func CreateManager(tables *db.Tables, store *models.Store, pack *packaging.Packager) (*Manager, error) {
+	cache := CreateStore()
+
+	m := &Manager{
+		Tables:   tables,
+		Store:    store,
 		Client:   nil,
 		Fetcher:  nil,
-		Cache:    nil,
+		Cache:    cache,
 		Identity: nil,
-		Packager: nil,
+		Packager: pack,
 	}
+
+	current, err := m.currentIdentity()
+	if err != nil {
+		return nil, err
+	}
+
+	if current != nil {
+		m.loadIdentity(current)
+	}
+
+	return m, nil
 }
 
-// SwitchIdentity will change the current identity being used in the
-// cache, fetcher, and client.
-func (m *Manager) SwitchIdentity(newIdentity *mIdentity.Identity) {
+func (m *Manager) UpdateMessage(msg *messages.JSONMessage) error {
+	mail, to, err := msg.ToDispatch(m.Client)
+	if err != nil {
+		return err
+	}
 
+	// Get the current version of the message in the database.
+	currentMessage := &messages.Message{}
+	err = m.Tables.Message.Get().Where("name", msg.Name).One(m.Store, &currentMessage)
+	if err != nil {
+		return err
+	}
+
+	// Update the message in the database.
+	modelMessage, modelComponents := msg.ToModel(m.Client)
+	modelMessage.Id = currentMessage.Id
+
+	_, err = m.Tables.Message.Update(modelMessage).Exec(m.Store)
+	if err != nil {
+		return err
+	}
+
+	// Remove the old components.
+	currentComponents := new([]*message.Component)
+	err = m.Tables.Component.Get().Where("message_id", currentMessage.Id).
+		All(m.Store, currentComponents)
+	for _, v := range *currentComponents {
+		_, err := m.Tables.Component.Delete(v).Exec(m.Store)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Add the new version of the components into the DB.
+	for _, v := range modelComponents {
+		v.Message = gdb.ForeignKey(modelMessage)
+		_, err = m.Tables.Component.Insert(v).Exec(m.Store)
+		if err != nil {
+			fmt.Println("Couldn't save component", v.Name, err)
+		}
+	}
+
+	return m.Client.UpdateMessage(mail, to, msg.Name)
 }
 
 // PublishMessage takes a JSONMessage object and publishes it through
@@ -67,7 +124,7 @@ func (m *Manager) PublishMessage(msg *messages.JSONMessage) error {
 
 	// Add the message to the database.
 	modelMessage, modelComponents := msg.ToModel(m.Client)
-	_, err = m.Tables["message"].Insert(modelMessage).Exec(m.Store)
+	_, err = m.Tables.Message.Insert(modelMessage).Exec(m.Store)
 	if err != nil {
 		return err
 	}
@@ -75,7 +132,7 @@ func (m *Manager) PublishMessage(msg *messages.JSONMessage) error {
 	// Store each of the components in the database.
 	for _, v := range modelComponents {
 		v.Message = gdb.ForeignKey(modelMessage)
-		_, err = m.Tables["component"].Insert(v).Exec(m.Store)
+		_, err = m.Tables.Component.Insert(v).Exec(m.Store)
 		if err != nil {
 			fmt.Println("Couldn't save component", v.Name, err)
 		}
@@ -166,7 +223,7 @@ func (m *Manager) GetPublic(since uint64, addr *mIdentity.Address) ([]*messages.
 // GetSentMessages will return a list of messages that were sent by the user after the date `since`.
 func (m *Manager) GetSentMessages(since uint64) ([]*messages.JSONMessage, error) {
 	msgs := make([]*messages.Message, 0)
-	err := m.Tables["message"].Get().Where("from", m.Client.Origin.Address.String()).All(m.Store, &msgs)
+	err := m.Tables.Message.Get().Where("from", m.Client.Origin.Address.String()).All(m.Store, &msgs)
 	if err != nil {
 		return nil, err
 	}
@@ -239,11 +296,17 @@ func (m *Manager) GetAllMessages(msgChan chan *messages.JSONMessage) {
 	}
 }
 
+// GetProfile will attempt to fetch a profile out of the cache. If it
+// isn't found, it will fetch it (or return the default).
+func (m *Manager) GetProfile(of string) (*messages.JSONProfile, error) {
+	return m.Fetcher.getProfile(of)
+}
+
 // currentProfile constructs the current user profile and alias
 // objects.
 func (m *Manager) currentProfile() (*mIdentity.Profile, *mIdentity.Alias, error) {
 	myAlias := &mIdentity.Alias{}
-	err := m.Tables["alias"].Get().Where("identity", m.Identity.Id).One(m.Store, myAlias)
+	err := m.Tables.Alias.Get().Where("identity", m.Identity.Id).One(m.Store, myAlias)
 	if err != nil {
 		return nil, nil, err
 	}

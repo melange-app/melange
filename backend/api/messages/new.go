@@ -5,7 +5,7 @@ import (
 
 	"getmelange.com/backend/api/router"
 	"getmelange.com/backend/framework"
-	"getmelange.com/backend/models"
+	"getmelange.com/backend/models/messages"
 	"getmelange.com/backend/packaging"
 )
 
@@ -17,20 +17,14 @@ type NewMessage struct {
 
 // Handle will publish the message on the server, then alert the other party.
 func (m *NewMessage) Post(req *router.Request) framework.View {
-	msg := &models.JSONMessage{}
+	msg := &messages.JSONMessage{}
 	err := req.JSON(&msg)
 	if err != nil {
 		fmt.Println("Cannot decode message.", err)
 		return framework.Error500
 	}
 
-	manager, err := constructManager(req.Environment.Settings, req.Environment.Tables(), m.Packager)
-	if err != nil {
-		fmt.Println("Error creating manager", err)
-		return framework.Error500
-	}
-
-	err = manager.PublishMessage(msg)
+	err = req.Environment.Manager.PublishMessage(msg)
 	if err != nil {
 		fmt.Println("Error publishing message", err)
 		return framework.Error500
@@ -42,4 +36,4 @@ func (m *NewMessage) Post(req *router.Request) framework.View {
 	}
 }
 
-var _ router.GetHandler = &NewMessage{}
+var _ router.PostHandler = &NewMessage{}

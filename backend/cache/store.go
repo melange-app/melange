@@ -328,12 +328,3 @@ func (c *Store) Clear() {
 }
 
 // TODO: Add load from disk functionality.
-
-// InvalidateCaches will remove all of the data.xo
-func InvalidateCaches() {
-	fmt.Println("Invalidating Caches")
-
-	// majorstore.Invalidate()
-	// majorFetcher.Stop()
-	// majorFetcher.Client = nil
-}

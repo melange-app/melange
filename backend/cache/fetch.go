@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"getmelange.com/backend/models/db"
 	mIdentity "getmelange.com/backend/models/identity"
 	gdb "github.com/huntaub/go-db"
 
@@ -47,7 +48,7 @@ type Fetcher struct {
 
 	Translator *messages.Translator
 
-	Tables map[string]gdb.Table
+	Tables *db.Tables
 	Store  gdb.Executor
 
 	lastPublic  uint64
@@ -60,7 +61,7 @@ type Fetcher struct {
 
 // CreateFetcher will initialize a new fetcher object that will begin
 // checking for new messages.
-func CreateFetcher(client *connect.Client, cache *Store, tables map[string]gdb.Table, store gdb.Executor) *Fetcher {
+func CreateFetcher(client *connect.Client, cache *Store, tables *db.Tables, store gdb.Executor) *Fetcher {
 	f := &Fetcher{
 		Public:   time.NewTicker(fetchPublicFrequency),
 		Private:  time.NewTicker(fetchPrivateFrequency),
@@ -109,18 +110,22 @@ func (f *Fetcher) Start() {
 	}
 }
 
-func (f *Fetcher) buildProfiles(addresses ...*identity.Address) map[string]*messages.JSONProfile {
-	var err error
+func (f *Fetcher) getProfile(to string) (*messages.JSONProfile, error) {
+	profile, found := f.Cache.RetrieveProfile(to)
+	if !found {
+		return f.addProfile(to, "")
+	}
 
+	return profile, nil
+}
+
+func (f *Fetcher) buildProfiles(addresses ...*identity.Address) map[string]*messages.JSONProfile {
 	profiles := make(map[string]*messages.JSONProfile)
 	for _, addr := range addresses {
-		profile, found := f.Cache.RetrieveProfile(addr.Alias)
-		if !found {
-			profile, err = f.addProfile(addr.Alias, "")
-			if err != nil {
-				logError("[FETCH-PROF]", "Receieved error getting profile.", err)
-				continue
-			}
+		profile, err := f.getProfile(addr.Alias)
+		if err != nil {
+			logError("[FETCH-PROF]", "Receieved error getting profile.", err)
+			continue
 		}
 
 		profiles[profile.Alias] = profile
@@ -256,7 +261,7 @@ func (f *Fetcher) fetchPublic(since uint64) {
 	// Get the addresses that we are subscribed to in the
 	// database.
 	var subscribed []*mIdentity.Address
-	err := f.Tables["address"].Get().Where("subscribed", true).All(f.Store, &subscribed)
+	err := f.Tables.Address.Get().Where("subscribed", true).All(f.Store, &subscribed)
 	if err != nil {
 		logError(logFetcherPub, "Received error getting following users.", err)
 		return

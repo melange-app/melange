@@ -1,20 +1,22 @@
-package plugins
+package installer
 
 import (
 	"fmt"
-	"net/http"
 
-	"getmelange.com/plugins/framework"
+	"getmelange.com/backend/api/router"
+	"getmelange.com/backend/framework"
 	"getmelange.com/updater"
 )
 
-type CheckUpdateController struct {
-	Version  string
-	Platform string
-}
+// CheckUpdateController will check to see if there is a new Melange
+// update available.
+type CheckUpdateController struct{}
 
-func (g *CheckUpdateController) Handle(req *http.Request) framework.View {
-	update, err := updater.CheckForUpdate(g.Version, g.Platform)
+// Get will perform the check for update.
+func (g *CheckUpdateController) Get(req *router.Request) framework.View {
+	update, err := updater.CheckForUpdate(
+		req.Environment.Version,
+		req.Environment.Platform)
 	if err.NoUpdate {
 		return &framework.HTTPError{
 			ErrorCode: 422,
@@ -37,11 +39,13 @@ var requestStatus chan chan float64
 var errorChan chan error
 var dirChan chan string
 
+// DownloadUpdateController will actually download the melange update.
 type DownloadUpdateController struct{}
 
-func (d *DownloadUpdateController) Handle(req *http.Request) framework.View {
+// Post will initiate the download.
+func (d *DownloadUpdateController) Post(req *router.Request) framework.View {
 	u := &updater.Update{}
-	err := DecodeJSONBody(req, u)
+	err := req.JSON(u)
 	if err != nil {
 		fmt.Println("Got error decoding body", err)
 		return framework.Error500
@@ -54,6 +58,7 @@ func (d *DownloadUpdateController) Handle(req *http.Request) framework.View {
 	dirChan = make(chan string)
 	quitChan := make(chan struct{})
 
+	// Initiate the download in the background.
 	go func() {
 		defer func() {
 			quitChan <- struct{}{}
@@ -67,6 +72,7 @@ func (d *DownloadUpdateController) Handle(req *http.Request) framework.View {
 		dirChan <- dir
 	}()
 
+	// Create a goroutine to keep the progress for the download.
 	go func() {
 		progress := 0.0
 		for {
@@ -86,12 +92,13 @@ func (d *DownloadUpdateController) Handle(req *http.Request) framework.View {
 	}
 }
 
+// UpdateProgressController will return the progress of the download.
 type UpdateProgressController struct{}
 
-func (d *UpdateProgressController) Handle(req *http.Request) framework.View {
+// Get will return the progress of the download.
+func (d *UpdateProgressController) Get(req *router.Request) framework.View {
 	select {
 	case err := <-errorChan:
-		// Cleaup
 		dirChan = nil
 		requestStatus = nil
 		errorChan = nil
@@ -118,29 +125,25 @@ func (d *UpdateProgressController) Handle(req *http.Request) framework.View {
 	}
 }
 
-type InstallUpdateController struct {
-	AppLocation string
+// InstallUpdateController will actually install the update.
+type InstallUpdateController struct{}
+
+type installationRequest struct {
+	Dir string `json:"dir"`
 }
 
-func (i *InstallUpdateController) Handle(req *http.Request) framework.View {
+// Post will actually start installing the update.
+func (i *InstallUpdateController) Post(req *router.Request) framework.View {
 	fmt.Println("Going to install update")
 
-	u := make(map[string]string)
-	err := DecodeJSONBody(req, &u)
+	u := &installationRequest{}
+	err := req.JSON(u)
 	if err != nil {
 		fmt.Println("Got error decoding body", err)
 		return framework.Error500
 	}
 
-	dir, ok := u["dir"]
-	if !ok {
-		return &framework.HTTPError{
-			ErrorCode: 400,
-			Message:   "Need dir.",
-		}
-	}
-
-	status := updater.InstallUpdate(dir, i.AppLocation)
+	status := updater.InstallUpdate(u.Dir, req.Environment.AppLocation)
 	if status.HasError() {
 		fmt.Println("Error installing update", status)
 		return framework.Error500

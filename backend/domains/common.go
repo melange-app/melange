@@ -36,9 +36,9 @@ func HandleCommon(
 		}
 		typ, lib, version := dirs[1], dirs[2], dirs[3]
 
-		location = filepath.Join(
+		location := filepath.Join(
 			filepath.FromSlash(lib),
-			version+"."+filepath.FormSlash(typ),
+			version+"."+filepath.FromSlash(typ),
 		)
 		view = framework.ServeFile(libBase, location)
 	}

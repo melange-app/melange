@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"airdispat.ch/message"
+	"getmelange.com/backend/models/db"
 	mIdentity "getmelange.com/backend/models/identity"
 
 	gdb "github.com/huntaub/go-db"
@@ -36,12 +37,12 @@ type TranslationMe struct {
 // Translator is an object that performs translation of messages to
 // and from JSON.
 type Translator struct {
-	Tables map[string]gdb.Table
+	Tables *db.Tables
 	Store  gdb.Executor
 }
 
 // CreateTranslator will make a new translator for the object.
-func CreateTranslator(tables map[string]gdb.Table, store gdb.Executor) *Translator {
+func CreateTranslator(tables *db.Tables, store gdb.Executor) *Translator {
 	return &Translator{
 		Tables: tables,
 		Store:  store,
@@ -76,7 +77,7 @@ func (t *Translator) fromComponents(comp message.ComponentList) map[string]*JSON
 
 // fromModel will change a Melange Message model into a JSON message.
 func (t *Translator) fromModel(req *TranslationRequest) (*JSONMessage, error) {
-	cmpTable := t.Tables["component"]
+	cmpTable := t.Tables.Component
 
 	// Get all of the components associated with that message.
 	comps := make([]*Component, 0)

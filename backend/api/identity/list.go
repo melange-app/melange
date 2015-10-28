@@ -2,10 +2,11 @@ package identity
 
 import (
 	"fmt"
-	"net/http"
+
+	"getmelange.com/backend/api/router"
+	"getmelange.com/backend/models/identity"
 
 	"getmelange.com/backend/framework"
-	"getmelange.com/backend/models"
 )
 
 // ListIdentity will list all identities on file.
@@ -13,34 +14,34 @@ type ListIdentity struct{}
 
 // Get will return a list of all the identities currently in the
 // system for display in a settings-view.
-func (i *ListIdentity) Get(req *http.Request) framework.View {
-	results := make([]*models.Identity, 0)
-	err := req.Environment.Tables()["identity"].Get().All(i.Store, &results)
+func (i *ListIdentity) Get(req *router.Request) framework.View {
+	results := new([]*identity.Identity)
+	err := req.Environment.Tables.Identity.Get().All(req.Environment.Store, &results)
 	if err != nil {
 		fmt.Println("Error getting Identities:", err)
 		return framework.Error500
 	}
 
-	fingerprint, err := req.Environment.Settings.Get("current_identity")
-	if err != nil {
-		fmt.Println("Error getting current identity.", err)
-		return framework.Error500
-	}
+	current := req.Environment.Manager.Identity
 
-	for _, v := range results {
-		aliases := make([]*models.Alias, 0)
-		err := i.Tables["alias"].Get().Where("identity", v.Id).All(req.Environment.Settings, &aliases)
+	// Load the aliases for each of the addresses.
+	for _, v := range *results {
+		aliases := new([]*identity.Alias)
+		err := req.Environment.Tables.Alias.
+			Get().Where("identity", v.Id).All(req.Environment.Store, &aliases)
 		if err != nil {
 			fmt.Println("Error loading identity aliases", err)
 		}
-		v.LoadedAliases = aliases
+		v.LoadedAliases = *aliases
 
-		if v.Fingerprint == fingerprint {
+		// Ensure that the current id is noted as current if
+		// it is selected.
+		if v.Id == current.Id {
 			v.Current = true
 		}
 	}
 
 	return &framework.JSONView{
-		Content: results,
+		Content: *results,
 	}
 }

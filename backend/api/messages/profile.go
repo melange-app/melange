@@ -2,36 +2,35 @@ package messages
 
 import (
 	"fmt"
-	"net/http"
 	"time"
 
+	"getmelange.com/backend/api/router"
 	"getmelange.com/backend/framework"
-	"getmelange.com/backend/models"
+	"getmelange.com/backend/models/identity"
+	"getmelange.com/backend/models/messages"
 
 	gdb "github.com/huntaub/go-db"
 )
 
-type CurrentProfile struct {
-	Tables map[string]gdb.Table
-	Store  *models.Store
-}
+// CurrentProfile will return the current profile of the user.
+type CurrentProfile struct{}
 
-func (c *CurrentProfile) Handle(req *http.Request) framework.View {
-	result, frameErr := CurrentIdentityOrError(c.Store, c.Tables["identity"])
-	if frameErr != nil {
-		return frameErr
-	}
+// Get will retrieve the profile.
+func (c *CurrentProfile) Get(req *router.Request) framework.View {
+	manager := req.Environment.Manager
 
-	if result.Profile.Value == 0 {
+	if !manager.HasIdentity {
 		return &framework.HTTPError{
 			ErrorCode: 422,
 			Message:   "No profile to load yet.",
 		}
 	}
 
-	profile := &models.Profile{}
-	err := result.Profile.One(c.Store, profile)
+	profile := &identity.Profile{}
+	err := manager.Identity.Profile.One(req.Environment.Store, profile)
 	if err != nil {
+		// This could occur if the user has just setup the
+		// identity without providing a profile.
 		fmt.Println("Can't get user's profile.", err)
 		return framework.Error500
 	}
@@ -41,73 +40,59 @@ func (c *CurrentProfile) Handle(req *http.Request) framework.View {
 	}
 }
 
-type UpdateProfile struct {
-	Tables map[string]gdb.Table
-	Store  *models.Store
-}
+// UpdateProfile allows a user to update their profile.
+type UpdateProfile struct{}
 
-func (c *UpdateProfile) Handle(req *http.Request) framework.View {
-	profileRequest := &models.Profile{}
-	err := DecodeJSONBody(req, &profileRequest)
+// Post will actually perform the profile updating.
+func (c *UpdateProfile) Post(req *router.Request) framework.View {
+	profileRequest := &identity.Profile{}
+	err := req.JSON(&profileRequest)
 	if err != nil {
 		fmt.Println("(Profile) Error occured while decoding update profile:", err)
 		return framework.Error500
 	}
 
-	result, frameErr := CurrentIdentityOrError(c.Store, c.Tables["identity"])
-	if frameErr != nil {
-		return frameErr
-	}
-
-	cli, err := DAPClientFromID(result, c.Store)
-	if err != nil {
-		fmt.Println("(Profile) Error getting DAP Client from ID", err)
-		return framework.Error500
-	}
-
-	msg := &models.JSONMessage{
+	msg := &messages.JSONMessage{
 		Name: "profile",
 		Date: time.Now(),
-		From: &models.JSONProfile{
+		From: &messages.JSONProfile{
 			Fingerprint: "",
 			Alias:       "",
 		},
 		Public: true,
-		Components: map[string]*models.JSONComponent{
-			"airdispat.ch/profile/name": &models.JSONComponent{
+		Components: map[string]*messages.JSONComponent{
+			"airdispat.ch/profile/name": &messages.JSONComponent{
 				String: profileRequest.Name,
 			},
-			"airdispat.ch/profile/avatar": &models.JSONComponent{
+			"airdispat.ch/profile/avatar": &messages.JSONComponent{
 				String: string(profileRequest.Image),
 			},
-			"airdispat.ch/profile/description": &models.JSONComponent{
+			"airdispat.ch/profile/description": &messages.JSONComponent{
 				String: profileRequest.Description,
 			},
 		},
 	}
 
-	mail, addrs, err := msg.ToDispatch(cli.Key)
-	if err != nil {
-		fmt.Println("(Profile) Error converting JSON to Dispatch", err)
-		return framework.Error500
-	}
+	manager := req.Environment.Manager
 
-	if result.Profile.Value == 0 {
+	if manager.Identity.Profile.Value == 0 {
 		// First Time Profile
-		name, err := cli.PublishMessage(mail, addrs, "profile", false)
-		if err != nil || name != "profile" {
+		err = manager.PublishMessage(msg)
+		if err != nil {
 			fmt.Println("(Profile) Error publishing message", err)
 			return framework.Error500
 		}
 
-		_, err = c.Tables["profile"].Insert(profileRequest).Exec(c.Store)
+		_, err = req.Environment.Tables.Profile.Insert(profileRequest).
+			Exec(req.Environment.Store)
 		if err != nil {
 			fmt.Println("Couldn't put profile in database.")
 			return framework.Error500
 		}
 
-		result.Profile = gdb.ForeignKey(profileRequest)
-		_, err = c.Tables["identity"].Update(result).Exec(c.Store)
+		manager.Identity.Profile = gdb.ForeignKey(profileRequest)
+		_, err = req.Environment.Tables.Identity.Update(manager.Identity).
+			Exec(req.Environment.Store)
 		if err != nil {
 			fmt.Println("Couldn't update id with profile", err)
 			return framework.Error500
@@ -115,14 +100,15 @@ func (c *UpdateProfile) Handle(req *http.Request) framework.View {
 
 	} else {
 		// Update Profile
-		err := cli.UpdateMessage(mail, addrs, "profile")
+		err := manager.UpdateMessage(msg)
 		if err != nil {
 			fmt.Println("(Profile) Error updating message", err)
 			return framework.Error500
 		}
 
-		profileRequest.Id = gdb.PrimaryKey(result.Profile.Value)
-		_, err = c.Tables["profile"].Update(profileRequest).Exec(c.Store)
+		profileRequest.Id = gdb.PrimaryKey(manager.Identity.Profile.Value)
+		_, err = req.Environment.Tables.Profile.Update(profileRequest).
+			Exec(req.Environment.Store)
 		if err != nil {
 			fmt.Println("Couldn't update profile in db", err)
 			return framework.Error500

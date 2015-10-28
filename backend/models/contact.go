@@ -1,6 +1,7 @@
 package models
 
 import (
+	"getmelange.com/backend/models/db"
 	"getmelange.com/backend/models/identity"
 	"getmelange.com/backend/models/messages"
 	gdb "github.com/huntaub/go-db"
@@ -34,7 +35,7 @@ type Contact struct {
 	Lists      []*List               `db:"-" json:"lists"`
 }
 
-func (c *Contact) LoadIdentities(store *Store, tables map[string]gdb.Table) error {
+func (c *Contact) LoadIdentities(store *Store, tables *db.Tables) error {
 	c.Identities = make([]*identity.Address, 0)
-	return tables["address"].Get().Where("contact", c.Id).All(store, &c.Identities)
+	return tables.Address.Get().Where("contact", c.Id).All(store, &c.Identities)
 }

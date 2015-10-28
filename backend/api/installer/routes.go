@@ -1,4 +1,4 @@
-package plugins
+package installer
 
 import "getmelange.com/backend/api/router"
 
@@ -13,9 +13,7 @@ var UpdateRouter = router.CreateRouter("updates").
 // Router holds all of the routes associated with the plugins api
 // module.
 var Router = router.CreateRouter("plugins").
-	AddRoute("/store", &PluginStoreController{}).
 	AddRoute("/install", &InstallPluginController{}).
 	AddRoute("/uninstall", &UninstallPluginController{}).
 	AddRoute("/updates", &CheckForPluginUpdatesController{}).
-	AddRoute("/update", &UpdatePluginController{}).
-	AddRoute("/", &PluginServer{})
+	AddRoute("/update", &UpdatePluginController{})

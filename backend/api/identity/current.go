@@ -5,8 +5,7 @@ import (
 
 	"getmelange.com/backend/api/router"
 	"getmelange.com/backend/framework"
-	"getmelange.com/backend/info"
-	"getmelange.com/backend/models/messages"
+	"getmelange.com/backend/models/identity"
 )
 
 type setCurrentIdentity struct {
@@ -19,7 +18,7 @@ type CurrentIdentity struct{}
 
 // Post will take the Fingerprint supplied in the Request body and set
 // the current identity to the corresponding identity.
-func (i *CurrentIdentity) Post(req *router.Request, env *info.Environment) framework.View {
+func (i *CurrentIdentity) Post(req *router.Request) framework.View {
 	setRequest := &setCurrentIdentity{}
 	err := req.JSON(&setRequest)
 	if err != nil {
@@ -27,13 +26,21 @@ func (i *CurrentIdentity) Post(req *router.Request, env *info.Environment) frame
 		return framework.Error500
 	}
 
-	err = env.Settings.Set("current_identity", setRequest.Fingerprint)
+	// Get the identity out of the database.
+	newIdentity := &identity.Identity{}
+	err = req.Environment.Tables.Identity.Get().Where("fingerprint", setRequest.Fingerprint).
+		One(req.Environment.Store, newIdentity)
 	if err != nil {
-		fmt.Println("Error storing current_identity.", err)
+		fmt.Println("Unable to get new current identity", err)
 		return framework.Error500
 	}
 
-	messages.InvalidateCaches()
+	// Update the identity that we are using to do fetching.
+	err = req.Environment.Manager.SwitchIdentity(newIdentity)
+	if err != nil {
+		fmt.Println("Received error switching identity", err)
+		return framework.Error500
+	}
 
 	return &framework.JSONView{
 		Content: map[string]interface{}{
@@ -43,16 +50,9 @@ func (i *CurrentIdentity) Post(req *router.Request, env *info.Environment) frame
 }
 
 // Get will return the current identity.
-func (i *CurrentIdentity) Get(req *router.Request, env *info.Environment) framework.View {
-	idTable := env.GetTables()["identity"]
-
-	result, err := CurrentIdentityOrError(env.Settings, idTable)
-	if err != nil {
-		return err
-	}
-
+func (i *CurrentIdentity) Get(req *router.Request) framework.View {
 	return &framework.JSONView{
-		Content: result,
+		Content: req.Environment.Manager.Identity,
 	}
 }
 

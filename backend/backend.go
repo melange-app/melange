@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"getmelange.com/backend/api"
+	"getmelange.com/backend/domains"
 	"getmelange.com/backend/framework"
 	"getmelange.com/backend/info"
 )
@@ -18,6 +19,10 @@ func Start(info *info.Environment, port int) error {
 	s := &http.Server{
 		Addr:    fmt.Sprintf("127.0.0.1:%d", port),
 		Handler: &Router{p},
+	}
+
+	if err := info.Cache(); err != nil {
+		return err
 	}
 
 	fmt.Println("Running HTTP Server")

@@ -8,7 +8,6 @@ import (
 	"syscall"
 
 	"getmelange.com/backend/framework"
-	"getmelange.com/backend/messages"
 	"getmelange.com/backend/models"
 	"getmelange.com/backend/packaging"
 

@@ -1,22 +1,17 @@
 package router
 
-import (
-	"net/http"
-
-	"getmelange.com/backend/framework"
-	"getmelange.com/backend/info"
-)
+import "getmelange.com/backend/framework"
 
 type selectionHandler struct {
 	Get  GetHandler
 	Post PostHandler
 }
 
-func (s *selectionHandler) Handle(req *http.Request, env *info.Environment) framework.View {
+func (s *selectionHandler) Handle(req *Request) framework.View {
 	if req.Method == "GET" && s.Get != nil {
-		return s.Get.Get(req, env)
+		return s.Get.Get(req)
 	} else if req.Method == "POST" && s.Post != nil {
-		return s.Post.Post(req, env)
+		return s.Post.Post(req)
 	}
 
 	return &framework.HTTPError{

@@ -2,19 +2,19 @@ package tiles
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
+	"getmelange.com/backend/api/router"
 	"getmelange.com/backend/framework"
-	"getmelange.com/backend/models"
 )
 
-type CurrentTiles struct {
-	Store *models.Store
-}
+// CurrentTiles will retrieve the current set of tiles to be displayed
+// on the home page.
+type CurrentTiles struct{}
 
-func (c *CurrentTiles) Handle(req *http.Request) framework.View {
-	data, err := c.Store.GetDefault("tiles_current", "")
+// Get will execute the retrieval.
+func (c *CurrentTiles) Get(req *router.Request) framework.View {
+	data, err := req.Environment.Store.GetDefault("tiles_current", "")
 	if err != nil {
 		fmt.Println("Error getting from the store", err)
 		return framework.Error500
@@ -25,21 +25,22 @@ func (c *CurrentTiles) Handle(req *http.Request) framework.View {
 	}
 }
 
-type UpdateTiles struct {
-	Store *models.Store
-}
+// UpdateTiles will update the current set of tiles displayed to the
+// user.
+type UpdateTiles struct{}
 
-func (u *UpdateTiles) Handle(req *http.Request) framework.View {
-	// Decode Body
+// Post will execute the update.
+func (u *UpdateTiles) Post(req *router.Request) framework.View {
 	tiles := make([]string, 0)
-	err := DecodeJSONBody(req, &tiles)
+	err := req.JSON(&tiles)
 
 	if err != nil {
 		fmt.Println("Error occured while decoding body:", err)
 		return framework.Error500
 	}
 
-	err = u.Store.Set("tiles_current", strings.Join(tiles, ","))
+	err = req.Environment.Store.Set("tiles_current",
+		strings.Join(tiles, ","))
 	if err != nil {
 		fmt.Println("Error setting current tiles", err)
 		return framework.Error500

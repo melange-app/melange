@@ -6,7 +6,7 @@ import "getmelange.com/backend/api/router"
 // portion of the messages api module.
 var ProfileRouter = router.CreateRouter("profile").
 	AddRoute("/current", &CurrentProfile{}).
-	AddRotue("/update", &UpdateProfile{})
+	AddRoute("/update", &UpdateProfile{})
 
 // Router holds all of the possible routes for the messages api
 // module.
@@ -14,5 +14,5 @@ var Router = router.CreateRouter("messages").
 	AddRoute("/get", &GetMessage{}).
 	AddRoute("/at", &GetAllMessagesAt{}).
 	AddRoute("/new", &NewMessage{}).
-	AddRoute("/update", &UpdateMesage{}).
+	AddRoute("/update", &UpdateMessage{}).
 	AddRoute("/", &Messages{})
