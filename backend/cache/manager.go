@@ -223,7 +223,7 @@ func (m *Manager) GetPublic(since uint64, addr *mIdentity.Address) ([]*messages.
 // GetSentMessages will return a list of messages that were sent by the user after the date `since`.
 func (m *Manager) GetSentMessages(since uint64) ([]*messages.JSONMessage, error) {
 	msgs := make([]*messages.Message, 0)
-	err := m.Tables.Message.Get().Where("from", m.Client.Origin.Address.String()).All(m.Store, &msgs)
+	err := m.Tables.Message.Get().Where("from", m.Client.Origin.Address.String()).All(m.Store, msgs)
 	if err != nil {
 		return nil, err
 	}

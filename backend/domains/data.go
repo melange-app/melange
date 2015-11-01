@@ -38,6 +38,7 @@ func HandleData(
 
 	dataMessage, conn, err := env.Manager.Client.GetDataMessage(name, user)
 	defer conn.Close()
+
 	if err != nil {
 		fmt.Println("[DATA] Received error getting data message", name, user)
 		fmt.Println("[DATA]", err)

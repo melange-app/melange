@@ -37,5 +37,5 @@ type Contact struct {
 
 func (c *Contact) LoadIdentities(store *Store, tables *db.Tables) error {
 	c.Identities = make([]*identity.Address, 0)
-	return tables.Address.Get().Where("contact", c.Id).All(store, &c.Identities)
+	return tables.Address.Get().Where("contact", c.Id).All(store, c.Identities)
 }

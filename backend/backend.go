@@ -11,17 +11,17 @@ import (
 	"getmelange.com/backend/info"
 )
 
-func Start(info *info.Environment, port int) error {
-	r := &Router{
-		Environment: Environment,
+func Start(env *info.Environment, port int) error {
+	r := &Server{
+		Environment: env,
 	}
 
 	s := &http.Server{
 		Addr:    fmt.Sprintf("127.0.0.1:%d", port),
-		Handler: &Router{p},
+		Handler: r,
 	}
 
-	if err := info.Cache(); err != nil {
+	if err := env.Cache(); err != nil {
 		return err
 	}
 
@@ -29,7 +29,7 @@ func Start(info *info.Environment, port int) error {
 	return s.ListenAndServe()
 }
 
-type Router struct {
+type Server struct {
 	*info.Environment
 }
 
@@ -44,14 +44,20 @@ func (s *Server) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// We expect to have split the URL into the prefix and the
+	// empty string.
+	if len(url) != 2 || url[1] != "" {
+		framework.WriteView(framework.Error403, res)
+	}
+
 	// Return a 403 error if the URL does not match the expected
 	// patterns.
-	if (len(url) != 2 || !(strings.HasPrefix(url[1], ":") || url[1] == r.p.Suffix)) &&
-		(req.URL.Path != "/realtime") &&
-		(url[0] != "data") {
-		framework.WriteView(framework.Error403, res)
-		return
-	}
+	// if (len(url) != 2 || !(strings.HasPrefix(url[1], ":") || url[1] == s.Suffix)) &&
+	// 	(req.URL.Path != "/realtime") &&
+	// 	(url[0] != "data") {
+	// 	framework.WriteView(framework.Error403, res)
+	// 	return
+	// }
 
 	// No need to serve a favicon on any of the domains.
 	if req.URL.Path == "/favicon.ico" {
@@ -70,15 +76,15 @@ func (s *Server) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 	// Delegate to the correct domain handler.
 	switch {
-	case strings.HasSuffix(mode, environment.PluginsPrefix):
+	case strings.HasSuffix(mode, info.PluginsPrefix):
 		domains.HandlePlugins(mode, res, req, env)
-	case mode == environment.CommonPrefix:
+	case mode == info.CommonPrefix:
 		domains.HandleCommon(res, req, env)
-	case mode == environment.AppPrefix:
+	case mode == info.AppPrefix:
 		domains.HandleApp(res, req, env)
-	case mode == environment.DataPrefix:
+	case mode == info.DataPrefix:
 		domains.HandleData(res, req, env)
-	case mode == environment.APIPrefix:
+	case mode == info.APIPrefix:
 		api.HandleRequest(res, req, env)
 	}
 

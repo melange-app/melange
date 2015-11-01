@@ -16,7 +16,7 @@ type ListIdentity struct{}
 // system for display in a settings-view.
 func (i *ListIdentity) Get(req *router.Request) framework.View {
 	results := new([]*identity.Identity)
-	err := req.Environment.Tables.Identity.Get().All(req.Environment.Store, &results)
+	err := req.Environment.Tables.Identity.Get().All(req.Environment.Store, results)
 	if err != nil {
 		fmt.Println("Error getting Identities:", err)
 		return framework.Error500
@@ -28,7 +28,7 @@ func (i *ListIdentity) Get(req *router.Request) framework.View {
 	for _, v := range *results {
 		aliases := new([]*identity.Alias)
 		err := req.Environment.Tables.Alias.
-			Get().Where("identity", v.Id).All(req.Environment.Store, &aliases)
+			Get().Where("identity", v.Id).All(req.Environment.Store, aliases)
 		if err != nil {
 			fmt.Println("Error loading identity aliases", err)
 		}

@@ -261,7 +261,7 @@ func (f *Fetcher) fetchPublic(since uint64) {
 	// Get the addresses that we are subscribed to in the
 	// database.
 	var subscribed []*mIdentity.Address
-	err := f.Tables.Address.Get().Where("subscribed", true).All(f.Store, &subscribed)
+	err := f.Tables.Address.Get().Where("subscribed", true).All(f.Store, subscribed)
 	if err != nil {
 		logError(logFetcherPub, "Received error getting following users.", err)
 		return

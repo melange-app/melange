@@ -18,7 +18,7 @@ import (
 	"getmelange.com/backend/info"
 )
 
-var optionsView = &framework.CORSView{
+var optionsView = &framework.CORSWrapper{
 	View: &framework.RawView{
 		Content: []byte(""),
 		Type:    "text/plain",
@@ -29,24 +29,24 @@ var optionsView = &framework.CORSView{
 // Specify the routes for the API module.
 var routes = router.CreateRouter("").
 	// api/identity
-	AddRoute("identity", identity.Router).
+	AddRoute("/identity", identity.Router).
 
 	// api/marketplace
-	AddRoute("market", marketplace.Router).
+	AddRoute("/market", marketplace.Router).
 
 	// api/messages
-	AddRoute("messages", messages.Router).
-	AddRoute("profile", messages.ProfileRouter).
+	AddRoute("/messages", messages.Router).
+	AddRoute("/profile", messages.ProfileRouter).
 
 	// api/people
-	AddRoute("people", people.Router).
+	AddRoute("/people", people.Router).
 
 	// api/plugins
-	AddRoute("plugins", installer.Router).
-	AddRoute("update", installer.UpdateRouter).
+	AddRoute("/plugins", installer.Router).
+	AddRoute("/update", installer.UpdateRouter).
 
 	// api/tiles
-	AddRoute("tiles", tiles.Router)
+	AddRoute("/tiles", tiles.Router)
 
 // HandleRequest will redirect a request through the API Layer.
 func HandleRequest(
@@ -57,16 +57,21 @@ func HandleRequest(
 	// Don't process anything if the client just wants to see the
 	// CORS headers.
 	if req.Method == "OPTIONS" {
-		return optionsView.Write(res)
+		framework.WriteView(optionsView, res)
+		return
 	}
 
 	// If the user is attempting to access /realtime, they want a
 	// websockets connection.
 	if req.URL.Path == "/realtime" {
-		h := realtime.CreateRealtimeHandler(env)
+		h := realtime.CreateHandler(env)
 		h.UpgradeConnection(res, req)
 		return
 	}
 
-	routes.HandleRequest(req, env).Write(res)
+	// Write the view
+	framework.WriteView((&framework.CORSWrapper{
+		View:   routes.HandleRequest(req, env),
+		Origin: env.AppURL(),
+	}), res)
 }
