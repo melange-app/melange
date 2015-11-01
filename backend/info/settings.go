@@ -51,8 +51,8 @@ func (e Settings) CommonURL() string {
 }
 
 // PluginURL returns the url of the plugin subdomain.
-func (e Settings) PluginURL() string {
-	return webProtocol + PluginsPrefix + e.Suffix
+func (e Settings) PluginURL(plugin string) string {
+	return webProtocol + plugin + "." + PluginsPrefix + e.Suffix
 }
 
 // APIURL returns the url of the API subdomain.

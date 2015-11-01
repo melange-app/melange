@@ -29,13 +29,13 @@ func (e *Environment) createStore() (err error) {
 }
 
 func (e *Environment) createPackager() error {
-	packager := &packaging.Packager{
+	e.Packager = &packaging.Packager{
 		API:    "http://www.getmelange.com/api",
 		Plugin: filepath.Join(e.DataDirectory, "plugins"),
 		Debug:  e.Debug,
 	}
 
-	return packager.CreatePluginDirectory()
+	return e.Packager.CreatePluginDirectory()
 }
 
 func (e *Environment) createMessageManager() (err error) {

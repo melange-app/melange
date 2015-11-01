@@ -33,7 +33,7 @@ func HandleApp(
 			"font-src 'self' %[1]s %[5]s;",
 
 			env.CommonURL(),      // %[1]s
-			env.PluginURL(),      // %[2]s
+			env.PluginURL("*"),   // %[2]s
 			env.APIURL(),         // %[3]s
 			env.APIRealtimeURL(), // %[4]s
 			"localhost:7776"),    // %[5]s
