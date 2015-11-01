@@ -9,6 +9,8 @@ import (
 
 	"getmelange.com/backend/framework"
 	"getmelange.com/backend/info"
+
+	adErrors "airdispat.ch/errors"
 )
 
 // TODO: Refactor file so that it doesn't handle the fetching of
@@ -37,6 +39,13 @@ func HandleData(
 	name := strings.Join(components[1:], "/")
 
 	dataMessage, conn, err := env.Manager.Client.GetDataMessage(name, user)
+	if aerr, ok := err.(*adErrors.Error); ok {
+		if aerr.Code == 5 {
+			framework.WriteView(framework.Error404, res)
+			return
+		}
+	}
+
 	defer conn.Close()
 
 	if err != nil {

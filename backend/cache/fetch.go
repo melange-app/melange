@@ -203,22 +203,41 @@ func (f *Fetcher) fetchPrivate(since uint64) {
 const fetchProfileName = "profile"
 
 func (f *Fetcher) addProfile(from, location string) (*messages.JSONProfile, error) {
+	// We cannot get the profile for a message if it doesn't contain an alias.
+	if from == "" {
+		return f.Translator.FromProfile("", "", nil), nil
+	}
+
 	fetch := func() (*messages.JSONProfile, error) {
+		fp := from
+		loc, err := f.Client.GetLocation(&mIdentity.Address{
+			Alias: from,
+		})
+		if err == nil {
+			fp = loc.Author.String()
+		} else if err != nil {
+			logError("[FETCH-PROF]", "Received error getting location for profile.", err)
+		}
+
+		if from == "" {
+			panic("This doesn't make sense.")
+		}
+
 		profile, err := f.Client.GetMessage(fetchProfileName, from, location)
 		if adErr, ok := err.(*adErrors.Error); ok {
-
 			// We were unable to find a profile and must
 			// contend with the default profile.
 			if adErr.Code == 5 {
-				return f.Translator.FromProfile(from, nil), nil
+				return f.Translator.FromProfile(from, fp, nil), nil
 			}
 		}
 
 		if err != nil {
-			return nil, err
+			logError("[FETCH-PROF]", "Received error getting profile: "+from, err)
+			return f.Translator.FromProfile(from, fp, nil), nil
 		}
 
-		return f.Translator.FromProfile(from, profile), nil
+		return f.Translator.FromProfile(from, fp, profile), nil
 	}
 
 	profile, err := fetch()
@@ -261,7 +280,7 @@ func (f *Fetcher) fetchPublic(since uint64) {
 	// Get the addresses that we are subscribed to in the
 	// database.
 	var subscribed []*mIdentity.Address
-	err := f.Tables.Address.Get().Where("subscribed", true).All(f.Store, subscribed)
+	err := f.Tables.Address.Get().Where("subscribed", true).All(f.Store, &subscribed)
 	if err != nil {
 		logError(logFetcherPub, "Received error getting following users.", err)
 		return

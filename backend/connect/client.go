@@ -110,22 +110,33 @@ func (c *Client) getMessageFromServer(msgName string, loc *Location) (*message.M
 // GetMessage will return the messsage named `msgName` by the author
 // with alias `to` utilizing a dispatcher with alias `serverAlias`.
 func (c *Client) GetMessage(msgName string, to string, serverAlias string) (*message.Mail, error) {
-	toLookup := serverAlias
-	if toLookup == "" {
-		toLookup = to
+	var (
+		location *Location
+		err      error
+	)
+
+	if serverAlias == "" {
+		location, err = c.GetLocation(&mIdentity.Address{
+			Alias: to,
+		})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		srv, err := c.Router.LookupAlias(serverAlias, routing.LookupTypeTX)
+		if err != nil {
+			return nil, err
+		}
+
+		author := identity.CreateAddressFromString(to)
+
+		location = &Location{
+			Server: srv,
+			Author: author,
+		}
 	}
 
-	srv, err := c.Router.LookupAlias(serverAlias, routing.LookupTypeTX)
-	if err != nil {
-		return nil, err
-	}
-
-	author := identity.CreateAddressFromString(to)
-
-	return c.getMessageFromServer(msgName, &Location{
-		Author: author,
-		Server: srv,
-	})
+	return c.getMessageFromServer(msgName, location)
 }
 
 // GetPublicMessages will return the public messages that have been

@@ -133,12 +133,22 @@ func (t *Translator) fromMessage(req *TranslationRequest) *JSONMessage {
 	header := req.Message.Header()
 
 	// Load the profile of the sender into the object.
-	fromProfile := req.Profiles[header.From.String()]
+	fromProfile, ok := req.Profiles[header.From.String()]
+	if !ok {
+		fromProfile = t.FromProfile(
+			header.From.Alias, header.From.String(),
+			nil)
+	}
 
 	// Load the profile of the recipients into the object.
 	toProfiles := make([]*JSONProfile, len(header.To))
 	for i, addr := range header.To {
-		toProfiles[i] = req.Profiles[addr.String()]
+		toProfiles[i], ok = req.Profiles[addr.String()]
+		if !ok {
+			toProfiles[i] = t.FromProfile(
+				addr.Alias, addr.String(),
+				nil)
+		}
 	}
 
 	// For legacy reasons, we will set a 'random' string
@@ -171,13 +181,19 @@ func (t *Translator) fromMessage(req *TranslationRequest) *JSONMessage {
 
 // fromProfile will return the parsed profile out of an AirDispatch
 // message.
-func (t *Translator) FromProfile(alias string, profile *message.Mail) *JSONProfile {
+func (t *Translator) FromProfile(alias string, fingerprint string, profile *message.Mail) *JSONProfile {
 	// Provide default profile if none is downloaded.
 	if profile == nil {
+		name := fingerprint
+		if alias != "" {
+			name = alias
+		}
+
 		return &JSONProfile{
-			Name:   alias,
-			Avatar: t.DefaultProfileImage(alias),
-			Alias:  alias,
+			Name:        name,
+			Avatar:      t.DefaultProfileImage(alias),
+			Alias:       alias,
+			Fingerprint: fingerprint,
 		}
 	}
 
@@ -204,9 +220,10 @@ func (t *Translator) FromProfile(alias string, profile *message.Mail) *JSONProfi
 
 	// Return the completed profile object.
 	return &JSONProfile{
-		Name:   name,
-		Avatar: avatar,
-		Alias:  alias,
+		Name:        name,
+		Avatar:      avatar,
+		Alias:       alias,
+		Fingerprint: fingerprint,
 	}
 }
 
@@ -215,25 +232,3 @@ func (t *Translator) FromProfile(alias string, profile *message.Mail) *JSONProfi
 func (t *Translator) DefaultProfileImage(key string) string {
 	return fmt.Sprintf("http://robohash.org/%s.png?bgset=bg2", key)
 }
-
-// func (t *Translator) addProfile(c *models.Contact) error {
-// 	currentAddress := c.Identities[0]
-
-// 	fp := currentAddress.Fingerprint
-// 	if fp == "" {
-// 		temp, err := r.LookupAlias(currentAddress.Alias, routing.LookupTypeMAIL)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		fp = temp.String()
-
-// 	}
-
-// 	profile, err := f.fromProfile(fp, currentAddress.Alias)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	c.Profile = profile
-// 	return nil
-// }
