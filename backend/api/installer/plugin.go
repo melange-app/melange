@@ -100,3 +100,11 @@ func (i *UninstallPluginController) Post(req *router.Request) framework.View {
 		Message:   "OK",
 	}
 }
+
+// ListPluginsController will return a list of the plugins that are
+// installed.
+type ListPluginsController struct{}
+
+func (l *ListPluginsController) Get(req *router.Request) framework.View {
+	return req.Environment.Packager.LoadPlugins()
+}

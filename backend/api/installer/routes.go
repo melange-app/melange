@@ -16,4 +16,5 @@ var Router = router.CreateRouter("/plugins").
 	AddRoute("/install", &InstallPluginController{}).
 	AddRoute("/uninstall", &UninstallPluginController{}).
 	AddRoute("/updates", &CheckForPluginUpdatesController{}).
-	AddRoute("/update", &UpdatePluginController{})
+	AddRoute("/update", &UpdatePluginController{}).
+	AddRoute("", &ListPluginsController{})
