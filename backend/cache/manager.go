@@ -2,7 +2,6 @@ package cache
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 	"time"
 
@@ -276,7 +275,7 @@ func (m *Manager) GetAllMessages(msgChan chan *messages.JSONMessage) {
 		// Otherwise, return all the messages we currently
 		// have cached.
 		newData = messages.JSONMessageList(
-			append(m.Cache.RetrieveAllPublic(), m.Cache.RetrieveAllPrivate()...))
+			m.Cache.RetrieveAll())
 	}
 
 	// Get all of the sent messages thusfar.
@@ -286,8 +285,6 @@ func (m *Manager) GetAllMessages(msgChan chan *messages.JSONMessage) {
 	}
 	newData = append(newData, data...)
 
-	// Sort the data in reverse chronological order.
-	sort.Sort(sort.Reverse(newData))
 
 	// Give the data to the channel. Note: This will block unless
 	// the channel is continuously reading messages.
