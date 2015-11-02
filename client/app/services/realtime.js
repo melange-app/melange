@@ -28,14 +28,16 @@ function sendData(type, data) {
 
 var buffer = Immutable.List();
 var firstPassDone = false;
+var startedMessages = false;
 
 var onMessage = function(event) {
     var msg = JSON.parse(event.data);
     if (msg["type"] == "initDone") {
-        console.log("All messages loaded and in position.");
+        console.log("Received", buffer.length, "messages, loading now.");
         
         firstPassDone = true;
         
+        console.log(S);
         S.dispatch(S.actions.messages.mergeMessages, buffer.toJS());
 
         S.dispatch(S.actions.status.setStatus, {
@@ -45,13 +47,18 @@ var onMessage = function(event) {
         
         return;
     } else if (msg["type"] == "message") {
+        if (!startedMessages) {
+            console.log("Receving new messages.");
+            startedMessages = true;
+        }
+        
         // Go ahead and parse the date.
         msg.data["_parsedDate"] = moment(msg.data.date);
         
         if (!firstPassDone) {
             buffer = buffer.push(msg.data);
         } else {
-           S.dispatch(S.actions.messages.mergeMessage, msg.data); 
+           S.dispatch(S.actions.messages.loadMessage, msg.data); 
         }
         
         return;
