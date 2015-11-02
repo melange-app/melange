@@ -1,0 +1,15 @@
+package message;
+
+message Transaction {
+    required string id                  = 1;
+    required int32  branch              = 2;
+    repeated bytes  verification_hashes = 3;
+    required bytes  raw                 = 4;
+    required string block_id            = 5;
+    optional int32  value               = 6;
+}
+
+message ResolvedName {
+    required bool        found        = 1;
+    repeated Transaction transactions = 2;
+}
