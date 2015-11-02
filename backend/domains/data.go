@@ -46,14 +46,14 @@ func HandleData(
 		}
 	}
 
-	defer conn.Close()
-
 	if err != nil {
 		fmt.Println("[DATA] Received error getting data message", name, user)
 		fmt.Println("[DATA]", err)
 		framework.WriteView(framework.Error500, res)
 		return
 	}
+
+	defer conn.Close()
 
 	if dataMessage.Filename != "" {
 		cd := fmt.Sprintf(`inline; filename="%s"`, dataMessage.Filename)
