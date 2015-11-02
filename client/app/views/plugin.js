@@ -70,7 +70,7 @@ var getMessages = function(store, fields) {
     });
 
     return store.filter(function(m) {
-        var hasFields = Immutable.Set.fromKeys(m.components);
+        var hasFields = Immutable.Set.fromKeys(m.get('components'));
 
         return checkFields.isSubset(hasFields);
     }).map(function(m) {
@@ -157,7 +157,7 @@ var Plugin = Components.createStateful({
             );
         }
     },
-    onFindMessages: function(data, permissions) {        
+    onFindMessages: function(data, permissions) {
         var hasPermission = checkPermissions(
             permissions,
             "read-message",
