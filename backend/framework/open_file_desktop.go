@@ -25,8 +25,6 @@ func GetFile(prefix string, request string) (*FileView, error) {
 	basePathPrefix := filepath.Join(path, filepath.FromSlash(prefix))
 	fname := filepath.Join(basePathPrefix, filepath.FromSlash(request))
 
-	fmt.Println("Opening File", fname)
-
 	if !strings.HasPrefix(fname, basePathPrefix) {
 		fmt.Println("File has incorrect prefix", basePathPrefix)
 		return nil, errNoFile
@@ -37,7 +35,6 @@ func GetFile(prefix string, request string) (*FileView, error) {
 	if err != nil {
 		// If the file isn't found, return a 404.
 		if os.IsNotExist(err) || err.(*os.PathError).Err == syscall.ENOTDIR {
-			fmt.Println("Got an error getting the file", err)
 			return nil, errNoFile
 		}
 		fmt.Println("Error checking file:", err)

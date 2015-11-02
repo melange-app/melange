@@ -121,7 +121,6 @@ func (r *Handler) readMessageLoop(conn *websocket.Conn) {
 	for {
 		msg := &Message{}
 
-		fmt.Println("Waiting for new message.")
 		_, p, err := conn.ReadMessage()
 		if err != nil {
 			if shouldCloseWithError(err) {
