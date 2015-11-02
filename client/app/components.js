@@ -63,7 +63,58 @@ var classSet = function(obj) {
     return output;
 }
 
+var AsyncButton = React.createClass({
+    getInitialState: function() {
+        return {
+            loading: false,
+        };
+    },
+    onClick: function() {
+        this.setState({
+            loading: true,
+        });
+
+        var obj = this;
+        this.props.onClick().then(function(res) {
+            obj.setState({
+                loading: false,
+            });
+
+            obj.props.onDone(res);
+        });
+    },
+    renderLoading: function() {
+        return (
+            <div className="btn btn-primary loading" disabled="disabled">
+                { this.props.children }
+                <i style={{ "marginLeft": "5px" }} className="fa fa-spinner fa-spin"></i>
+            </div>
+        );
+    },
+    renderNormal: function() {
+        return (
+            <div onClick={ this.onClick } className="btn btn-primary">
+                { this.props.children }
+            </div>
+        );
+    },
+    render: function() {
+        if (this.state.loading) {
+            return this.renderLoading();
+        } else {
+            return this.renderNormal();
+        }
+        
+        return (
+            <div className="btn btn-primary">
+                { children }
+            </div>
+        );
+    },
+});
+
 module.exports = {
     createStateful: statefulComponent,
     classSet: classSet,
+    AsyncButton: AsyncButton,
 }
