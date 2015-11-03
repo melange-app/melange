@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"getmelange.com/zooko"
 	"getmelange.com/zooko/message"
+	"getmelange.com/zooko/proof"
 	"github.com/melange-app/nmcd/btcjson"
 	"github.com/melange-app/nmcd/wire"
 )
@@ -63,7 +63,7 @@ func (server *ZookoServer) CreateTransactionListForName(name string, excludeExpi
 
 		root, _ := wire.NewShaHashFromStr(block.MerkleRoot)
 		txid, _ := wire.NewShaHashFromStr(transactionResult.Txid)
-		if _, err = zooko.VerifyMerkleBranch(branch, root, txid); err != nil {
+		if _, err = proof.VerifyMerkleBranch(branch, root, txid); err != nil {
 			return nil, errors.New("unable to verify new merkle branch")
 		}
 

@@ -1,4 +1,4 @@
-package zooko
+package router
 
 import (
 	"errors"

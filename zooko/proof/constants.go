@@ -1,4 +1,4 @@
-package zooko
+package proof
 
 import (
 	"github.com/melange-app/nmcd/wire"

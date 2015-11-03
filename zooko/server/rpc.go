@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/rpc"
 	"strconv"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 	"airdispat.ch/routing"
 
 	zmessage "getmelange.com/zooko/message"
-	"github.com/melange-app/nmcd/btcjson"
 )
 
 // ZookoServer is the object that represents a Zooko Server that
@@ -24,9 +24,7 @@ type ZookoServer struct {
 	Router routing.Router
 
 	// Namecoin RPC Information
-	RPCUsername string
-	RPCPassword string
-	RPCHost     string
+	*rpc.Server
 }
 
 func (r *ZookoServer) Run(port int) error {
@@ -171,8 +169,4 @@ func (r *ZookoServer) handleLookup(data []byte, h message.Header) (message.Messa
 		Found:        len(tnList) != 0,
 		H:            message.CreateHeader(r.Key.Address, h.From),
 	}, nil
-}
-
-func (r *ZookoServer) Send(cmd btcjson.Cmd) (btcjson.Reply, error) {
-	return btcjson.RpcSend(r.RPCUsername, r.RPCPassword, r.RPCHost, cmd)
 }
