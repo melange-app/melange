@@ -10,14 +10,16 @@ import (
 )
 
 const (
-	// Name network fee is currently 1 mNMC
-	nameNetworkFee = 1e5
+	// Name network fee is currently 10 mNMC
+	nameNetworkFee         = 10e5
+	nameTransactionVersion = 28928
 )
 
 // ... << OP_DUP << OP_HASH160 << hash160 << OP_EQUALVERIFY << OP_CHECKSIG
 func (a *Account) finishNameTransaction(sb *txscript.ScriptBuilder) (*Transaction, error) {
 	pk := a.Keys.PubKey().SerializeCompressed()
 
+	// Add the normal pk2pkh script at the end.
 	sb.AddOp(txscript.OP_DUP).AddOp(txscript.OP_HASH160).
 		AddData(btcutil.Hash160(pk)).
 		AddOp(txscript.OP_EQUALVERIFY).AddOp(txscript.OP_CHECKSIG)
@@ -30,7 +32,13 @@ func (a *Account) finishNameTransaction(sb *txscript.ScriptBuilder) (*Transactio
 		wire.NewTxOut(nameNetworkFee, script),
 	}
 
-	return a.buildTransaction(txOutput)
+	// Build the transaction
+	finalTx, err := a.buildTransactionVersion(txOutput, nameTransactionVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	return finalTx, nil
 }
 
 // CreateNameNew will make a new transaction that preregisters a
@@ -52,7 +60,7 @@ func (a *Account) CreateNameNew(name string) (*Transaction, []byte, error) {
 	hash := btcutil.Hash160(append(nameBy, buffer...))
 
 	// Build the name script
-	sb.AddOp(txscript.OP_DATA_1).AddData(hash).AddOp(txscript.OP_2DROP)
+	sb.AddOp(txscript.OP_1).AddData(hash).AddOp(txscript.OP_2DROP)
 
 	tx, err := a.finishNameTransaction(sb)
 	if err != nil {
@@ -70,7 +78,7 @@ func (a *Account) CreateNameFirstUpdate(rand []byte, name, value string) (*Trans
 	sb := txscript.NewScriptBuilder()
 
 	// Build the name script
-	sb.AddOp(txscript.OP_DATA_2).
+	sb.AddOp(txscript.OP_2).
 		AddData([]byte(name)).AddData(rand).AddData([]byte(value)).
 		AddOp(txscript.OP_2DROP).AddOp(txscript.OP_2DROP)
 
@@ -85,7 +93,7 @@ func (a *Account) CreateNameUpdate(name, value, address string) (*Transaction, e
 	sb := txscript.NewScriptBuilder()
 
 	// Build the name script
-	sb.AddOp(txscript.OP_DATA_3).
+	sb.AddOp(txscript.OP_3).
 		AddData([]byte(name)).AddData([]byte(value)).
 		AddOp(txscript.OP_2DROP).AddOp(txscript.OP_DROP)
 

@@ -14,7 +14,8 @@ import (
 const (
 	// TxFee in Namecoin is set to be 5mNMC (or 5 * 10^5
 	// nmc-satoshis).
-	txFee = 5e5
+	txFee                     = 5e5
+	defaultTransactionVersion = 1
 )
 
 // Transaction object holds a transaction as we are building it. It
@@ -64,6 +65,11 @@ func (a *Account) TransferFunds(amount int64, pubkeyHash string) (*Transaction, 
 // buildTransaction will attempt to create a new transaction using the
 // UTXO that the account has stored.
 func (a *Account) buildTransaction(output []*wire.TxOut) (*Transaction, error) {
+	// Use the default transaction version = 1.
+	return a.buildTransactionVersion(output, defaultTransactionVersion)
+}
+
+func (a *Account) buildTransactionVersion(output []*wire.TxOut, version int32) (*Transaction, error) {
 	// Calculate the amount of the transaction.
 	var amount int64
 	for _, v := range output {
@@ -84,6 +90,7 @@ func (a *Account) buildTransaction(output []*wire.TxOut) (*Transaction, error) {
 	sort.Sort(a.Unspent)
 
 	msgTx := wire.NewMsgTx()
+	msgTx.Version = version
 
 	var balance int64
 	var toSpend UTXOList
@@ -110,7 +117,7 @@ func (a *Account) buildTransaction(output []*wire.TxOut) (*Transaction, error) {
 
 	// Build a change transaction.
 	if amount < balance {
-		change := amount - balance
+		change := balance - amount
 
 		addr, err := a.getPubKeyHash()
 		if err != nil {
