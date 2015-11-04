@@ -57,7 +57,7 @@ func (a *Account) CreateNameNew(name string) (*Transaction, []byte, error) {
 
 	// Hash the name with the salt.
 	nameBy := []byte(name)
-	hash := btcutil.Hash160(append(nameBy, buffer...))
+	hash := btcutil.Hash160(append(buffer, nameBy...))
 
 	// Build the name script
 	sb.AddOp(txscript.OP_1).AddData(hash).AddOp(txscript.OP_2DROP)
