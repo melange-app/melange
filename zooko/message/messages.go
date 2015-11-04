@@ -52,7 +52,7 @@ func CreateResolvedNameMessageFromBytes(by []byte, h message.Header) (*ResolvedN
 	}
 
 	var intx []NamecoinTransaction
-	for _, v := range newMsg.Transactions {
+	for _, v := range newMsg.Proof {
 		value := int32(0)
 		if v.Value != nil {
 			value = *v.Value
@@ -91,8 +91,8 @@ func (r *ResolvedNameMessage) ToBytes() []byte {
 		})
 	}
 	msg := &ResolvedName{
-		Transactions: outtx,
-		Found:        &r.Found,
+		Proof: outtx,
+		Found: &r.Found,
 	}
 
 	by, err := proto.Marshal(msg)
