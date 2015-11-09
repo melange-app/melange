@@ -25,8 +25,11 @@ func (r *Server) LookupName(name string) (string, bool, error) {
 		return "", false, reply.Error
 	}
 
-	nameInfo := reply.Result.(*btcjson.NameInfoResult)
+	nameInfo := reply.Result.(map[string]interface{})
+	if nameInfo["expired"].(float64) == 1 {
+		return "", false, nil
+	}
 
 	// Return the name
-	return nameInfo.Value, true, nil
+	return nameInfo["value"].(string), true, nil
 }
