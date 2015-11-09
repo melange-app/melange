@@ -26,8 +26,11 @@ func (r *Server) LookupName(name string) (string, bool, error) {
 	}
 
 	nameInfo := reply.Result.(map[string]interface{})
-	if nameInfo["expired"].(float64) == 1 {
-		return "", false, nil
+
+	if expiration, ok := nameInfo["expired"]; ok {
+		if expiration.(float64) == 1 {
+			return "", false, nil
+		}
 	}
 
 	// Return the name
