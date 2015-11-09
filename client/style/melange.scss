@@ -1,0 +1,31 @@
+// body.scss contains information about the structure of the page
+@import "body";
+
+@import "mixins";
+
+// loader.scss contains information about the loader that appears
+// before the page itself
+@import "loader";
+
+// these files contain information about the title and the status
+// bar
+@import "title";
+@import "status";
+@import "newsfeed";
+@import "menu";
+
+// these files contain information about the various pages in
+// melange
+@import "home";
+@import "profile";
+@import "setup";
+@import "settings";
+@import "market";
+
+@import "plugins";
+
+@import "errors";
+
+// these files contain information specific to different types of
+// media
+@import "desktop";

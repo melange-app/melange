@@ -1,0 +1,85 @@
+.profile {
+    $backdrop-height: 200px;
+    $avatar-size: 100px;
+    
+    .backdrop {
+        width: 100%;
+        height: $backdrop-height;
+
+        background-color: $melange-base;
+        background-size: cover;
+        border-bottom: 1px solid darken($melange-light-gray, 20%);
+    }
+
+    .avatar {
+        margin-top: -30px;
+        margin-left: 20px;
+        margin-right: 10px;
+        
+        float: left;
+
+        height: $avatar-size;
+        width: $avatar-size;
+
+        background-color: white;
+        background-size: cover;
+
+        border: 1px solid darken($melange-light-gray, 20%);
+        @include link();
+
+        &:hover {
+            border-color: $melange-base;
+        }
+    }
+
+
+    .info {
+        margin: 10px;
+        
+        h1 {
+            margin: 0;
+        }
+
+        .muted {
+            color: darken($melange-light-gray, 30%);
+        }
+    }
+
+    .profile-feed {
+        clear: both;
+        margin: 10px;
+        
+        // background-color: $melange-dark-gray;
+
+        .story {
+            background-color: white;
+            border: 1px solid darken($melange-light-gray, 20%);
+            margin-bottom: 20px;
+
+            h3 {
+                margin: 0;
+                margin-top: 5px;
+                
+                font-size: 18px;
+            }
+
+            .story-body {
+                margin: 0 5px;
+            }
+
+            .actions {
+                background-color: $melange-light-gray;
+                border-top: 1px solid darken($melange-light-gray, 10%);
+                padding: 5px;
+            }
+            
+            .avatar {
+                top: 0;
+                width: 50px;
+                height: 50px;
+                
+                margin: 5px;
+            }
+        }
+    }
+}

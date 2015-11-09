@@ -1,6 +1,0 @@
-<span ng-if="name" class="live-tile-name"><h6>{{ name }}</h6></span>
-<div class="live-tile">
-  <a href="" ng-click="delete(index)" ng-show="edit" class="close-button"><i class="fa fa-times"></i></a>
-  <div ng-if="!click" class="click-interceptor"></div>
-  <iframe ng-src="{{ url | unsafeUrl }}" class="tile-frame" height="{{ height }}" sandbox="allow-scripts allow-same-origin"></iframe>
-</div>

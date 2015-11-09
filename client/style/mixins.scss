@@ -1,0 +1,17 @@
+@mixin link() {
+    cursor: pointer;
+    * {
+        cursor: pointer;
+    }
+}
+
+@mixin clear() {
+    &:after {
+        visibility: hidden;
+        display: block;
+        font-size: 0;
+        content: " ";
+        clear: both;
+        height: 0;
+    }
+}

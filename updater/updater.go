@@ -58,6 +58,7 @@ func (p *progressManager) Write(data []byte) (n int, err error) {
 
 func CheckForUpdate(currentVersion, platform string) (*Update, updateStatus) {
 	updateURL := fmt.Sprintf("http://getmelange.com/api/updates/%s/%s", currentVersion, platform)
+	fmt.Println("Checking for updates at", updateURL)
 	resp, err := http.Get(updateURL)
 	if err != nil {
 		return nil, updateStatus{

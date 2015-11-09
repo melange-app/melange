@@ -19,6 +19,10 @@ type melange struct {
 }
 
 func Run(port int, dataDir string, version string, platform string) error {
+	return RunDarwin(port, dataDir, "", version, platform)
+}
+
+func RunDarwin(port int, dataDir string, assetDir string, version string, platform string) error {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Golang Panic:", r)
@@ -41,9 +45,14 @@ func Run(port int, dataDir string, version string, platform string) error {
 		return err
 	}
 
+	suffix := fmt.Sprintf(":%d", port)
+	if assetDir == "" {
+		suffix = fmt.Sprintf(".127.0.0.1.xip.io:%d", port)
+	}
+
 	// fmt.Println("Creating the server")
 	m.App = &app.Server{
-		Suffix:  fmt.Sprintf(".127.0.0.1.xip.io:%d", port),
+		Suffix:  suffix,
 		Common:  "common.melange",
 		Plugins: "*.plugins.melange",
 		API:     "api.melange",
@@ -55,9 +64,10 @@ func Run(port int, dataDir string, version string, platform string) error {
 		Settings: settings,
 
 		// Logging Information
-		DataDirectory: dataDir,
-		Platform:      platform,
-		Version:       version,
+		DataDirectory:  dataDir,
+		AssetDirectory: assetDir,
+		Platform:       platform,
+		Version:        version,
 	}
 
 	fmt.Println("Melange Starting up.", port)

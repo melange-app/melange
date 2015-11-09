@@ -1,0 +1,109 @@
+.settings {
+    padding: 10px;
+    
+    width: 75%;
+    margin-left: auto;
+    margin-right: auto;
+
+    @media(max-width: 768px) {
+        width: 100%;
+    }
+
+    h1 {
+        margin-top: 0;
+    }
+
+    .identity {   
+        &.inactive {
+            .panel {
+                &:hover {
+                    background-color: lighten($melange-light-gray, 2%);
+                    border-color: $melange-base;
+                }
+                
+                @include link();
+            }
+        }
+
+        &.active {
+            .go-icon {
+                display: none;
+            }
+        }
+        
+        .panel {
+            border-radius: 0;
+            border: 1px solid darken($melange-light-gray, 5%);
+
+            margin-top: 5px;
+            margin-bottom: 5px;
+
+            margin-right: 45px;
+
+            @media(min-width: 768px) {
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+        }
+
+        .avatar {
+            height: 32px;
+            width: 32px;
+
+            float: left;
+
+            margin: 5px;
+
+            background-size: cover;
+        }
+
+        .content {
+            margin: 5px 0;
+            
+            h4 {
+                margin: 0;
+            }
+
+            p {
+                margin: 0;
+            }
+        }
+
+        .go-icon {
+            float: right;
+            // background-color: green;
+            padding: 10px;
+            font-size: 20px;
+            height: 100%;
+            color: lighten($melange-dark-gray, 20%);
+        }
+
+        .identity-settings {
+            float: right;
+            color: lighten($melange-dark-gray, 30%);
+            @include link();
+
+            &:hover {
+                color: $melange-base;
+            }
+            
+            font-size: 25px;
+            margin: 7px;
+        }
+
+        .identity-options {
+            .inner {
+                padding: 5px;
+            }
+            
+            hr {
+                margin: 0 5px;
+            }
+
+            h5 {
+                margin: 0;
+                
+            }
+        }
+    }
+}

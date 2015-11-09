@@ -1,139 +1,78 @@
-'use strict';
+var Status = require('./views/status');
+var NewsFeed = require('./views/newsfeed');
+var Menu = require('./views/menu');
+var Toolbar = require('./views/toolbar');
 
-/* App Module */
+var Router = require('./router');
 
-var melangeTest = "http://common.melange";
-var melangeSuffix = ".melange:7776";
+var Components = require('./components');
 
-// If melangeTest does not equal the original, we are
-// live rewriting on android.
-if (melangeTest !== "http://" + "common" + ".melange") {
-    melangeSuffix = ".melange.127.0.0.1.xip.io:7776";
+window.images = {
+    hunter: "https://scontent-iad3-1.xx.fbcdn.net/hphotos-xpf1/v/t1.0-9/11755276_1598154330449890_3860781029961901461_n.jpg?oh=bf9cfab789484f74fbfe92fb8a3e5d11&oe=56A47885",
+    cover: "http://www.smittenblogdesigns.com/wp-content/uploads/2014/01/passion1.png",
 }
 
-var melangePluginSuffix=".plugins" + melangeSuffix;
-var melangeAPI ="api" + melangeSuffix;
+window.getBackground = function(name) {
+    var img = images[name];
+    if (name == undefined) {
+        img = "/img/icon.png"
+    }
+    
+    return {
+        "backgroundImage": "url('" + img + "')"
+    }
+}
 
-var melangeApp = angular.module('melangeApp', [
-  'ngRoute',
-  'ngResource',
-  'melangeServices',
-  'melangeControllers',
-  'melangeFilters',
-  'melangeDirectives',
-  'ui.sortable',
-]);
+// Create Redux Store
+var S = require("./store");
 
-melangeApp.config(['$routeProvider',
-  function($routeProvider) {
-    // Setup the Application Routes
-    $routeProvider
-      // Application Routes
-      .when('/dashboard', {
-        templateUrl: 'partials/dashboard.html',
-        controller: 'DashboardCtrl'
-      })
-      .when('/all', {
-        templateUrl: 'partials/all.html',
-        controller: 'AllCtrl'
-      })
-      // Profile Routes
-      .when('/profile', {
-        templateUrl: 'partials/profile/profile.html',
-        controller: 'ProfileCtrl'
-      })
-      .when('/profile/edit', {
-        templateUrl: 'partials/profile/edit.html',
-        controller: 'EditProfileCtrl'
-      })
-      .when('/user/:alias', {
-        templateUrl: 'partials/profile/profile.html',
-        controller: 'UserProfileCtrl'
-      })
-      // Contact Routes
-      .when('/contacts', {
-        templateUrl: 'partials/contacts.html',
-        controller: 'ContactsCtrl'
-      })
-      // Plugin Routes
-      .when('/plugin/:pluginid/:action', {
-        templateUrl: 'partials/plugin/loader.html',
-        controller: 'PluginCtrl'
-      })
-      .when('/market', {
-        templateUrl: 'partials/market/index.html',
-        controller: 'MarketCtrl',
-      })
-      .when('/market/updates', {
-        templateUrl: 'partials/market/updates.html',
-        controller: 'PluginSettingsCtrl'
-       })
-      .when('/market/:action', {
-        templateUrl: 'partials/market/index.html',
-        controller: 'MarketCtrl',
-      })
-      // Settings Routes
-      .when('/settings', {
-        templateUrl: 'partials/settings/index.html',
-        controller: 'SettingsCtrl'
-      })
-      // Identity Settings
-      .when('/settings/identity', {
-        templateUrl: 'partials/settings/identity.html',
-        controller: 'SettingsCtrl'
-      })
-      .when('/settings/identity/new', {
-        templateUrl: 'partials/settings/newIdentity.html',
-        controller: 'NewIdentityCtrl'
-      })
-      .when('/settings/developer', {
-        templateUrl: 'partials/settings/developer.html',
-        controller: 'SettingsCtrl',
-      })
-      .when('/settings/developer/add', {
-        templateUrl: 'partials/settings/developerAdd.html',
-        controller: 'DeveloperSettingsCtrl',
-      })
-      .when('/settings/developer/view/:app', {
-        templateUrl: 'partials/settings/developerView.html',
-        controller: 'SettingsCtrl',
-      })
-      .when('/settings/developer/view/:app/update', {
-        templateUrl: 'partials/settings/developerUpdate.html',
-        controller: 'DeveloperSettingsCtrl',
-      })
-      .when('/settings/advanced', {
-        templateUrl: 'partials/settings/advanced.html',
-        controller: 'SettingsCtrl'
-      })
-      // Startup Routes
-      .when('/setup', {
-        templateUrl: 'partials/setup/index.html',
-        controller: 'SetupCtrl'
-      })
-      // Exisiting Account Routes
-      .when('/setup/link', {
-        templateUrl: 'partials/setup/link.html',
-        controller: 'SetupCtrl'
-      })
-      // New Account Routes
-      .when('/setup/new', {
-        templateUrl: 'partials/setup/new.html',
-        controller: 'SetupCtrl'
-      })
-      .when('/setup/server', {
-        templateUrl: 'partials/setup/server.html',
-        controller: 'SetupCtrl'
-      })
-      .when('/setup/confirm', {
-        templateUrl: 'partials/setup/confirm.html',
-        controller: 'SetupCtrl'
-      })
-      .when('/startup', {
-        templateUrl: 'partials/startup.html',
-        controller: 'StartupCtrl'
-      })
-      .otherwise({
-        redirectTo: '/dashboard'
-      });
-  }]);
+var Backend = require("./services/backend");
+
+// Export store globally for debugging... (probably a bad idea!)
+window.melange = {
+    store: S.store,
+    backend: Backend,
+}
+
+var Body = Components.createStateful({
+    stateName: "f",
+    filterState: function(s) {
+        return s.views;
+    },
+    render: function() {
+        var menuOpen = {
+            "body": true,
+            "menu-open": this.state.f.get('menu'),
+            "newsfeed-open": this.state.f.get('newsfeed'),
+        }
+        
+        return (
+            <div className={ Components.classSet(menuOpen) }>
+                <NewsFeed/>
+                <Menu/>
+                <Router/>
+            </div>
+        )
+    },
+});
+
+var Melange = React.createClass({
+    render: function() {
+        return (
+            <div className="react">
+                <Toolbar/>
+                <Body/>
+                <Status/>
+            </div>
+        )
+    },
+});
+
+React.render(<Melange/>, document.getElementById('melange'), function() {
+    console.log("React application started.");
+    
+    var loader = document.getElementById("loader");
+    loader.style.display = "none";
+
+    Backend.realtime.connect();
+});

@@ -1,0 +1,78 @@
+.setup {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    color: white;
+    background-color: $melange-dark-gray;
+
+    padding: 20px;
+
+    .logo {
+        width: 200px;
+    }
+
+    .style {
+        font-family: "Futura", sans-serif;
+    }
+
+    h1.style {
+        font-size: 56px;
+        margin-bottom: 0;
+    }
+
+    h3 {
+        margin-top: 0;
+        color: yellow;
+    }
+
+    .lead {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    .button {
+        width: 100%;
+        background-color: white;
+        color: black;
+        font-size: 24px;
+        padding: 10px;
+        margin-bottom: 10px;
+
+        border-bottom: 10px solid $melange-base;
+        
+        cursor: pointer;
+        * {
+            cursor: pointer;
+        }
+
+        p {
+            margin: 0;
+        }
+
+        &:hover {
+            background-color: #bbb;
+        }
+    }
+}
+
+.setup-white {
+    .panel {
+        border-radius: 0;
+
+        h3 {
+            margin: 0;
+        }
+    }
+
+    .list-group-item {
+        &:first-child {
+            border-radius: 0;
+        }
+
+        &:last-child {
+            border-radius: 0;
+        }
+    }
+}    

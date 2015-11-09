@@ -76,6 +76,7 @@ message LinkTransfer {
 message DownloadMessages {
 	optional uint64 since = 1;
 	optional bool context = 2;
+    optional bool sent    = 3;
 }
 
 // Publish Message will create a new message on the server

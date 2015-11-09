@@ -1,0 +1,158 @@
+.market-view {
+    padding: 10px;
+    
+    .padding-container {
+        background-color: white;
+        padding: 5px;
+        border: 1px solid darken($melange-light-gray, 20%);
+        margin: 10px;
+    }
+
+    h1 {
+        margin-bottom: 0;
+    }
+
+    .title {
+        margin-right: 2px;
+    }
+
+    .actions {
+        margin: 0 10px;
+    }
+
+    .list-group.info {
+        margin: 5px -1px;
+
+        .list-group-item {
+            padding: 5px;
+            
+            &:last-child {
+                border-radius: 0;
+            }
+
+            &:first-child {
+                border-radius: 0;
+            }
+        }
+    }
+
+    .btn {
+        border-radius: 0;
+    }
+
+    hr {
+        border-color: lighten($melange-dark-gray, 30%);
+    }
+    
+    .icon-container {
+        display: inline-block;
+        position: relative;
+        width: 100%;
+
+        margin-bottom: -5px;
+
+        .spacer {
+            margin-top: 100%;
+        }
+
+        .app-icon {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-size: cover;
+            background-position: center center;
+        }
+    }
+}
+
+.market {
+    .content {
+        padding: 10px;
+
+        .update-alert {
+            &:hover {
+                box-shadow: 0 0 5px #333;
+            }
+            
+            @include link();
+        }
+
+        .top {
+            .top-app {
+                border-radius: 0;
+                border: 1px solid darken($melange-light-gray, 20%);
+                
+                .app-icon {
+                    height: 54px;
+                    width: 54px;
+
+                    background-size: cover;
+
+                    margin-right: 5px;
+                    
+                    float: left;
+                }
+
+                h3 {
+                    margin-top: 2px;
+                    margin-bottom: 0;
+                }
+            }
+
+            &:hover {
+                background-color: darken($melange-light-gray, 2%);
+                border-color: $melange-base;
+            }
+            
+            @include link();
+        }
+    }
+    
+    .featured {
+        width: 100%;
+        height: 200px;
+        position: relative;
+
+        border-bottom: 1px solid darken($melange-light-gray, 20%);
+
+        @media(max-width: 768px) {
+            .app.second, .app.third {
+                display: none;
+            }
+
+            .app.first {
+                width: 100% !important;
+            }
+        }
+
+        .app {
+            background-size: cover;
+            background-position: center center;
+
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 34%;
+            height: 50%;
+            border: 1px solid $melange-light-gray;
+
+            @include link();
+
+            &.third {
+                top: inherit;
+                bottom: 0;
+            }
+            
+            &.first {
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                top: 0;
+                width: 66%;
+                height: 100%;
+            }
+        }
+    }
+}

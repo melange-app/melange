@@ -1,0 +1,95 @@
+$newsfeed-width: 320px;
+
+.body.newsfeed-open {
+    .newsfeed-holder {
+        background-color: rgba(40, 40, 40, 0.5);
+        visibility: visible;
+        transition: background-color 0.5s;
+        .newsfeed {
+            right: 0;
+            transition: right 0.3s;
+        }
+    }
+}
+.newsfeed-holder {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+
+
+    // Hidden Newsfeed Properties
+    background-color: rgba(40, 40, 40, 0);
+    visibility: hidden;
+    transition: visibility 0s linear 0.3s, background-color 0.3s;
+    .newsfeed {
+        right: -$newsfeed-width;
+        transition: right 0.5s;
+    }
+}
+
+.newsfeed {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: $newsfeed-width;
+
+    background-color: $melange-light-gray;
+    border-left: solid 1px darken($melange-light-gray, 20%);
+
+    overflow: auto;
+
+    .header {
+        padding: 5px;
+        border-bottom: 1px solid darken($melange-light-gray, 20%);
+    }
+
+    .story {
+        background-color: white;
+        border-bottom: 1px solid darken($melange-light-gray, 20%);
+
+        .story-body {
+            width: 100%;
+            // min-height: 50px;
+            // background-color: $melange-dark-gray;
+            color: $melange-dark-gray;
+            padding: 5px;
+        }
+
+        .avatar {
+            height: 32px;
+            width: 32px;
+
+            float: left;
+
+            margin: 5px;
+
+            background-size: cover;
+
+            @include link();
+        }
+
+        h3 {
+            font-size: 14px;
+            margin: 0;
+            padding-top: 5px;
+        }
+
+        p {
+            font-size: 12px;
+            color: lighten($melange-dark-gray, 50%);
+            margin: 0;
+            margin-bottom: 5px;
+        }
+
+        .actions {
+            font-size: 12px;
+            margin-bottom: 0;
+            background-color: $melange-light-gray;
+            padding: 2px;
+            border-top: solid 1px darken($melange-light-gray, 5%);
+        }
+    }
+}

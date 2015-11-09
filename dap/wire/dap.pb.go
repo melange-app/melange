@@ -152,6 +152,7 @@ func (m *LinkTransfer) GetApproved() bool {
 type DownloadMessages struct {
 	Since            *uint64 `protobuf:"varint,1,opt,name=since" json:"since,omitempty"`
 	Context          *bool   `protobuf:"varint,2,opt,name=context" json:"context,omitempty"`
+	Sent             *bool   `protobuf:"varint,3,opt,name=sent" json:"sent,omitempty"`
 	XXX_unrecognized []byte  `json:"-"`
 }
 
@@ -169,6 +170,13 @@ func (m *DownloadMessages) GetSince() uint64 {
 func (m *DownloadMessages) GetContext() bool {
 	if m != nil && m.Context != nil {
 		return *m.Context
+	}
+	return false
+}
+
+func (m *DownloadMessages) GetSent() bool {
+	if m != nil && m.Sent != nil {
+		return *m.Sent
 	}
 	return false
 }

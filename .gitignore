@@ -28,12 +28,29 @@ data/*
 test/
 test/*
 
+# Ignore Built JS and CSS
+client/.sass-cache
+client/css
+client/js
+
 # Ignore Special Builds Paths
+build
 build/tmp
 server/server/server
 releases
-run.sh
 startup.sh
 mobile/assets
 mobile/.idea
 desktop/shell
+mobile/android/assets
+*.keystore
+local.properties
+mobile/ios/melange_app_backup.app
+embedded.mobileprovision
+Melange
+mobile/ios/Melange.app/_CodeSignature
+mobile/ios/Melange.app/Assets
+Melange_App_Store.mobileprovision
+melange.css
+node_modules
+oldClient
