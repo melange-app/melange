@@ -14,7 +14,8 @@ import (
 const (
 	// TxFee in Namecoin is set to be 5mNMC (or 5 * 10^5
 	// nmc-satoshis).
-	txFee                     = 5e5
+	// txFee                     = 5e5
+	txFee                     = 0
 	defaultTransactionVersion = 1
 )
 

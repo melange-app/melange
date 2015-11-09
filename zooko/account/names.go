@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	// Name network fee is currently 10 mNMC
+	// Name network fee is currently 10 mNMC.
 	nameNetworkFee         = 10e5
 	nameTransactionVersion = 28928
 )

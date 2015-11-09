@@ -23,7 +23,8 @@ message ResolvedName {
     required string name  = 2;
     required bytes  value = 3;
     
-    repeated Transaction proof = 4;
+    repeated Transaction coin_proof    = 4;
+    optional bytes       message_proof = 5;
 }
 
 // TransferFunds is a response to RequestFunds that includes the
@@ -31,7 +32,18 @@ message ResolvedName {
 message TransferFunds {
     required int64  amount = 1;
     required string id     = 2;
-    required bytes  script = 3;
+    required uint32 index  = 3;
+    required bytes  script = 4;
+}
+
+// RegistrationResponse is returned in response to a Registration or
+// Renew message. It does not imply that the registration was not
+// fulfilled successfully (since registration can take a number of
+// hours). The client should immediately check to see if the
+// registration still exists.
+message RegistrationResponse {
+    required bool   success     = 1;
+    optional string information = 2;
 }
 
 // ---------------
@@ -39,7 +51,9 @@ message TransferFunds {
 // ---------------
 
 
-message RequestFunds {}
+message RequestFunds {
+    required string address = 1;
+}
 
 message LookupName {
     required string lookup = 1;

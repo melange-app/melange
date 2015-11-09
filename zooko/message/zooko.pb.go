@@ -73,7 +73,8 @@ type ResolvedName struct {
 	Found            *bool          `protobuf:"varint,1,req,name=found" json:"found,omitempty"`
 	Name             *string        `protobuf:"bytes,2,req,name=name" json:"name,omitempty"`
 	Value            []byte         `protobuf:"bytes,3,req,name=value" json:"value,omitempty"`
-	Proof            []*Transaction `protobuf:"bytes,4,rep,name=proof" json:"proof,omitempty"`
+	CoinProof        []*Transaction `protobuf:"bytes,4,rep,name=coin_proof" json:"coin_proof,omitempty"`
+	MessageProof     []byte         `protobuf:"bytes,5,opt,name=message_proof" json:"message_proof,omitempty"`
 	XXX_unrecognized []byte         `json:"-"`
 }
 
@@ -102,9 +103,16 @@ func (m *ResolvedName) GetValue() []byte {
 	return nil
 }
 
-func (m *ResolvedName) GetProof() []*Transaction {
+func (m *ResolvedName) GetCoinProof() []*Transaction {
 	if m != nil {
-		return m.Proof
+		return m.CoinProof
+	}
+	return nil
+}
+
+func (m *ResolvedName) GetMessageProof() []byte {
+	if m != nil {
+		return m.MessageProof
 	}
 	return nil
 }
@@ -112,7 +120,8 @@ func (m *ResolvedName) GetProof() []*Transaction {
 type TransferFunds struct {
 	Amount           *int64  `protobuf:"varint,1,req,name=amount" json:"amount,omitempty"`
 	Id               *string `protobuf:"bytes,2,req,name=id" json:"id,omitempty"`
-	Script           []byte  `protobuf:"bytes,3,req,name=script" json:"script,omitempty"`
+	Index            *uint32 `protobuf:"varint,3,req,name=index" json:"index,omitempty"`
+	Script           []byte  `protobuf:"bytes,4,req,name=script" json:"script,omitempty"`
 	XXX_unrecognized []byte  `json:"-"`
 }
 
@@ -134,6 +143,13 @@ func (m *TransferFunds) GetId() string {
 	return ""
 }
 
+func (m *TransferFunds) GetIndex() uint32 {
+	if m != nil && m.Index != nil {
+		return *m.Index
+	}
+	return 0
+}
+
 func (m *TransferFunds) GetScript() []byte {
 	if m != nil {
 		return m.Script
@@ -141,13 +157,45 @@ func (m *TransferFunds) GetScript() []byte {
 	return nil
 }
 
+type RegistrationResponse struct {
+	Success          *bool   `protobuf:"varint,1,req,name=success" json:"success,omitempty"`
+	Information      *string `protobuf:"bytes,2,opt,name=information" json:"information,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *RegistrationResponse) Reset()         { *m = RegistrationResponse{} }
+func (m *RegistrationResponse) String() string { return proto.CompactTextString(m) }
+func (*RegistrationResponse) ProtoMessage()    {}
+
+func (m *RegistrationResponse) GetSuccess() bool {
+	if m != nil && m.Success != nil {
+		return *m.Success
+	}
+	return false
+}
+
+func (m *RegistrationResponse) GetInformation() string {
+	if m != nil && m.Information != nil {
+		return *m.Information
+	}
+	return ""
+}
+
 type RequestFunds struct {
-	XXX_unrecognized []byte `json:"-"`
+	Address          *string `protobuf:"bytes,1,req,name=address" json:"address,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
 }
 
 func (m *RequestFunds) Reset()         { *m = RequestFunds{} }
 func (m *RequestFunds) String() string { return proto.CompactTextString(m) }
 func (*RequestFunds) ProtoMessage()    {}
+
+func (m *RequestFunds) GetAddress() string {
+	if m != nil && m.Address != nil {
+		return *m.Address
+	}
+	return ""
+}
 
 type LookupName struct {
 	Lookup           *string `protobuf:"bytes,1,req,name=lookup" json:"lookup,omitempty"`

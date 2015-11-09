@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	"getmelange.com/zooko/account"
+	"errors"
 	"github.com/melange-app/nmcd/btcjson"
 )
 
@@ -19,35 +19,9 @@ const (
 	endowmentAmount = 5e5 * 4
 )
 
-// Endow will transfer money for a single Namecoin name registration
-// (for 12 months) to a specified address. It will return the
-// transaction details so that light clients can keep track of their
-// UTXO.
-func (r *Server) Endow(address string) (*account.UTXO, error) {
-	cmd, err := btcjson.NewSendToAddressCmd(nil, address, endowmentAmount, nil)
-	if err != nil {
-		return err
-	}
-
-	reply, err := r.Send(cmd)
-	if err != nil {
-		return err
-	}
-
-	txid := reply.(string)
-
-	return &account.UTXO{
-		TXID:   txid,
-		Output: 1,
-		Amount: endowmentAmount,
-	}, nil
-}
-
-// Broadcast will broadcast a raw hex-encoded transaction to the
-// Namecoin network.
-func (r *Server) Broadcast(tx string) error {
-
-}
+var (
+	errNilReply = errors.New("zooko/rpc: nil response from namecoin daemon")
+)
 
 // Send will send a raw btcjson.Cmd to the server.
 func (r *Server) Send(cmd btcjson.Cmd) (btcjson.Reply, error) {

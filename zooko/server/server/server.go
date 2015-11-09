@@ -10,6 +10,7 @@ import (
 
 	"airdispat.ch/identity"
 
+	"getmelange.com/zooko/rpc"
 	"getmelange.com/zooko/server"
 )
 
@@ -31,9 +32,11 @@ func main() {
 	flag.Parse()
 
 	server := &server.ZookoServer{
-		RPCUsername: *namecoinUsername,
-		RPCPassword: *namecoinPassword,
-		RPCHost:     *namecoinServer,
+		Server: &rpc.Server{
+			Username: *namecoinUsername,
+			Password: *namecoinPassword,
+			Host:     *namecoinServer,
+		},
 	}
 
 	if *interactive {
@@ -50,15 +53,18 @@ func main() {
 			}
 
 			fmt.Println("Looking up", text)
-			txes, err := server.CreateTransactionListForName(text, false)
+			val, found, err := server.Names.Lookup(text)
 			if err != nil {
 				fmt.Println("error looking up", err)
 				continue
 			}
 
-			for _, v := range txes {
-				fmt.Println("Found TX", v.TxId)
+			if !found {
+				fmt.Println("That name does not exist.")
+				continue
 			}
+
+			fmt.Println("Value for", text, "is", string(val))
 		}
 	} else {
 		var (

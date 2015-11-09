@@ -4,16 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"net/rpc"
 	"strconv"
 	"time"
+
+	"getmelange.com/zooko/rpc"
 
 	adErrors "airdispat.ch/errors"
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
 	"airdispat.ch/routing"
-
-	zmessage "getmelange.com/zooko/message"
 )
 
 // ZookoServer is the object that represents a Zooko Server that
@@ -25,6 +24,7 @@ type ZookoServer struct {
 
 	// Namecoin RPC Information
 	*rpc.Server
+	Names *NamesManager
 }
 
 func (r *ZookoServer) Run(port int) error {
@@ -37,6 +37,9 @@ func (r *ZookoServer) Run(port int) error {
 	if err != nil {
 		return err
 	}
+
+	// Build the names manager.
+	r.Names = CreateNamesManager(r.Server)
 
 	r.serverLoop(listener)
 	return nil
@@ -67,7 +70,7 @@ func (r *ZookoServer) serverLoop(listener *net.TCPListener) {
 	}
 }
 
-func (s *ZookoServer) handleError(msg string, err error) {
+func (r *ZookoServer) handleError(msg string, err error) {
 	fmt.Println(msg, err)
 }
 
@@ -110,17 +113,7 @@ func (s *ZookoServer) handleClient(conn net.Conn) {
 			return
 		}
 
-		if mesType != zmessage.LookupNameCode {
-			adErrors.CreateError(adErrors.UnexpectedError, "Incorrect message type.", s.Key.Address).Send(s.Key, conn)
-			return
-		}
-
-		returnMessage, err := s.handleLookup(data, h)
-		if err != nil {
-			s.handleError("Looking up request", err)
-			adErrors.CreateError(adErrors.UnexpectedError, "Unable to handle your lookup request.", s.Key.Address).Send(s.Key, conn)
-			return
-		}
+		returnMessage, err := s.handleMessage(data, mesType, h)
 
 		returnAddress := h.From
 		// Lookup from Router if Return Address is not Sendable
@@ -154,19 +147,4 @@ func (s *ZookoServer) handleClient(conn net.Conn) {
 			fmt.Println("Got error sending return message: ", err)
 		}
 	}
-}
-
-func (r *ZookoServer) handleLookup(data []byte, h message.Header) (message.Message, error) {
-	ln := zmessage.CreateLookupNameMessageFromBytes(data, h)
-
-	tnList, err := r.CreateTransactionListForName(ln.Name, false)
-	if err != nil {
-		return nil, err
-	}
-
-	return &zmessage.ResolvedNameMessage{
-		Transactions: tnList,
-		Found:        len(tnList) != 0,
-		H:            message.CreateHeader(r.Key.Address, h.From),
-	}, nil
 }
