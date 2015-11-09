@@ -31,12 +31,14 @@ func main() {
 	// Go ahead and Parse the Flags
 	flag.Parse()
 
+	rpcServer := &rpc.Server{
+		Username: *namecoinUsername,
+		Password: *namecoinPassword,
+		Host:     *namecoinServer,
+	}
 	server := &server.ZookoServer{
-		Server: &rpc.Server{
-			Username: *namecoinUsername,
-			Password: *namecoinPassword,
-			Host:     *namecoinServer,
-		},
+		Server: rpcServer,
+		Names:  server.CreateNamesManager(rpcServer),
 	}
 
 	if *interactive {

@@ -38,9 +38,6 @@ func (r *ZookoServer) Run(port int) error {
 		return err
 	}
 
-	// Build the names manager.
-	r.Names = CreateNamesManager(r.Server)
-
 	r.serverLoop(listener)
 	return nil
 }
