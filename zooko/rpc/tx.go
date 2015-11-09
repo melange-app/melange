@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 
 	"getmelange.com/zooko/account"
-	"github.com/btcsuite/btcjson"
+	"github.com/melange-app/nmcd/btcjson"
 )
 
 // Endow will transfer money for a single Namecoin name registration
