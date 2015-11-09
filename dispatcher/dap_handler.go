@@ -67,6 +67,7 @@ func (m *Server) Register(user string, keys map[string][]byte) error {
 func (m *Server) RetrieveDataForUser(name string, author *identity.Address, forAddr *identity.Address) (*message.EncryptedMessage, io.ReadCloser) {
 	auth, err := aws.EnvAuth()
 	if err != nil {
+		fmt.Println("Unable to authenticate with AWS.", err)
 		return nil, nil
 	}
 
