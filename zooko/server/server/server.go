@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"log"
@@ -91,6 +92,16 @@ func main() {
 				log.Fatal("Unable to load key from file", err)
 			}
 		}
+
+		// Decode the address of the server and print it out.
+		data, err := loadedKey.Address.Encode()
+		if err != nil {
+			log.Fatal("Unable to encode key", err)
+		}
+
+		fmt.Println("Loaded the Zooko Key")
+		fmt.Println(hex.EncodeToString(data))
+		fmt.Println("====================")
 
 		server.Key = loadedKey
 		if err := server.Run(*port); err != nil {
