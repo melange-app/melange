@@ -25,14 +25,12 @@ func (r *Server) LookupName(name string) (string, bool, error) {
 		return "", false, reply.Error
 	}
 
-	nameInfo := reply.Result.(map[string]interface{})
+	nameInfo := reply.Result.(*btcjson.NameInfoResult)
 
-	if expiration, ok := nameInfo["expired"]; ok {
-		if expiration.(float64) == 1 {
-			return "", false, nil
-		}
+	if nameInfo.Expired {
+		return "", false, nil
 	}
 
 	// Return the name
-	return nameInfo["value"].(string), true, nil
+	return nameInfo.Value, true, nil
 }
