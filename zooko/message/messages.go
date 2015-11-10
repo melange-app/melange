@@ -1,6 +1,7 @@
 package message
 
 import (
+	"airdispat.ch/crypto"
 	"airdispat.ch/identity"
 	"airdispat.ch/message"
 	"code.google.com/p/goprotobuf/proto"
@@ -36,10 +37,13 @@ func CreateMessage(
 
 	typ := getMessageType(m)
 
+	hdr := message.CreateHeader(from.Address, to...)
+	hdr.EncryptionKey = crypto.RSAToBytes(from.Address.EncryptionKey)
+
 	return &rawMessage{
 		data:        data,
 		messageType: typ,
-		header:      message.CreateHeader(from.Address, to...),
+		header:      hdr,
 	}, nil
 }
 
