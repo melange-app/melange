@@ -1,0 +1,65 @@
+package resolver
+
+import (
+	"errors"
+
+	"code.google.com/p/goprotobuf/proto"
+
+	adErrors "airdispat.ch/errors"
+	adMessage "airdispat.ch/message"
+	"airdispat.ch/wire"
+
+	"getmelange.com/zooko/account"
+	"getmelange.com/zooko/config"
+	"getmelange.com/zooko/message"
+)
+
+func (c *Client) checkAccountBalance(acc *account.Account) error {
+	if acc.Balance() < account.NameMinimumBalance {
+		// We must endow the account with funds.
+
+		// Grab the namecoin address of the account
+		hash, err := acc.PublicKeyHash()
+		if err != nil {
+			return err
+		}
+		addr := hash.String()
+
+		endowRequest, err := message.CreateMessage(&message.RequestFunds{
+			Address: &addr,
+		}, c.Origin, config.ServerAddress())
+		if err != nil {
+			return err
+		}
+
+		data, typ, h, err := adMessage.SendMessageAndReceiveWithTimestamp(
+			endowRequest,
+			c.Origin, config.ServerAddress())
+		if err != nil {
+			return err
+		} else if typ == wire.ErrorCode {
+			return adErrors.CreateErrorFromBytes(data, h)
+		} else if typ != message.TypeTransferFunds {
+			return errors.New("zooko/resolver: endowment received incorrect response type")
+		}
+
+		transferredFunds := new(message.TransferFunds)
+		if err := proto.Unmarshal(data, transferredFunds); err != nil {
+			return err
+		}
+
+		// Build the UTXO for the account
+		acc.Unspent = append(acc.Unspent, &account.UTXO{
+			TxID:     *transferredFunds.Id,
+			Output:   *transferredFunds.Index,
+			PkScript: transferredFunds.Script,
+			Amount:   *transferredFunds.Amount,
+		})
+
+		// Go ahead and ensure that the account is now over the minimum
+		return c.checkAccountBalance(acc)
+	}
+
+	// Otherwise, we are good to go.
+	return nil
+}

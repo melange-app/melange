@@ -17,7 +17,7 @@ const (
 
 // ... << OP_DUP << OP_HASH160 << hash160 << OP_EQUALVERIFY << OP_CHECKSIG
 func (a *Account) finishNameTransaction(sb *txscript.ScriptBuilder) (*Transaction, error) {
-	pk := a.Keys.PubKey().SerializeCompressed()
+	pk := a.Keys.Key().PubKey().SerializeCompressed()
 
 	// Add the normal pk2pkh script at the end.
 	sb.AddOp(txscript.OP_DUP).AddOp(txscript.OP_HASH160).
@@ -89,7 +89,7 @@ func (a *Account) CreateNameFirstUpdate(rand []byte, name, value string) (*Trans
 // a new value.
 //
 // OP_NAME_UPDATE (3) << vchName << vchValue << OP_2DROP << OP_DROP << ...
-func (a *Account) CreateNameUpdate(name, value, address string) (*Transaction, error) {
+func (a *Account) CreateNameUpdate(name, value string) (*Transaction, error) {
 	sb := txscript.NewScriptBuilder()
 
 	// Build the name script

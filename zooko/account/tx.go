@@ -14,8 +14,7 @@ import (
 const (
 	// TxFee in Namecoin is set to be 5mNMC (or 5 * 10^5
 	// nmc-satoshis).
-	// txFee                     = 5e5
-	txFee                     = 0
+	txFee                     = 5e5
 	defaultTransactionVersion = 1
 )
 
@@ -23,14 +22,16 @@ const (
 // doesn't update any of the UTXO until it is actually broadcast to
 // the network.
 type Transaction struct {
+	// Transaction contains a bitcoin wire Transaction
 	*wire.MsgTx
-	Spent   []*UTXO
-	Amount  int64
-	Account *Account
-}
 
-func (t *Transaction) Broadcast() error {
-	return nil
+	// We also keep track of which UTXO objects we are spending
+	// and creating.
+	Spent []*UTXO
+	New   []*UTXO
+
+	// It includes a total amount.
+	Amount int64
 }
 
 // TransferFunds will create a transaction that transfers an amount of
@@ -117,10 +118,12 @@ func (a *Account) buildTransactionVersion(output []*wire.TxOut, version int32) (
 	msgTx.TxOut = output
 
 	// Build a change transaction.
+	hasChange := false
 	if amount < balance {
 		change := balance - amount
+		hasChange = true
 
-		addr, err := a.getPubKeyHash()
+		addr, err := a.PublicKeyHash()
 		if err != nil {
 			return nil, err
 		}
@@ -148,12 +151,36 @@ func (a *Account) buildTransactionVersion(output []*wire.TxOut, version int32) (
 		msgTx.TxIn[index].SignatureScript = sigScript
 	}
 
+	// Provide a list of new unspent transactions if we happened
+	// to include a change transaction.
+	var newUnspent []*UTXO
+	if hasChange {
+		// The change transaction is always the last index.
+		changeIndex := len(msgTx.TxOut) - 1
+		change := msgTx.TxOut[changeIndex]
+
+		dataId, err := msgTx.TxSha()
+		if err != nil {
+			return nil, err
+		}
+
+		// Create the new Unspent Transaction Output
+		newUnspent = append(newUnspent, &UTXO{
+			TxID:     dataId.String(),
+			Output:   uint32(changeIndex),
+			Amount:   change.Value,
+			PkScript: change.PkScript,
+		})
+	}
+
 	// We must create a change transaction as a TxOut to ourselves
 	// and save that as a new UTXO.
 	return &Transaction{
-		MsgTx:   msgTx,
-		Spent:   toSpend,
-		Amount:  balance,
-		Account: a,
+		MsgTx: msgTx,
+
+		Spent: toSpend,
+		New:   newUnspent,
+
+		Amount: balance,
 	}, nil
 }

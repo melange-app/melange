@@ -5,11 +5,18 @@ import (
 	"github.com/melange-app/nmcd/btcutil"
 )
 
+const (
+	// NameMinimumBalance is the minimum balance that an account
+	// can have in order to perform a name operation.
+	NameMinimumBalance = txFee + nameNetworkFee
+)
+
 // Account represents a Namecoin account that does not see the
 // blockchain. Therefore, it must store its list of UTXO internally.
 type Account struct {
-	Keys    *btcec.PrivateKey
+	Keys    *Key
 	Unspent UTXOList
+	Pending []*Transaction
 }
 
 // CreateAccount will generate a new Namecoin address and associated
@@ -19,16 +26,34 @@ func CreateAccount() (*Account, error) {
 	if err != nil {
 		return nil, err
 	}
+	accountKey := Key(*key)
 
 	return &Account{
-		Keys: key,
+		Keys: &accountKey,
 	}, nil
 }
 
-// RequestFunds will ask the local Zooko server to send money to
-// register a new name.
-func (a *Account) RequestFunds() (*UTXO, error) {
-	return nil, nil
+// Commit will update the UTXO graph for this account to reflect the
+// changes in Transaction.
+func (a *Account) Commit(t *Transaction) {
+	var utxo UTXOList
+
+	// Add all the new transactions to the list.
+	for _, v := range t.New {
+		utxo = append(utxo, v)
+	}
+
+	// Add all the transactions that aren't in the spent list to
+	// the array.
+	for _, v := range a.Unspent {
+		for _, x := range t.Spent {
+			if !v.Equals(x) {
+				utxo = append(utxo, v)
+			}
+		}
+	}
+
+	a.Unspent = utxo
 }
 
 // Balance will return the balance of the wallet.
@@ -39,7 +64,7 @@ func (a *Account) Balance() int64 {
 // We should only ever need the key associated with the account. If we
 // need to sign for something else, this will not work.
 func (a *Account) GetKey(btcutil.Address) (*btcec.PrivateKey, bool, error) {
-	return a.Keys, true, nil
+	return a.Keys.Key(), true, nil
 }
 
 // UTXOList represents the list of transactions that are unspent. We
@@ -67,4 +92,8 @@ type UTXO struct {
 	Output   uint32
 	Amount   int64
 	PkScript []byte
+}
+
+func (u *UTXO) Equals(y *UTXO) bool {
+	return (u.TxID == y.TxID) && (u.Output == y.Output)
 }

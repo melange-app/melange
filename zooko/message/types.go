@@ -4,9 +4,10 @@ import "code.google.com/p/goprotobuf/proto"
 
 const (
 	// Server message types.
-	TypeTransaction   = "ZK-TX"
-	TypeResolvedName  = "ZK-RS"
-	TypeTransferFunds = "ZK-TF"
+	TypeTransaction          = "ZK-TX"
+	TypeResolvedName         = "ZK-RS"
+	TypeTransferFunds        = "ZK-TF"
+	TypeRegistrationResponse = "ZK-RR"
 
 	// Client message types.
 	TypeRequestFunds = "ZK-RF"
@@ -24,6 +25,8 @@ func getMessageType(m proto.Message) string {
 		return TypeResolvedName
 	case *TransferFunds:
 		return TypeTransferFunds
+	case *RegistrationResponse:
+		return TypeRegistrationResponse
 
 		// Client messsage
 	case *RequestFunds:
