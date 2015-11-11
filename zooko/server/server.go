@@ -111,6 +111,10 @@ func (s *ZookoServer) handleClient(conn net.Conn) {
 		}
 
 		returnMessage, err := s.handleMessage(data, mesType, h)
+		if err != nil {
+			fmt.Println("Got error handling message", err)
+			returnMessage = adErrors.CreateError(adErrors.UnexpectedError, "Internal service error handling your message", s.Key.Address)
+		}
 
 		returnAddress := h.From
 		// Lookup from Router if Return Address is not Sendable
