@@ -21,7 +21,7 @@ message Transaction {
 message ResolvedName {
     required bool   found = 1;
     required string name  = 2;
-    required bytes  value = 3;
+    optional bytes  value = 3;
     
     repeated Transaction coin_proof    = 4;
     optional bytes       message_proof = 5;

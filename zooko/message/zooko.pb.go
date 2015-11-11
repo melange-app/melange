@@ -72,7 +72,7 @@ func (m *Transaction) GetValue() int32 {
 type ResolvedName struct {
 	Found            *bool          `protobuf:"varint,1,req,name=found" json:"found,omitempty"`
 	Name             *string        `protobuf:"bytes,2,req,name=name" json:"name,omitempty"`
-	Value            []byte         `protobuf:"bytes,3,req,name=value" json:"value,omitempty"`
+	Value            []byte         `protobuf:"bytes,3,opt,name=value" json:"value,omitempty"`
 	CoinProof        []*Transaction `protobuf:"bytes,4,rep,name=coin_proof" json:"coin_proof,omitempty"`
 	MessageProof     []byte         `protobuf:"bytes,5,opt,name=message_proof" json:"message_proof,omitempty"`
 	XXX_unrecognized []byte         `json:"-"`
