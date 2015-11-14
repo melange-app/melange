@@ -13,7 +13,7 @@ import (
 // UTXO.
 func (r *Server) Endow(address string) (*account.UTXO, error) {
 	// Send money to the address to endow
-	sendCmd, err := btcjson.NewSendToAddressCmd(nil, address, endowmentAmount, nil)
+	sendCmd, err := btcjson.NewSendToAddressCmd(nil, address, endowmentAmount)
 	if err != nil {
 		return nil, err
 	}
