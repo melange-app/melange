@@ -14,8 +14,16 @@ import (
 	"getmelange.com/zooko/message"
 )
 
-func (c *Client) checkAccountBalance(acc *account.Account) error {
-	if acc.Balance() < account.NameMinimumBalance {
+func (c *Client) checkAccountBalance(acc *account.Account, registration bool) error {
+	minimum := int64(account.NameMinimumBalance)
+	if registration {
+		// If we are doing the first registration of a name,
+		// we must have enough coins for two of the
+		// transactions.
+		minimum *= 2
+	}
+
+	if acc.Balance() < minimum {
 		// We must endow the account with funds.
 
 		// Grab the namecoin address of the account
@@ -57,7 +65,7 @@ func (c *Client) checkAccountBalance(acc *account.Account) error {
 		})
 
 		// Go ahead and ensure that the account is now over the minimum
-		return c.checkAccountBalance(acc)
+		return c.checkAccountBalance(acc, registration)
 	}
 
 	// Otherwise, we are good to go.

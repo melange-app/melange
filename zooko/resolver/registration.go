@@ -67,7 +67,7 @@ func (c *Client) Register(name string, reg *Registration, acc *account.Account) 
 		return err
 	}
 
-	if err := c.checkAccountBalance(acc); err != nil {
+	if err := c.checkAccountBalance(acc, true); err != nil {
 		return err
 	}
 
@@ -133,7 +133,7 @@ func (c *Client) Renew(name string, reg *Registration, acc *account.Account) err
 		return err
 	}
 
-	if err := c.checkAccountBalance(acc); err != nil {
+	if err := c.checkAccountBalance(acc, false); err != nil {
 		return err
 	}
 

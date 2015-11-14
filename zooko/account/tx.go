@@ -2,7 +2,7 @@ package account
 
 import (
 	"encoding/hex"
-	"errors"
+	"fmt"
 	"sort"
 
 	"github.com/melange-app/nmcd/btcutil"
@@ -84,7 +84,8 @@ func (a *Account) buildTransactionVersion(output []*wire.TxOut, version int32) (
 
 	// Ensure that we have enough money in the account to make the transaction.
 	if a.Balance() < amount {
-		return nil, errors.New("zooko: balance is too low to make transaction")
+		return nil, fmt.Errorf("zooko: balance (%d) is too low to make transaction (%d)",
+			a.Balance(), amount)
 	}
 
 	// Sort the transactions list by amount so that we pick the

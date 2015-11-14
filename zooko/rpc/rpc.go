@@ -2,6 +2,8 @@ package rpc
 
 import (
 	"errors"
+
+	"getmelange.com/zooko/account"
 	"github.com/melange-app/nmcd/btcjson"
 )
 
@@ -13,10 +15,10 @@ type Server struct {
 }
 
 const (
-	// This allows for four "transaction-units to occur":
+	// This allows for three "transaction-units to occur":
 	// - name_new + fee
 	// - name_firstupdate + fee
-	endowmentAmount = 5e5 * 4
+	endowmentAmount = account.NameMinimumBalance * 3
 )
 
 var (
