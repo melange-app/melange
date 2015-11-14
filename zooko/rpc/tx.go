@@ -97,7 +97,7 @@ func (r *Server) Broadcast(tx string) error {
 }
 
 func (r *Server) Confirmations(tx string) (int, error) {
-	cmd, err := btcjson.NewGetTransactionCmd(nil, tx)
+	cmd, err := btcjson.NewGetRawTransactionCmd(nil, tx, 1)
 	if err != nil {
 		return -1, err
 	}
@@ -107,7 +107,7 @@ func (r *Server) Confirmations(tx string) (int, error) {
 		return -1, *result.Error
 	}
 
-	txResult := result.Result.(*btcjson.GetTransactionResult)
+	txResult := result.Result.(*btcjson.TxRawResult)
 
 	return int(txResult.Confirmations), nil
 }
