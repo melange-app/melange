@@ -194,7 +194,7 @@ func (n *NamesManager) broadcastAndGetID(rawTx string) (string, error) {
 	}
 
 	// Get the Transaction ID
-	return result.Result.(*btcjson.TxRawResult).Txid, nil
+	return result.Result.(*btcjson.TxRawDecodeResult).Txid, nil
 }
 
 func (n *NamesManager) Register(msg *message.RegisterName) (bool, error) {
