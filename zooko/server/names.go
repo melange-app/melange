@@ -169,9 +169,7 @@ func (n *NamesManager) checkForConfirmations() {
 	}
 
 	// Overwrite the cache.
-	if len(newCache) != 0 {
-		n.cached = newCache
-	}
+	n.cached = newCache
 }
 
 func (n *NamesManager) broadcastAndGetID(rawTx string) (string, error) {
