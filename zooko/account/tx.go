@@ -30,6 +30,11 @@ type Transaction struct {
 	Spent []*UTXO
 	New   []*UTXO
 
+	// Name will help us determine whether or not this is a name
+	// transaction.
+	Name    string
+	NameOut *UTXO
+
 	// It includes a total amount.
 	Amount int64
 }
@@ -68,14 +73,23 @@ func (a *Account) TransferFunds(amount int64, pubkeyHash string) (*Transaction, 
 // UTXO that the account has stored.
 func (a *Account) buildTransaction(output []*wire.TxOut) (*Transaction, error) {
 	// Use the default transaction version = 1.
-	return a.buildTransactionVersion(output, defaultTransactionVersion)
+	return a.buildTransactionVersion(output, nil, defaultTransactionVersion)
 }
 
-func (a *Account) buildTransactionVersion(output []*wire.TxOut, version int32) (*Transaction, error) {
+func (a *Account) buildTransactionVersion(
+	output []*wire.TxOut,
+	input []*UTXO,
+	version int32,
+) (*Transaction, error) {
 	// Calculate the amount of the transaction.
 	var amount int64
 	for _, v := range output {
 		amount += v.Value
+	}
+
+	// Remove the amount associated with the inputs we already have.
+	for _, v := range input {
+		amount -= v.Amount
 	}
 
 	// Add the transaction fee to the outputs - we will not
@@ -101,19 +115,33 @@ func (a *Account) buildTransactionVersion(output []*wire.TxOut, version int32) (
 		// Get the next highest transaction
 		newTx := a.Unspent[len(toSpend)]
 
-		hash, err := wire.NewShaHashFromStr(newTx.TxID)
+		txIn, err := newTx.ToWire()
 		if err != nil {
 			return nil, err
 		}
 
 		// Convert the UTXO to a TxIn and add to the MsgTx. Currently no scriptSig.
-		msgTx.AddTxIn(
-			wire.NewTxIn(wire.NewOutPoint(hash, newTx.Output), nil),
-		)
+		msgTx.AddTxIn(txIn)
 
 		// Update our structures
 		toSpend = append(toSpend, newTx)
 		balance += newTx.Amount
+	}
+
+	for _, v := range input {
+		txIn, err := v.ToWire()
+		if err != nil {
+			return nil, err
+		}
+
+		msgTx.AddTxIn(txIn)
+
+		toSpend = append(toSpend, v)
+
+		// Update the balance and amount to reflect the real
+		// numbers.
+		balance += v.Amount
+		amount += v.Amount
 	}
 
 	msgTx.TxOut = output

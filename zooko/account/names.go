@@ -2,6 +2,7 @@ package account
 
 import (
 	"crypto/rand"
+	"errors"
 	"io"
 
 	"github.com/melange-app/nmcd/btcutil"
@@ -16,7 +17,7 @@ const (
 )
 
 // ... << OP_DUP << OP_HASH160 << hash160 << OP_EQUALVERIFY << OP_CHECKSIG
-func (a *Account) finishNameTransaction(sb *txscript.ScriptBuilder) (*Transaction, error) {
+func (a *Account) finishNameTransaction(name string, sb *txscript.ScriptBuilder, txIn []*UTXO) (*Transaction, error) {
 	pk := a.Keys.Key().PubKey().SerializeCompressed()
 
 	// Add the normal pk2pkh script at the end.
@@ -33,9 +34,24 @@ func (a *Account) finishNameTransaction(sb *txscript.ScriptBuilder) (*Transactio
 	}
 
 	// Build the transaction
-	finalTx, err := a.buildTransactionVersion(txOutput, nameTransactionVersion)
+	finalTx, err := a.buildTransactionVersion(txOutput, txIn, nameTransactionVersion)
 	if err != nil {
 		return nil, err
+	}
+
+	hash, err := finalTx.MsgTx.TxSha()
+	if err != nil {
+		return nil, err
+	}
+
+	// Give the finalTx information about its name status for
+	// commitment purposes.
+	finalTx.Name = name
+	finalTx.NameOut = &UTXO{
+		TxID:     hash.String(),
+		Output:   0,
+		Amount:   nameNetworkFee,
+		PkScript: script,
 	}
 
 	return finalTx, nil
@@ -62,7 +78,7 @@ func (a *Account) CreateNameNew(name string) (*Transaction, []byte, error) {
 	// Build the name script
 	sb.AddOp(txscript.OP_1).AddData(hash).AddOp(txscript.OP_2DROP)
 
-	tx, err := a.finishNameTransaction(sb)
+	tx, err := a.finishNameTransaction(name, sb, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -82,7 +98,12 @@ func (a *Account) CreateNameFirstUpdate(rand []byte, name, value string) (*Trans
 		AddData([]byte(name)).AddData(rand).AddData([]byte(value)).
 		AddOp(txscript.OP_2DROP).AddOp(txscript.OP_2DROP)
 
-	return a.finishNameTransaction(sb)
+	lastTx, err := a.getLastNameTx(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.finishNameTransaction(name, sb, lastTx)
 }
 
 // CreateNameUpdate will make a new transation that updates a name to
@@ -97,5 +118,21 @@ func (a *Account) CreateNameUpdate(name, value string) (*Transaction, error) {
 		AddData([]byte(name)).AddData([]byte(value)).
 		AddOp(txscript.OP_2DROP).AddOp(txscript.OP_DROP)
 
-	return a.finishNameTransaction(sb)
+	lastTx, err := a.getLastNameTx(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.finishNameTransaction(name, sb, lastTx)
+}
+
+func (a *Account) getLastNameTx(name string) ([]*UTXO, error) {
+	txList, ok := a.NameTx[name]
+	if !ok || len(txList) < 1 {
+		return nil, errors.New("zooko: cannot update a name without previously registering that name")
+	}
+
+	return []*UTXO{
+		txList[len(txList)-1],
+	}, nil
 }

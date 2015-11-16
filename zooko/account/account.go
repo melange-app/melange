@@ -3,6 +3,7 @@ package account
 import (
 	"github.com/melange-app/nmcd/btcec"
 	"github.com/melange-app/nmcd/btcutil"
+	"github.com/melange-app/nmcd/wire"
 )
 
 const (
@@ -17,6 +18,12 @@ type Account struct {
 	Keys    *Key
 	Unspent UTXOList
 	Pending []*Transaction
+
+	// NameTx are transactions that are associated with a
+	// particular name, assuming that we never let a name expire -
+	// we should be able to use the last Tx in the list as an
+	// input for an update.
+	NameTx map[string]UTXOList
 }
 
 // CreateAccount will generate a new Namecoin address and associated
@@ -29,13 +36,18 @@ func CreateAccount() (*Account, error) {
 	accountKey := Key(*key)
 
 	return &Account{
-		Keys: &accountKey,
+		Keys:   &accountKey,
+		NameTx: make(map[string]UTXOList),
 	}, nil
 }
 
 // Commit will update the UTXO graph for this account to reflect the
 // changes in Transaction.
 func (a *Account) Commit(t *Transaction) {
+	if a.NameTx == nil {
+		a.NameTx = make(map[string]UTXOList)
+	}
+
 	var utxo UTXOList
 
 	// Add all the new transactions to the list.
@@ -54,6 +66,13 @@ func (a *Account) Commit(t *Transaction) {
 	}
 
 	a.Unspent = utxo
+
+	// Update the name transactions in the account.
+	if t.Name != "" {
+		txList := a.NameTx[t.Name]
+		txList = append(txList, t.NameOut)
+		a.NameTx[t.Name] = txList
+	}
 }
 
 // Balance will return the balance of the wallet.
@@ -96,4 +115,15 @@ type UTXO struct {
 
 func (u *UTXO) Equals(y *UTXO) bool {
 	return (u.TxID == y.TxID) && (u.Output == y.Output)
+}
+
+func (u *UTXO) ToWire() (*wire.TxIn, error) {
+	hash, err := wire.NewShaHashFromStr(u.TxID)
+	if err != nil {
+		return nil, err
+	}
+
+	return wire.NewTxIn(
+		wire.NewOutPoint(hash, u.Output), nil,
+	), nil
 }
