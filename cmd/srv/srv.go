@@ -31,5 +31,9 @@ func (c *Command) Help() string {
 	return `usage: melange srv [command]
 
 Server will handle the publishing of Dispatcher servers for users.
+
+List of commands:
+
+	publish		walk through publishing a server to Melange
 `
 }
