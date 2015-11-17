@@ -6,6 +6,7 @@ const (
 	// Server message types.
 	TypeTransaction          = "ZK-TX"
 	TypeResolvedName         = "ZK-RS"
+	TypeListNames            = "ZK-LS"
 	TypeTransferFunds        = "ZK-TF"
 	TypeRegistrationResponse = "ZK-RR"
 
@@ -23,6 +24,8 @@ func getMessageType(m proto.Message) string {
 		return TypeTransaction
 	case *ResolvedName:
 		return TypeResolvedName
+	case *ListName:
+		return TypeListNames
 	case *TransferFunds:
 		return TypeTransferFunds
 	case *RegistrationResponse:

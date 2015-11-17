@@ -69,3 +69,34 @@ func (c *Client) lookupString(name string) (string, bool, error) {
 
 	return string(parsed.Value), *parsed.Found, nil
 }
+
+func (c *Client) LookupPrefix(prefix string) ([]string, error) {
+	trueVal := true
+	msg, err := message.CreateMessage(&message.LookupName{
+		Lookup: &prefix,
+		Prefix: &trueVal,
+	}, c.Origin, config.ServerAddress())
+	if err != nil {
+		return nil, err
+	}
+
+	data, typ, h, err := adMessage.SendMessageAndReceiveWithTimestamp(
+		msg, c.Origin, config.ServerAddress())
+	if err != nil {
+		return nil, err
+	} else if typ == wire.ErrorCode {
+		return nil, adErrors.CreateErrorFromBytes(data, h)
+	}
+
+	if typ != message.TypeListNames {
+		return nil, errors.New("zooko/resolver: received incorrect message reply")
+	}
+
+	parsed := new(message.ListName)
+	err = proto.Unmarshal(data, parsed)
+	if err != nil {
+		return nil, err
+	}
+
+	return parsed.Name, nil
+}
