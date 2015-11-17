@@ -44,10 +44,8 @@ type PublishRequest struct {
 	account     *account.Account
 	accountFile string
 
-	ID          string
-	Name        string
-	Description string
-	Location    string
+	ID       string
+	Location string
 }
 
 func createPublishRequest() *PublishRequest {
@@ -119,7 +117,7 @@ func (p *PublishRequest) checkServerIdentifier(id string) error {
 		return err
 	}
 
-	if _, found, err := p.client.LookupServer(serverPrefix + id); err != nil {
+	if _, found, err := p.client.Lookup(serverPrefix + id); err != nil {
 		return err
 	} else if found {
 		return errIDTaken
@@ -134,12 +132,6 @@ func (p *PublishRequest) getInput(name string) error {
 	text = strings.TrimSpace(text)
 
 	switch name {
-	case serverName:
-		p.Name = text
-		fallthrough
-	case serverDescription:
-		p.Description = text
-		fallthrough
 	case serverLocation:
 		p.Location = text
 		return p.checkEmpty(text)
@@ -166,15 +158,11 @@ func (p *PublishRequest) getInput(name string) error {
 }
 
 func (p *PublishRequest) performRegistration() error {
-	reg := &resolver.ServerRegistration{
-		Name:        p.Name,
-		Description: p.Description,
-		Registration: resolver.CreateRegistrationFromIdentity(
-			p.identity, // Identity
-			p.ID,       // Identifier
-			p.Location, // Location
-		),
-	}
+	reg := resolver.CreateRegistrationFromIdentity(
+		p.identity, // Identity
+		p.ID,       // Identifier
+		p.Location, // Location
+	)
 
 	if err := p.client.Register(serverPrefix+p.ID, reg, p.account); err != nil {
 		return err
@@ -211,21 +199,6 @@ func (c *Command) RunPublish(extra []string) {
 
 	fmt.Print("Namecoin Account Location [*.nmc]: ")
 	if err := p.getInput(namecoinAccount); err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	// Description Information
-	fmt.Println("These questions refer to the human-readable listing of the server in the directory.")
-
-	fmt.Print("Server Name [Melange Official Server]: ")
-	if err := p.getInput(serverName); err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Print("Server Description: ")
-	if err := p.getInput(serverDescription); err != nil {
 		fmt.Println(err)
 		return
 	}

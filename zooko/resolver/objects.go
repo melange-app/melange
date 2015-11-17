@@ -12,15 +12,6 @@ type AppRegistration struct {
 	Manifest string `json:"manifest"`
 }
 
-// ServerRegistration represents a registration for a server to be
-// listed in the public directory with the given name and description.
-type ServerRegistration struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-
-	*Registration
-}
-
 // Registration reflects a JSON serializable registration to be
 // included in the Namecoin blockchain.
 type Registration struct {

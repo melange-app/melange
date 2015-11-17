@@ -31,20 +31,6 @@ func (c *Client) LookupApp(name string) (*AppRegistration, bool, error) {
 	return app, found, nil
 }
 
-func (c *Client) LookupServer(name string) (*ServerRegistration, bool, error) {
-	srv := new(ServerRegistration)
-	found, err := c.lookupJSON(name, srv)
-	if err != nil || !found {
-		return nil, found, err
-	}
-
-	if srv.Name == "" || srv.Description == "" {
-		return nil, found, ErrInvalidRegistration
-	}
-
-	return srv, true, c.validateRegistration(srv.Registration)
-}
-
 // Lookup will return a registration associated with a zooko server.
 func (c *Client) Lookup(name string) (*Registration, bool, error) {
 	reg := new(Registration)
