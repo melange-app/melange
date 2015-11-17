@@ -17,23 +17,6 @@ import (
 	"getmelange.com/zooko/message"
 )
 
-// Registration reflects a JSON serializable registration to be
-// included in the Namecoin blockchain.
-type Registration struct {
-	Address       string `json:"address"`
-	EncryptionKey []byte `json:"encryption"`
-	Location      string `json:"location"`
-
-	Redirects map[string]Redirect `json:"redirects"`
-}
-
-// Redirect allows lookups on registration types to be redirected to a
-// different registration to find the details.
-type Redirect struct {
-	Alias   string `json:"alias"`
-	Address string `json:"address"`
-}
-
 func (c *Client) getRegistrationResponse(msg adMessage.Message) error {
 	data, typ, h, err := adMessage.SendMessageAndReceiveWithTimestamp(msg, c.Origin, config.ServerAddress())
 	if err != nil {
@@ -57,7 +40,7 @@ func (c *Client) getRegistrationResponse(msg adMessage.Message) error {
 }
 
 // Register will handle the registration of a new name in the Zooko server.
-func (c *Client) Register(name string, reg *Registration, acc *account.Account) error {
+func (c *Client) Register(name string, reg interface{}, acc *account.Account) error {
 	if _, found, _ := c.lookupString(name); found {
 		return errors.New("zooko: cannot register name that already exists")
 	}

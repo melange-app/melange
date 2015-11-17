@@ -17,27 +17,68 @@ var (
 	ErrInvalidRegistration = errors.New("zooko/resolver: returned value is not a valid zooko registration")
 )
 
-// Lookup will return a registration associated with a zooko server.
-func (c *Client) Lookup(name string) (*Registration, bool, error) {
-	val, found, err := c.lookupString(name)
-	if err != nil || !found {
+func (c *Client) LookupApp(name string) (*AppRegistration, bool, error) {
+	app := new(AppRegistration)
+	found, err := c.lookupJSON(name, app)
+	if err != nil {
 		return nil, found, err
 	}
 
-	reg := new(Registration)
-	if err := json.Unmarshal([]byte(val), reg); err != nil {
-		fmt.Println("Received error unmarshalling", name, err)
-		return nil, true, ErrInvalidRegistration
+	if app.Name == "" || app.Manifest == "" {
+		return nil, found, ErrInvalidRegistration
 	}
 
+	return app, found, nil
+}
+
+func (c *Client) LookupServer(name string) (*ServerRegistration, bool, error) {
+	srv := new(ServerRegistration)
+	found, err := c.lookupJSON(name, srv)
+	if err != nil {
+		return nil, found, err
+	}
+
+	if srv.Name == "" || srv.Description == "" {
+		return nil, found, ErrInvalidRegistration
+	}
+
+	return srv, true, c.validateRegistration(srv.Registration)
+}
+
+// Lookup will return a registration associated with a zooko server.
+func (c *Client) Lookup(name string) (*Registration, bool, error) {
+	reg := new(Registration)
+	found, err := c.lookupJSON(name, reg)
+	if err != nil {
+		return nil, found, err
+	}
+
+	return reg, true, c.validateRegistration(reg)
+}
+
+func (c *Client) validateRegistration(reg *Registration) error {
 	// All registration fields are required.
 	if reg.Address == "" ||
 		len(reg.EncryptionKey) == 0 ||
 		reg.Location == "" {
-		return nil, true, ErrInvalidRegistration
+		return ErrInvalidRegistration
 	}
 
-	return reg, true, err
+	return nil
+}
+
+func (c *Client) lookupJSON(name string, obj interface{}) (bool, error) {
+	val, found, err := c.lookupString(name)
+	if err != nil || !found {
+		return found, err
+	}
+
+	if err := json.Unmarshal([]byte(val), obj); err != nil {
+		fmt.Println("Received error unmarshalling", name, err)
+		return true, ErrInvalidRegistration
+	}
+
+	return true, nil
 }
 
 // Lookup will check to see if the Zooko server
