@@ -10,6 +10,19 @@ import (
 	"airdispat.ch/routing"
 )
 
+type dnsChainResult struct {
+	Version string            `json:"version"`
+	Header  map[string]string `json:"header"`
+	Data    struct {
+		Name      string                `json:"name"`
+		Value     *namecoinRegistration `json:"value"`
+		TXID      string                `json:"txid"`
+		Address   string                `json:"address"`
+		ExpiresIn int                   `json:"expires_in"`
+		Expired   int                   `json:"expired"`
+	} `json:"data"`
+}
+
 func (r *Router) lookupDNSChain(addr string, name routing.LookupType, redirects int) (*identity.Address, error) {
 	if redirects > 10 {
 		return nil, errors.New("zooko: too many redirects")
