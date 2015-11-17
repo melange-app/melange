@@ -32,7 +32,7 @@ func (r *ZookoServer) handleLookupName(data []byte, h message.Header) (message.M
 		return nil, err
 	}
 
-	if *msg.Prefix {
+	if msg.Prefix != nil && *msg.Prefix {
 		values, err := r.Names.LookupAll(*msg.Lookup)
 		if err != nil {
 			return nil, err
