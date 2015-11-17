@@ -20,7 +20,7 @@ var (
 func (c *Client) LookupApp(name string) (*AppRegistration, bool, error) {
 	app := new(AppRegistration)
 	found, err := c.lookupJSON(name, app)
-	if err != nil {
+	if err != nil || !found {
 		return nil, found, err
 	}
 
@@ -34,7 +34,7 @@ func (c *Client) LookupApp(name string) (*AppRegistration, bool, error) {
 func (c *Client) LookupServer(name string) (*ServerRegistration, bool, error) {
 	srv := new(ServerRegistration)
 	found, err := c.lookupJSON(name, srv)
-	if err != nil {
+	if err != nil || !found {
 		return nil, found, err
 	}
 
@@ -49,7 +49,7 @@ func (c *Client) LookupServer(name string) (*ServerRegistration, bool, error) {
 func (c *Client) Lookup(name string) (*Registration, bool, error) {
 	reg := new(Registration)
 	found, err := c.lookupJSON(name, reg)
-	if err != nil {
+	if err != nil || !found {
 		return nil, found, err
 	}
 
