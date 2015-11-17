@@ -38,9 +38,11 @@ var (
 
 type PublishRequest struct {
 	reader   *bufio.Reader
-	account  *account.Account
 	identity *identity.Identity
 	client   *resolver.Client
+
+	account     *account.Account
+	accountFile string
 
 	ID          string
 	Name        string
@@ -78,6 +80,7 @@ func (p *PublishRequest) checkNamecoinAccount(file string) error {
 		return err
 	}
 
+	p.accountFile = file
 	f, err := os.Open(file)
 	if err != nil {
 		return err
@@ -116,7 +119,7 @@ func (p *PublishRequest) checkServerIdentifier(id string) error {
 		return err
 	}
 
-	if _, found, err := p.client.Lookup(serverPrefix + id); err != nil {
+	if _, found, err := p.client.LookupServer(serverPrefix + id); err != nil {
 		return err
 	} else if found {
 		return errIDTaken
@@ -173,7 +176,21 @@ func (p *PublishRequest) performRegistration() error {
 		),
 	}
 
-	return p.client.Register(serverPrefix+p.ID, reg, p.account)
+	if err := p.client.Register(serverPrefix+p.ID, reg, p.account); err != nil {
+		return err
+	}
+
+	file, err := os.Create(p.accountFile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if err = p.account.Serialize(file); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Command) RunPublish(extra []string) {
