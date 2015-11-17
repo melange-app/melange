@@ -1,6 +1,66 @@
 package rpc
 
-import "github.com/melange-app/nmcd/btcjson"
+import (
+	"strings"
+
+	"github.com/melange-app/nmcd/btcjson"
+)
+
+const (
+	lowestValue  = "0"
+	lookupLength = 50
+	numToSee     = 20
+)
+
+func (r *Server) LookupPrefix(prefix string) ([]string, error) {
+	var foundNames []string
+
+	iteration := 0
+	search := prefix
+	for iteration < lookupLength {
+		search = search + lowestValue
+
+		currentSearch := search
+		alreadyRun := false
+	findLoop:
+		for {
+			cmd, err := btcjson.NewNameScanCmd(nil, currentSearch, numToSee)
+			if err != nil {
+				return nil, err
+			}
+
+			reply, err := r.Send(cmd)
+			if err != nil {
+				return nil, err
+			}
+
+			if reply.Result == nil {
+				return nil, errNilReply
+			}
+
+			nameScan := reply.Result.([]*btcjson.NameScanResult)
+
+			for index, result := range nameScan {
+				// Don't want to repeat names.
+				if alreadyRun && index == 0 {
+					continue
+				}
+
+				if strings.HasPrefix(result.Name, prefix) {
+					foundNames = append(foundNames, result.Name)
+					currentSearch = result.Name
+				} else {
+					break findLoop
+				}
+			}
+			alreadyRun = true
+		}
+
+		iteration++
+	}
+
+	return foundNames, nil
+}
 
 func (r *Server) LookupName(name string) (string, bool, error) {
 	cmd, err := btcjson.NewNameShowCmd(nil, name)

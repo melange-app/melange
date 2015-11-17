@@ -69,13 +69,36 @@ func (m *Transaction) GetValue() int32 {
 	return 0
 }
 
+type Proof struct {
+	Type             *string `protobuf:"bytes,1,req,name=type" json:"type,omitempty"`
+	Value            []byte  `protobuf:"bytes,2,req,name=value" json:"value,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *Proof) Reset()         { *m = Proof{} }
+func (m *Proof) String() string { return proto.CompactTextString(m) }
+func (*Proof) ProtoMessage()    {}
+
+func (m *Proof) GetType() string {
+	if m != nil && m.Type != nil {
+		return *m.Type
+	}
+	return ""
+}
+
+func (m *Proof) GetValue() []byte {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
+
 type ResolvedName struct {
-	Found            *bool          `protobuf:"varint,1,req,name=found" json:"found,omitempty"`
-	Name             *string        `protobuf:"bytes,2,req,name=name" json:"name,omitempty"`
-	Value            []byte         `protobuf:"bytes,3,opt,name=value" json:"value,omitempty"`
-	CoinProof        []*Transaction `protobuf:"bytes,4,rep,name=coin_proof" json:"coin_proof,omitempty"`
-	MessageProof     []byte         `protobuf:"bytes,5,opt,name=message_proof" json:"message_proof,omitempty"`
-	XXX_unrecognized []byte         `json:"-"`
+	Found            *bool    `protobuf:"varint,1,req,name=found" json:"found,omitempty"`
+	Name             *string  `protobuf:"bytes,2,req,name=name" json:"name,omitempty"`
+	Value            []byte   `protobuf:"bytes,3,opt,name=value" json:"value,omitempty"`
+	Proof            []*Proof `protobuf:"bytes,4,rep,name=proof" json:"proof,omitempty"`
+	XXX_unrecognized []byte   `json:"-"`
 }
 
 func (m *ResolvedName) Reset()         { *m = ResolvedName{} }
@@ -103,16 +126,25 @@ func (m *ResolvedName) GetValue() []byte {
 	return nil
 }
 
-func (m *ResolvedName) GetCoinProof() []*Transaction {
+func (m *ResolvedName) GetProof() []*Proof {
 	if m != nil {
-		return m.CoinProof
+		return m.Proof
 	}
 	return nil
 }
 
-func (m *ResolvedName) GetMessageProof() []byte {
+type ListName struct {
+	Name             []string `protobuf:"bytes,1,rep,name=name" json:"name,omitempty"`
+	XXX_unrecognized []byte   `json:"-"`
+}
+
+func (m *ListName) Reset()         { *m = ListName{} }
+func (m *ListName) String() string { return proto.CompactTextString(m) }
+func (*ListName) ProtoMessage()    {}
+
+func (m *ListName) GetName() []string {
 	if m != nil {
-		return m.MessageProof
+		return m.Name
 	}
 	return nil
 }
@@ -199,6 +231,7 @@ func (m *RequestFunds) GetAddress() string {
 
 type LookupName struct {
 	Lookup           *string `protobuf:"bytes,1,req,name=lookup" json:"lookup,omitempty"`
+	Prefix           *bool   `protobuf:"varint,2,opt,name=prefix" json:"prefix,omitempty"`
 	XXX_unrecognized []byte  `json:"-"`
 }
 
@@ -211,6 +244,13 @@ func (m *LookupName) GetLookup() string {
 		return *m.Lookup
 	}
 	return ""
+}
+
+func (m *LookupName) GetPrefix() bool {
+	if m != nil && m.Prefix != nil {
+		return *m.Prefix
+	}
+	return false
 }
 
 type RegisterName struct {

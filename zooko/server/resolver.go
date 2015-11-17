@@ -32,6 +32,17 @@ func (r *ZookoServer) handleLookupName(data []byte, h message.Header) (message.M
 		return nil, err
 	}
 
+	if *msg.Prefix {
+		values, err := r.Names.LookupAll(*msg.Lookup)
+		if err != nil {
+			return nil, err
+		}
+
+		return zMessage.CreateMessage(&zMessage.ListName{
+			Name: values,
+		}, r.Key, h.From)
+	}
+
 	value, found, err := r.Names.Lookup(*msg.Lookup)
 	if err != nil {
 		return nil, err

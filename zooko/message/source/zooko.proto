@@ -16,15 +16,25 @@ message Transaction {
     optional int32  value               = 6;
 }
 
+// Proof will carry proof that the name is of the person specified.
+message Proof {
+    required string type  = 1;
+    required bytes  value = 2;
+}
+
 // ResolvedName is used to provide an answer to name queries. It may
 // or may not carry proof in the form of a list of transactions.
 message ResolvedName {
     required bool   found = 1;
     required string name  = 2;
     optional bytes  value = 3;
-    
-    repeated Transaction coin_proof    = 4;
-    optional bytes       message_proof = 5;
+
+    repeated Proof proof = 4;
+}
+
+// ListName is used to provide a list of names to the client.
+message ListName {
+    repeated string name = 1;
 }
 
 // TransferFunds is a response to RequestFunds that includes the
@@ -57,6 +67,7 @@ message RequestFunds {
 
 message LookupName {
     required string lookup = 1;
+    optional bool   prefix = 2;
 }
 
 // RegisterName will 

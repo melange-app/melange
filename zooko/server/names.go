@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"getmelange.com/zooko/message"
@@ -21,8 +22,11 @@ const (
 )
 
 type lookupRequest struct {
-	Name     string
-	Response chan *[]byte
+	Name   string
+	Prefix bool
+
+	Response       chan *[]byte
+	PrefixResponse chan []string
 }
 
 type registerRequest struct {
@@ -82,20 +86,37 @@ func (n *NamesManager) loop() {
 	for {
 		select {
 		case l := <-n.lookup:
-			val, ok := n.cached[l.Name]
-			if !ok {
-				l.Response <- nil
-				continue
+			if l.Prefix {
+				l.PrefixResponse <- n.lookupPrefix(l.Name)
+			} else {
+				l.Response <- n.lookupName(l.Name)
 			}
-
-			l.Response <- &val.Value
-
 		case r := <-n.register:
 			n.cached[r.Name] = r
 		case <-n.confirmationTimer.C:
 			n.checkForConfirmations()
 		}
 	}
+}
+
+func (n *NamesManager) lookupPrefix(prefix string) []string {
+	var found []string
+	for index := range n.cached {
+		if strings.HasPrefix(index, prefix) {
+			found = append(found, index)
+		}
+	}
+
+	return found
+}
+
+func (n *NamesManager) lookupName(name string) *[]byte {
+	val, ok := n.cached[name]
+	if !ok {
+		return nil
+	}
+
+	return &val.Value
 }
 
 func (n *NamesManager) checkForConfirmations() {
@@ -232,6 +253,24 @@ func (n *NamesManager) Renew(msg *message.RenewName) error {
 		TxID:  txId,
 	}
 	return nil
+}
+
+func (n *NamesManager) LookupAll(prefix string) ([]string, error) {
+	resp := make(chan []string)
+	n.lookup <- lookupRequest{
+		Name:           prefix,
+		Prefix:         true,
+		PrefixResponse: resp,
+	}
+
+	data := <-resp
+
+	found, err := n.Server.LookupPrefix(prefix)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(data, found...), nil
 }
 
 func (n *NamesManager) Lookup(name string) ([]byte, bool, error) {
