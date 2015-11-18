@@ -22,7 +22,7 @@ func (s *ServerLists) Get(req *router.Request) framework.View {
 		extra += "?debug=true"
 	}
 
-	packages, err := s.Packager.DecodeProviders(s.Packager.API + extra)
+	packages, err := s.Packager.GetServers()
 	if err != nil {
 		fmt.Println(err)
 		return framework.Error500

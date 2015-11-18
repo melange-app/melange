@@ -2,14 +2,18 @@ package packaging
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
+
+	"getmelange.com/zooko/resolver"
 
 	"airdispat.ch/crypto"
 	"airdispat.ch/identity"
+)
+
+const (
+	melangeServerPrefix = "mlg/server/"
 )
 
 // Provider is a JSON Object that represents either a Server or a Tracker.
@@ -29,6 +33,34 @@ type Provider struct {
 	Proof string            `json:"proof"`
 	Users int               `json:"users"`
 	Key   *identity.Address `json:"-"`
+}
+
+func CreateProviderFromRegistration(r *resolver.Registration) (*Provider, error) {
+	address := identity.CreateAddressFromString(r.Address)
+	key, err := crypto.BytesToRSA(r.EncryptionKey)
+	if err != nil {
+		return nil, err
+	}
+
+	address.EncryptionKey = key
+	address.Location = r.Location
+
+	return &Provider{
+		Id: melangeServerPrefix + r.Alias,
+
+		// Filler for when we actually have market data.
+		Name:        r.Alias,
+		Description: r.Alias,
+
+		// Information needed to send to the server
+		Fingerprint:   r.Address,
+		EncryptionKey: hex.EncodeToString(r.EncryptionKey),
+		Alias:         r.Alias,
+		URL:           r.Location,
+
+		// The AirDispatch address that we really care about.
+		Key: address,
+	}, nil
 }
 
 // LoadDefaults will do several things on a provider.
@@ -53,12 +85,7 @@ func (p *Provider) LoadDefaults() error {
 	return nil
 }
 
-// http://www.getmelange.com/api
-// GET /servers
-// GET /trackers
-// GET /applications
-
-// Packager is an object that returns providers from getmelange.com
+// Packager will return the Melange resources from the blockchain.
 type Packager struct {
 	API    string
 	Plugin string
@@ -66,95 +93,63 @@ type Packager struct {
 	cache  map[string]map[string]*Provider
 }
 
-func (p *Packager) DecodeProviders(url string) ([]*Provider, error) {
-	if p.cache == nil {
-		p.cache = make(map[string]map[string]*Provider)
-	}
-
-	if p.cache[url] == nil {
-		p.cache[url] = make(map[string]*Provider)
-		resp, err := http.Get(url)
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
-
-		dec := json.NewDecoder(resp.Body)
-
-		var obj []*Provider
-		err = dec.Decode(&obj)
-		if err != nil {
-			return nil, err
-		}
-
-		var out = make([]*Provider, 0)
-		for _, v := range obj {
-			err := v.LoadDefaults()
-			if err == nil {
-				out = append(out, v)
-				p.cache[url][v.Id] = v
-			}
-		}
-		return out, nil
-	}
-
-	var out = make([]*Provider, len(p.cache[url]))
-	i := 0
-	for _, v := range p.cache[url] {
-		out[i] = v
-		i++
-	}
-	return out, nil
-}
-
 // GetServers will download Servers from getmelange.com.
 func (p *Packager) GetServers() ([]*Provider, error) {
-	var extra = "/servers"
+	id, err := identity.CreateIdentity()
+	if err != nil {
+		return nil, err
+	}
 
-	return p.DecodeProviders(p.API + extra)
-}
+	client := resolver.CreateClient(id)
+	names, err := client.LookupPrefix(melangeServerPrefix)
+	if err != nil {
+		return nil, err
+	}
 
-// GetTrackers will download Trackers from getmelange.com.
-func (p *Packager) GetTrackers() ([]*Provider, error) {
-	var extra = "/trackers"
-
-	return p.DecodeProviders(p.API + extra)
-}
-
-func (p *Packager) getFromId(id string, url string) (*Provider, error) {
-	if p.cache == nil || p.cache[url] == nil {
-		_, err := p.DecodeProviders(url)
-		if err != nil {
-			return nil, err
+	var providers []*Provider
+	for _, name := range names {
+		registration, found, err := client.Lookup(name)
+		if err != nil || !found {
+			// Ignore errors from objects that cannot
+			// return their registrations.
+			continue
 		}
-	}
-	provider, ok := p.cache[url][id]
-	if !ok {
-		return nil, errors.New("That id doesn't exist.")
-	}
-	return provider, nil
-}
 
-// TrackerFromId will return the Provider instance associated with a particular
-// Id.
-func (p *Packager) TrackerFromId(id string) (*Provider, error) {
-	extra := "/trackers"
-	if p.Debug {
-		extra += "?debug=true"
+		provider, err := CreateProviderFromRegistration(registration)
+		if err != nil {
+			// Ignore errors about incorrect
+			// serialization. They will not be included in
+			// the marketplace.
+			continue
+		}
+
+		providers = append(providers, provider)
 	}
 
-	return p.getFromId(id, p.API+extra)
+	return providers, nil
 }
 
 // ServerFromId will return the Provider instance associated with a particular
 // Id.
 func (p *Packager) ServerFromId(id string) (*Provider, error) {
-	extra := "/servers"
-	if p.Debug {
-		extra += "?debug=true"
+	// Ensure that we are looking up a server.
+	if !strings.HasPrefix(id, melangeServerPrefix) {
+		id = melangeServerPrefix + id
 	}
 
-	return p.getFromId(id, p.API+extra)
+	key, err := identity.CreateIdentity()
+	if err != nil {
+		return nil, err
+	}
+
+	registration, found, err := resolver.CreateClient(key).Lookup(id)
+	if err != nil {
+		return nil, err
+	} else if !found {
+		return nil, errors.New("packaging: cannot get a server that doesn't exist")
+	}
+
+	return CreateProviderFromRegistration(registration)
 }
 
 // GetApps will (in the future) return the Applications from getmelange.com
