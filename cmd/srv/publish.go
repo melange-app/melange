@@ -164,17 +164,20 @@ func (p *PublishRequest) performRegistration() error {
 		p.Location, // Location
 	)
 
+	defer func() {
+		file, err := os.Create(p.accountFile)
+		if err != nil {
+			fmt.Println("Unable to save namecoin key", err)
+			return
+		}
+
+		if err := p.account.Serialize(file); err != nil {
+			fmt.Println("Unable to serialize namecoin key", err)
+		}
+		file.Close()
+	}()
+
 	if err := p.client.Register(serverPrefix+p.ID, reg, p.account); err != nil {
-		return err
-	}
-
-	file, err := os.Create(p.accountFile)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	if err = p.account.Serialize(file); err != nil {
 		return err
 	}
 
